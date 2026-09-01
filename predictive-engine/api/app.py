@@ -16,9 +16,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 try:
-    from predictive_engine.api.qa_engine import AgriQChatbotEngine
-except ImportError:
-    from api.qa_engine import AgriQChatbotEngine
+    from .qa_engine import AgriQChatbotEngine
+except (ImportError, ValueError):
+    try:
+        from qa_engine import AgriQChatbotEngine
+    except ImportError:
+        from predictive_engine.api.qa_engine import AgriQChatbotEngine
 
 CACHED_RECORDS: List[Dict] = []
 qa_engine = AgriQChatbotEngine()
