@@ -8,41 +8,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { parseScan } from "@/lib/scan"
 
 const REGION_ID = "agriq-qr-region"
 
 /**
  * Scan-to-check-in. P2 generates the farmer's pass QR with qrcode.react; this
- * reads it back at the gate.
- *
- * The payload contract is not locked yet, so `parseScan` accepts the three
- * shapes it could reasonably be. Once P2 confirms, narrow it.
+ * reads it back at the gate. The payload parsing itself lives in lib/scan.ts.
  */
-export function parseScan(raw: string): { token?: string; bookingId?: string } {
-  const text = raw.trim()
-
-  // Shape 1: JSON, e.g. {"token_number":"LSG-1004","booking_id":"..."}
-  if (text.startsWith("{")) {
-    try {
-      const obj = JSON.parse(text) as Record<string, unknown>
-      return {
-        token: typeof obj.token_number === "string" ? obj.token_number : undefined,
-        bookingId: typeof obj.booking_id === "string" ? obj.booking_id : undefined,
-      }
-    } catch {
-      // fall through to the plain-text shapes
-    }
-  }
-
-  // Shape 2: a bare UUID — the booking_id.
-  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(text)) {
-    return { bookingId: text }
-  }
-
-  // Shape 3: a bare token, e.g. LSG-1004. Also tolerates a URL ending in one.
-  const tail = text.split("/").pop() ?? text
-  return { token: tail.toUpperCase() }
-}
 
 interface Props {
   open: boolean

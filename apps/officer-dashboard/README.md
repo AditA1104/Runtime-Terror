@@ -12,20 +12,31 @@ With no `.env.local`, the app runs on a **seeded local dataset** — 5 centres,
 ~90 bookings spread across every stage. Nothing to install, nothing to connect.
 A "Demo data" badge in the header tells you which mode you're in.
 
-## Smoke tests
+## Tests
 
 ```bash
+npm test                          # unit — the pure logic in src/lib
 npx playwright install chromium   # once
-npm run test:e2e                  # or test:e2e:ui to watch them
+npm run test:e2e                  # end-to-end — or test:e2e:ui to watch
 ```
 
-Seven Playwright specs cover the desk in mock mode: the sign-in gate, the queue
+**Unit (Vitest, 67 tests).** `src/lib/*.test.ts` — the state machine, the
+metric derivations, the formatters, and QR payload parsing. The bottleneck rule
+("most farmer-minutes, not the longest queue") and the check that BOOKED is
+never blamed both live in `metrics.test.ts`.
+
+**End-to-end (Playwright, 7 specs).** The desk in mock mode: sign-in gate, queue
 table, filters, search, the three tabs, advancing a farmer through a checkpoint,
 and the cross-tab BroadcastChannel sync. They start their own dev server on port
-5175, so they don't collide with a hand-run `npm run dev`.
+5175, so they don't collide with a hand-run `npm run dev`. The seeded dataset is
+deterministic (fixed-seed PRNG in `src/data/mock.ts`), so they assert on real
+token numbers rather than shapes.
 
-The seeded dataset is deterministic (fixed-seed PRNG in `src/data/mock.ts`), so
-these assert on real token numbers rather than shapes.
+Both run in CI on any PR touching this app —
+`.github/workflows/officer-dashboard.yml`.
+
+> The Supabase branch of `repository.ts` has **no coverage** — it cannot run
+> until the RLS ask below lands. That is the module's main untested surface.
 
 ## Going live
 
@@ -44,6 +55,7 @@ No component changes — that seam is the whole point of the file.
 | `src/lib/types.ts` | Row shapes, hand-mirrored from `agriq_schema.sql` |
 | `src/lib/status.ts` | The state machine + checkpoint definitions |
 | `src/lib/metrics.ts` | Pure derivations — turnaround, bottleneck, capacity |
+| `src/lib/scan.ts` | QR payload parsing (camera-free, so it's unit-tested) |
 | `src/data/repository.ts` | **The only file that talks to Supabase** |
 | `src/data/mock.ts` | Seeded stand-in dataset |
 | `src/components/queue/` | Queue desk, checkpoint dialog, status badges |
@@ -142,8 +154,9 @@ mode exists and is demo-quality rather than a throwaway.
 
 - **Realtime on `bookings`** — P6's checklist item. Without it the desk falls
   back to a 30-second poll (there's a Live/Polling indicator in the toolbar).
-- **QR payload shape (P2)** — `parseScan()` in `src/components/scan/QrScanner.tsx`
-  currently accepts a bare token, a bare `booking_id` UUID, or a JSON object
-  with either. Tell me which one the pass actually encodes and I'll narrow it.
+- **QR payload shape (P2)** — `parseScan()` in `src/lib/scan.ts` currently
+  accepts a bare token, a bare `booking_id` UUID, or a JSON object with either.
+  Tell me which one the pass actually encodes and I'll narrow it — all three
+  branches are pinned in `scan.test.ts`, so deleting two is a safe change.
 - **Officer name on `status_log.changed_by`** — currently free text typed at
   sign-in. Once `officers` exists this should be the officer's UUID or username.
