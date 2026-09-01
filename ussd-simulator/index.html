@@ -1,0 +1,241 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgriQ — USSD Gateway & Feature Phone Simulator</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Google Fonts for retro screen & modern UI -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&family=VT323&display=swap" rel="stylesheet">
+  <!-- Supabase JS Client for live sync -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="main-header">
+      <div class="logo-group">
+        <span class="badge">SIH 2026 • PS 26032</span>
+        <h1>🌾 AgriQ <span class="sub">| USSD Gateway & SMS Simulator (P4)</span></h1>
+      </div>
+      <div class="status-bar-top">
+        <span class="pulse-indicator"></span>
+        <span id="connection-status">Mode: Standalone / Mock (Ready for Supabase)</span>
+        <button id="toggle-config-btn" class="btn-sm">⚙️ Supabase Config</button>
+      </div>
+    </header>
+
+    <!-- Supabase Config Drawer -->
+    <div id="config-drawer" class="config-drawer hidden">
+      <div class="config-inner">
+        <h3>🔗 Connect to Live Supabase Project</h3>
+        <p class="hint">Paste your team's Supabase credentials to sync live with P1's database.</p>
+        <div class="form-row">
+          <input type="text" id="supabase-url" placeholder="https://your-project.supabase.co" />
+          <input type="password" id="supabase-key" placeholder="Anon / Public API Key" />
+          <button id="save-config-btn" class="btn-primary">Connect</button>
+          <button id="reset-config-btn" class="btn-secondary">Use Mock Mode</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main 3-Column Layout -->
+    <main class="main-content">
+      
+      <!-- COLUMN 1: The Nokia Feature Phone Emulator -->
+      <section class="phone-column">
+        <div class="section-label">
+          <span>📱 Offline Feature Phone (*99#)</span>
+          <span class="tooltip">Accessible on any 2G/basic phone</span>
+        </div>
+
+        <div class="phone-chassis">
+          <!-- Speaker ear piece -->
+          <div class="phone-speaker"></div>
+          
+          <!-- Screen Area -->
+          <div class="phone-screen-bezel">
+            <div class="screen-header">
+              <span class="network-carrier">📶 BSNL 2G</span>
+              <span id="screen-clock" class="clock">10:45</span>
+              <span class="battery">🔋 98%</span>
+            </div>
+
+            <!-- LCD Screen -->
+            <div class="lcd-screen" id="lcd-screen">
+              <!-- Dialing View -->
+              <div id="dialing-view" class="screen-view">
+                <div class="dialer-prompt">Enter USSD Code:</div>
+                <div id="dialed-number" class="dialed-display">*99#</div>
+                <div class="dialer-hint">Dial *99# for AgriQ Mandi</div>
+              </div>
+
+              <!-- USSD Menu View -->
+              <div id="menu-view" class="screen-view hidden">
+                <div class="ussd-title" id="ussd-title">AgriQ Mandi Seva</div>
+                <div class="ussd-body" id="ussd-body">
+                  1. Book Slot<br>
+                  2. Check Token Status<br>
+                  3. Mandi Rates & Forecast<br>
+                  4. Change Language
+                </div>
+                <div class="ussd-input-row">
+                  <span class="prompt-arrow">&gt;</span>
+                  <span id="ussd-input-display" class="input-cursor">_</span>
+                </div>
+              </div>
+
+              <!-- Loading / Processing View -->
+              <div id="loading-view" class="screen-view hidden">
+                <div class="ussd-loader">
+                  <div class="spinner"></div>
+                  <div id="loading-text">Requesting *99#...</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="screen-footer">
+              <span id="left-soft-label">Dial</span>
+              <span id="right-soft-label">Clear</span>
+            </div>
+          </div>
+
+          <!-- Keypad Navigation Buttons -->
+          <div class="nav-keys">
+            <button class="key soft-key" id="btn-soft-left">CALL</button>
+            <div class="dpad">
+              <button class="dpad-center" id="btn-ok">OK</button>
+            </div>
+            <button class="key soft-key end-key" id="btn-soft-right">END</button>
+          </div>
+
+          <!-- Numeric Keypad (0-9, *, #) -->
+          <div class="numeric-keypad">
+            <button class="key num-key" data-key="1"><span class="num">1</span><span class="subtext">. @</span></button>
+            <button class="key num-key" data-key="2"><span class="num">2</span><span class="subtext">ABC</span></button>
+            <button class="key num-key" data-key="3"><span class="num">3</span><span class="subtext">DEF</span></button>
+            <button class="key num-key" data-key="4"><span class="num">4</span><span class="subtext">GHI</span></button>
+            <button class="key num-key" data-key="5"><span class="num">5</span><span class="subtext">JKL</span></button>
+            <button class="key num-key" data-key="6"><span class="num">6</span><span class="subtext">MNO</span></button>
+            <button class="key num-key" data-key="7"><span class="num">7</span><span class="subtext">PQRS</span></button>
+            <button class="key num-key" data-key="8"><span class="num">8</span><span class="subtext">TUV</span></button>
+            <button class="key num-key" data-key="9"><span class="num">9</span><span class="subtext">WXYZ</span></button>
+            <button class="key num-key star-key" data-key="*"><span class="num">*</span><span class="subtext">+</span></button>
+            <button class="key num-key" data-key="0"><span class="num">0</span><span class="subtext">_</span></button>
+            <button class="key num-key hash-key" data-key="#"><span class="num">#</span><span class="subtext">⌕</span></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLUMN 2: Live SMS Alerts & Push Notifications -->
+      <section class="sms-column">
+        <div class="section-label">
+          <span>📨 Simulated Farmer SMS Feed</span>
+          <span class="badge-count" id="sms-count">0 Messages</span>
+        </div>
+
+        <div class="sms-phone-frame">
+          <div class="sms-header">
+            <span class="sender-id">AG-AGRIQ (Mandi Alerts)</span>
+            <button id="clear-sms-btn" class="btn-text">Clear Inbox</button>
+          </div>
+          <div class="sms-messages" id="sms-messages">
+            <div class="empty-state">
+              <span class="empty-icon">📭</span>
+              <p>No SMS alerts yet.</p>
+              <small>Dial <b>*99#</b> to book a slot or test officer actions below.</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simulated Farmer Phone Number config -->
+        <div class="phone-id-card">
+          <label>Farmer Active Phone Number:</label>
+          <div class="phone-input-group">
+            <span>+91</span>
+            <input type="text" id="farmer-phone-input" value="9876543210" maxlength="10" />
+            <button id="update-phone-btn" class="btn-sm">Set</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLUMN 3: Live Session Inspector & Officer Action Bar -->
+      <section class="inspector-column">
+        
+        <!-- Live Officer Simulator (Checkpoints) -->
+        <div class="card">
+          <div class="card-header">
+            <h3>🏢 Mandi Officer Checkpoint Simulator</h3>
+            <span class="tag">For Demo Presentations</span>
+          </div>
+          <p class="card-desc">Simulate the Mandi Officer scanning and progressing your latest token to watch SMS alerts fire in real-time:</p>
+          
+          <div class="active-token-banner" id="active-token-banner">
+            <div>
+              <span class="lbl">Latest Token:</span>
+              <strong id="demo-token-display">None Booked Yet</strong>
+            </div>
+            <div>
+              <span class="lbl">Stage:</span>
+              <span class="status-pill status-booked" id="demo-status-display">IDLE</span>
+            </div>
+          </div>
+
+          <div class="checkpoint-actions">
+            <button class="btn-step" id="btn-sim-checkin" disabled>
+              <span class="icon">🎟️</span> 1. Check-In (QR Scan)
+            </button>
+            <button class="btn-step" id="btn-sim-weigh" disabled>
+              <span class="icon">⚖️</span> 2. Weighbridge (1,450 kg)
+            </button>
+            <button class="btn-step" id="btn-sim-quality" disabled>
+              <span class="icon">🔍</span> 3. Quality Assayed (Grade A)
+            </button>
+            <button class="btn-step" id="btn-sim-payment" disabled>
+              <span class="icon">💳</span> 4. Payment Initiated (₹35,160)
+            </button>
+            <button class="btn-step" id="btn-sim-complete" disabled>
+              <span class="icon">✅</span> 5. Mark Completed
+            </button>
+          </div>
+        </div>
+
+        <!-- USSD State Machine Inspector -->
+        <div class="card">
+          <div class="card-header">
+            <h3>🧠 USSD State Machine (`ussd_sessions`)</h3>
+            <span class="tag code">P4 Architecture</span>
+          </div>
+          <div class="state-inspector">
+            <div class="inspector-row">
+              <span>Session ID:</span>
+              <code id="inspect-session-id">sess_demo_01</code>
+            </div>
+            <div class="inspector-row">
+              <span>Current Menu Level:</span>
+              <code id="inspect-menu-level" class="highlight">ROOT</code>
+            </div>
+            <div class="inspector-row">
+              <span>Session Payload (JSONB):</span>
+            </div>
+            <pre class="json-box" id="inspect-temp-data">{ "phone": "9876543210" }</pre>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+      <span>AgriQ &copy; 2026 — Team Runtime-Terror</span>
+      <span>Postgres Schema v2 Compliant • Edge Function Session Handshake</span>
+    </footer>
+  </div>
+
+  <script src="supabase-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
