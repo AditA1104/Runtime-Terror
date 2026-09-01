@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AgriQ — USSD Gateway & Feature Phone Simulator</title>
+  <title>AgriQ — USSD Gateway & Feature Phone Simulator (P4)</title>
   <link rel="stylesheet" href="style.css" />
   <!-- Google Fonts for retro screen & modern UI -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,18 +20,24 @@
         <span class="badge">SIH 2026 • PS 26032</span>
         <h1>🌾 AgriQ <span class="sub">| USSD Gateway & SMS Simulator (P4)</span></h1>
       </div>
-      <div class="status-bar-top">
-        <span class="pulse-indicator"></span>
-        <span id="connection-status">Mode: Standalone / Mock (Ready for Supabase)</span>
-        <button id="toggle-config-btn" class="btn-sm">⚙️ Supabase Config</button>
+      <div class="header-controls">
+        <button id="sound-toggle-btn" class="btn-sm" title="Toggle Nokia Keypad Sounds">🔊 Sound: ON</button>
+        <div class="status-bar-top">
+          <span class="pulse-indicator" id="pulse-dot"></span>
+          <span id="connection-status">Mode: Standalone / Demo Safe</span>
+          <button id="toggle-config-btn" class="btn-sm">⚙️ Supabase Config</button>
+        </div>
       </div>
     </header>
 
     <!-- Supabase Config Drawer -->
     <div id="config-drawer" class="config-drawer hidden">
       <div class="config-inner">
-        <h3>🔗 Connect to Live Supabase Project</h3>
-        <p class="hint">Paste your team's Supabase credentials to sync live with P1's database.</p>
+        <div class="config-header">
+          <h3>🔗 Connect to Live Supabase Project</h3>
+          <button id="close-config-btn" class="btn-text">✕</button>
+        </div>
+        <p class="hint">Paste your team's Supabase credentials to sync live with P1's database and P3's officer desk.</p>
         <div class="form-row">
           <input type="text" id="supabase-url" placeholder="https://your-project.supabase.co" />
           <input type="password" id="supabase-key" placeholder="Anon / Public API Key" />
@@ -41,6 +47,15 @@
       </div>
     </div>
 
+    <!-- Quick Demo Presets Bar -->
+    <div class="demo-presets-bar">
+      <span class="preset-label">⚡ 1-Click Demo Actions:</span>
+      <button class="preset-btn" id="btn-quick-book">1. Quick Book Token</button>
+      <button class="preset-btn" id="btn-quick-cycle">2. Auto-Run Full Mandi Cycle (Check-in ➔ Pay)</button>
+      <button class="preset-btn" id="btn-quick-rates">3. View Onion & Wheat Rates</button>
+      <button class="preset-btn" id="btn-quick-reset">🔄 Reset All</button>
+    </div>
+
     <!-- Main 3-Column Layout -->
     <main class="main-content">
       
@@ -48,7 +63,7 @@
       <section class="phone-column">
         <div class="section-label">
           <span>📱 Offline Feature Phone (*99#)</span>
-          <span class="tooltip">Accessible on any 2G/basic phone</span>
+          <span class="tag-lang" id="current-lang-tag">Language: English</span>
         </div>
 
         <div class="phone-chassis">
@@ -145,18 +160,17 @@
             <div class="empty-state">
               <span class="empty-icon">📭</span>
               <p>No SMS alerts yet.</p>
-              <small>Dial <b>*99#</b> to book a slot or test officer actions below.</small>
+              <small>Dial <b>*99#</b> or click <b>"Quick Book Token"</b> above to test alerts.</small>
             </div>
           </div>
         </div>
 
         <!-- Simulated Farmer Phone Number config -->
         <div class="phone-id-card">
-          <label>Farmer Active Phone Number:</label>
+          <label>Farmer Active Mobile (+91):</label>
           <div class="phone-input-group">
-            <span>+91</span>
             <input type="text" id="farmer-phone-input" value="9876543210" maxlength="10" />
-            <button id="update-phone-btn" class="btn-sm">Set</button>
+            <button id="update-phone-btn" class="btn-sm">Set Phone</button>
           </div>
         </div>
       </section>
@@ -168,7 +182,7 @@
         <div class="card">
           <div class="card-header">
             <h3>🏢 Mandi Officer Checkpoint Simulator</h3>
-            <span class="tag">For Demo Presentations</span>
+            <span class="tag">Live State Machine</span>
           </div>
           <p class="card-desc">Simulate the Mandi Officer scanning and progressing your latest token to watch SMS alerts fire in real-time:</p>
           
@@ -185,16 +199,16 @@
 
           <div class="checkpoint-actions">
             <button class="btn-step" id="btn-sim-checkin" disabled>
-              <span class="icon">🎟️</span> 1. Check-In (QR Scan)
+              <span class="icon">🎟️</span> 1. Gate Check-In (QR Scan)
             </button>
             <button class="btn-step" id="btn-sim-weigh" disabled>
-              <span class="icon">⚖️</span> 2. Weighbridge (1,450 kg)
+              <span class="icon">⚖️</span> 2. Weighbridge (1,450 kg recorded)
             </button>
             <button class="btn-step" id="btn-sim-quality" disabled>
-              <span class="icon">🔍</span> 3. Quality Assayed (Grade A)
+              <span class="icon">🔍</span> 3. Quality Assayed (Grade A passed)
             </button>
             <button class="btn-step" id="btn-sim-payment" disabled>
-              <span class="icon">💳</span> 4. Payment Initiated (₹35,160)
+              <span class="icon">💳</span> 4. Payment Initiated (₹35,160 DBT)
             </button>
             <button class="btn-step" id="btn-sim-complete" disabled>
               <span class="icon">✅</span> 5. Mark Completed
@@ -205,8 +219,8 @@
         <!-- USSD State Machine Inspector -->
         <div class="card">
           <div class="card-header">
-            <h3>🧠 USSD State Machine (`ussd_sessions`)</h3>
-            <span class="tag code">P4 Architecture</span>
+            <h3>🧠 Session Inspector (`ussd_sessions`)</h3>
+            <span class="tag code">Schema v2</span>
           </div>
           <div class="state-inspector">
             <div class="inspector-row">
@@ -230,7 +244,7 @@
 
     <!-- Footer -->
     <footer class="main-footer">
-      <span>AgriQ &copy; 2026 — Team Runtime-Terror</span>
+      <span>AgriQ &copy; 2026 — Team Runtime-Terror • PS 26032</span>
       <span>Postgres Schema v2 Compliant • Edge Function Session Handshake</span>
     </footer>
   </div>

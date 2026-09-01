@@ -1,5 +1,5 @@
 ﻿/**
- * AgriQ USSD Application & SMS Simulator Engine (P4)
+ * AgriQ USSD Application & SMS Simulator Engine (P4 - Optimized v2)
  * Team: Runtime-Terror | SIH 2026
  */
 
@@ -19,6 +19,8 @@
   const smsMessages = document.getElementById('sms-messages');
   const smsCountBadge = document.getElementById('sms-count');
   const farmerPhoneInput = document.getElementById('farmer-phone-input');
+  const soundToggleBtn = document.getElementById('sound-toggle-btn');
+  const currentLangTag = document.getElementById('current-lang-tag');
   
   // Inspector & Demo DOM
   const inspectSessionId = document.getElementById('inspect-session-id');
@@ -27,6 +29,7 @@
   const demoTokenDisplay = document.getElementById('demo-token-display');
   const demoStatusDisplay = document.getElementById('demo-status-display');
   const connectionStatus = document.getElementById('connection-status');
+  const pulseDot = document.getElementById('pulse-dot');
   
   // Officer Demo Buttons
   const btnSimCheckin = document.getElementById('btn-sim-checkin');
@@ -35,7 +38,16 @@
   const btnSimPayment = document.getElementById('btn-sim-payment');
   const btnSimComplete = document.getElementById('btn-sim-complete');
 
+  // Quick Preset Buttons
+  const btnQuickBook = document.getElementById('btn-quick-book');
+  const btnQuickCycle = document.getElementById('btn-quick-cycle');
+  const btnQuickRates = document.getElementById('btn-quick-rates');
+  const btnQuickReset = document.getElementById('btn-quick-reset');
+
   // Application State Machine
+  let soundEnabled = true;
+  let audioCtx = null;
+
   const state = {
     mode: 'DIALING', // 'DIALING' | 'MENU' | 'LOADING'
     dialBuffer: '*99#',
@@ -50,11 +62,45 @@
       slotId: null,
       slotTime: null,
       quantityKg: 1500,
-      language: 'en'
+      language: 'en' // 'en' | 'hi' | 'mr'
     },
     activeToken: null,
     activeBooking: null,
     smsList: []
+  };
+
+  // Multilingual Text Dictionary for USSD menus
+  const I18N = {
+    en: {
+      langName: 'Language: English',
+      rootTitle: 'AgriQ Mandi Seva (*99#)',
+      rootBody: '1. Book Slot<br>2. Check Token Status<br>3. Mandi Rates & Forecast<br>4. Change Language',
+      selectCrop: 'Select Commodity:<br>1. Wheat (गेहूं)<br>2. Onion (प्याज)<br>3. Paddy (धान)<br>4. Cotton (कपास)<br>0. Back',
+      selectCenter: 'Select Mandi Center:<br>1. Nashik APMC Main<br>2. Pune Central Mandi<br>3. Nagpur Cotton Yard<br>0. Back',
+      enterQty: 'Approx Quantity (kg):<br>Enter weight in kg<br>(e.g. type 1500 for 15 quintals)<br><br>0. Back',
+      confirmPrompt: '1. Confirm Booking<br>2. Cancel',
+      ratesMenu: 'Mandi Rates & Forecast:<br>1. Wheat<br>2. Onion<br>3. Paddy<br>4. Cotton<br>0. Back'
+    },
+    hi: {
+      langName: 'भाषा: हिंदी',
+      rootTitle: 'एग्री-क्यू मंडी सेवा (*99#)',
+      rootBody: '1. टोकन/स्लॉट बुक करें<br>2. टोकन स्थिति जांचें<br>3. मंडी भाव और पूर्वानुमान<br>4. भाषा बदलें',
+      selectCrop: 'फसल चुनें:<br>1. गेहूं (Wheat)<br>2. प्याज (Onion)<br>3. धान (Paddy)<br>4. कपास (Cotton)<br>0. वापस',
+      selectCenter: 'मंडी केंद्र चुनें:<br>1. नासिक एपीएमसी<br>2. पुणे सेंट्रल मंडी<br>3. नागपुर यार्ड<br>0. वापस',
+      enterQty: 'अनुमानित वजन (किलो):<br>वजन दर्ज करें (उदा. 1500)<br><br>0. वापस',
+      confirmPrompt: '1. स्लॉट पक्का करें<br>2. रद्द करें',
+      ratesMenu: 'मंडी भाव व सलाह:<br>1. गेहूं<br>2. प्याज<br>3. धान<br>4. कपास<br>0. वापस'
+    },
+    mr: {
+      langName: 'भाषा: मराठी',
+      rootTitle: 'अ‍ॅग्री-क्यू कृषी बाजार (*99#)',
+      rootBody: '1. स्लॉट बुक करा<br>2. टोकन स्थिती तपासा<br>3. बाजार भाव व अंदाज<br>4. भाषा बदला',
+      selectCrop: 'पीक निवडा:<br>1. गहू (Wheat)<br>2. कांदा (Onion)<br>3. भात (Paddy)<br>4. कापूस (Cotton)<br>0. मागे',
+      selectCenter: 'बाजार समिती निवडा:<br>1. नाशिक एपीएमसी<br>2. पुणे मुख्य बाजार<br>3. नागपूर यार्ड<br>0. मागे',
+      enterQty: 'अंदाजे वजन (किलो):<br>वजन टाका (उदा. 1500)<br><br>0. मागे',
+      confirmPrompt: '1. स्लॉट निश्चित करा<br>2. रद्द करा',
+      ratesMenu: 'बाजार भाव व शिफारस:<br>1. गहू<br>2. कांदा<br>3. भात<br>4. कापूस<br>0. मागे'
+    }
   };
 
   // Clock in LCD screen
@@ -66,30 +112,46 @@
   setInterval(updateClock, 1000);
   updateClock();
 
-  // Audio Bleep generator using Web Audio API (zero audio file dependencies)
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  function playTone(freq = 600, type = 'sine', duration = 0.05) {
+  // Safe Web Audio API Handler (No external files needed)
+  function initAudio() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  }
+
+  function playTone(freq = 600, type = 'sine', duration = 0.04) {
+    if (!soundEnabled) return;
     try {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+      initAudio();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = type;
       osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start();
       osc.stop(audioCtx.currentTime + duration);
     } catch (e) {
-      // Audio context might be restricted before interaction
+      // Audio context policy
     }
   }
 
   function playSmsChime() {
+    if (!soundEnabled) return;
     playTone(880, 'triangle', 0.1);
     setTimeout(() => playTone(1320, 'triangle', 0.15), 120);
   }
+
+  soundToggleBtn.addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    soundToggleBtn.textContent = soundEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+    soundToggleBtn.style.color = soundEnabled ? '#10b981' : '#94a3b8';
+  });
 
   // -------------------------------------------------------------
   // VIEW SWITCHING
@@ -130,6 +192,7 @@
     inspectSessionId.textContent = state.sessionId;
     inspectMenuLevel.textContent = state.currentMenu;
     inspectTempData.textContent = JSON.stringify(state.tempData, null, 2);
+    currentLangTag.textContent = I18N[state.tempData.language]?.langName || 'Language: English';
   }
 
   // -------------------------------------------------------------
@@ -141,20 +204,23 @@
     updateInputDisplay();
     updateInspector();
 
+    const lang = state.tempData.language || 'en';
+    const dict = I18N[lang] || I18N.en;
+
     switch (menuKey) {
       case 'ROOT':
-        ussdTitle.textContent = 'AgriQ Mandi Seva (*99#)';
-        ussdBody.innerHTML = `1. Book Slot<br>2. Check Token Status<br>3. Mandi Rates & Forecast<br>4. Change Language`;
+        ussdTitle.textContent = dict.rootTitle;
+        ussdBody.innerHTML = dict.rootBody;
         break;
 
       case 'BOOK_CROP':
-        ussdTitle.textContent = 'Select Commodity:';
-        ussdBody.innerHTML = `1. Wheat (गेहूं)<br>2. Onion (प्याज)<br>3. Paddy / Rice (धान)<br>4. Cotton (कपास)<br>0. Back`;
+        ussdTitle.textContent = lang === 'hi' ? 'फसल चुनें:' : (lang === 'mr' ? 'पीक निवडा:' : 'Select Commodity:');
+        ussdBody.innerHTML = dict.selectCrop;
         break;
 
       case 'BOOK_CENTER':
-        ussdTitle.textContent = 'Select Mandi Center:';
-        ussdBody.innerHTML = `1. Nashik APMC Main<br>2. Pune Central Mandi<br>3. Nagpur Cotton Yard<br>0. Back`;
+        ussdTitle.textContent = lang === 'hi' ? 'मंडी केंद्र चुनें:' : (lang === 'mr' ? 'बाजार समिती:' : 'Select Mandi Center:');
+        ussdBody.innerHTML = dict.selectCenter;
         break;
 
       case 'BOOK_SLOT':
@@ -163,13 +229,13 @@
         break;
 
       case 'BOOK_QTY':
-        ussdTitle.textContent = 'Approx Quantity (kg):';
-        ussdBody.innerHTML = `Enter weight in kg<br>(e.g. type 1500 for 15 quintals)<br><br>0. Back`;
+        ussdTitle.textContent = lang === 'hi' ? 'वजन (किलो):' : (lang === 'mr' ? 'वजन (किलो):' : 'Approx Quantity (kg):');
+        ussdBody.innerHTML = dict.enterQty;
         break;
 
       case 'BOOK_CONFIRM':
-        ussdTitle.textContent = 'Confirm Mandi Slot:';
-        ussdBody.innerHTML = `Crop: ${state.tempData.crop || 'Wheat'}<br>Center: ${state.tempData.centerName || 'Nashik APMC'}<br>Slot: ${state.tempData.slotTime || '08:00 AM'}<br>Qty: ${state.tempData.quantityKg} kg<br><br>1. Confirm Booking<br>2. Cancel`;
+        ussdTitle.textContent = lang === 'hi' ? 'स्लॉट पुष्टि:' : (lang === 'mr' ? 'बुकिंग खात्री:' : 'Confirm Mandi Slot:');
+        ussdBody.innerHTML = `Crop: <b>${state.tempData.crop || 'Wheat'}</b><br>Center: ${state.tempData.centerName || 'Nashik APMC'}<br>Slot: ${state.tempData.slotTime || '08:00 AM'}<br>Qty: ${state.tempData.quantityKg} kg<br><br>${dict.confirmPrompt}`;
         break;
 
       case 'BOOK_SUCCESS':
@@ -179,26 +245,26 @@
         break;
 
       case 'STATUS_PROMPT':
-        ussdTitle.textContent = 'Check Token Status:';
-        ussdBody.innerHTML = `Enter Token # or 10-digit phone:<br>(e.g. NSK-0231)<br><br>1. Check my recent token<br>0. Back`;
+        ussdTitle.textContent = lang === 'hi' ? 'टोकन स्थिति:' : (lang === 'mr' ? 'टोकन स्थिती:' : 'Check Token Status:');
+        ussdBody.innerHTML = `Enter Token # or Phone:<br>(e.g. NSK-0231)<br><br>1. Check my recent token<br>0. Back`;
         break;
 
       case 'STATUS_RESULT':
-        showLoading('Fetching Live Status...');
+        showLoading('Querying Mandi Database...');
         const queryVal = state.activeToken || state.tempData.phone;
         const statusRes = await window.agriqBackend.getBookingStatus(queryVal);
         showView('MENU');
         ussdTitle.textContent = `Status: ${statusRes.token_number}`;
-        ussdBody.innerHTML = `Token: <b>${statusRes.token_number}</b><br>Stage: <span style="color:#003300"><b>${statusRes.status}</b></span><br>Queue Position: ${statusRes.queue_position || 1}<br>Est Wait: ${statusRes.predicted_wait_mins || 15} mins<br><br>0. Main Menu`;
+        ussdBody.innerHTML = `Token: <b>${statusRes.token_number}</b><br>Stage: <span style="color:#004400"><b>${statusRes.status}</b></span><br>Queue Position: ${statusRes.queue_position || 1}<br>Est Wait: ${statusRes.predicted_wait_mins || 15} mins<br><br>0. Main Menu`;
         break;
 
       case 'RATES_MENU':
-        ussdTitle.textContent = 'Mandi Rates & Forecast:';
-        ussdBody.innerHTML = `1. Wheat<br>2. Onion<br>3. Paddy<br>4. Cotton<br>0. Back`;
+        ussdTitle.textContent = dict.ratesMenu.split('<br>')[0];
+        ussdBody.innerHTML = dict.ratesMenu;
         break;
 
       case 'RATES_RESULT':
-        showLoading('Reading Forecast Cache...');
+        showLoading('Reading Forecast Cache (P5)...');
         const rateInfo = await window.agriqBackend.getMandiRates(state.tempData.crop);
         showView('MENU');
         ussdTitle.textContent = `Rates: ${state.tempData.crop.toUpperCase()}`;
@@ -206,15 +272,15 @@
         break;
 
       case 'LANG_MENU':
-        ussdTitle.textContent = 'Change Language:';
-        ussdBody.innerHTML = `1. English (Active)<br>2. हिंदी (Hindi)<br>3. मराठी (Marathi)<br>0. Back`;
+        ussdTitle.textContent = 'Change Language / भाषा:';
+        ussdBody.innerHTML = `1. English<br>2. हिंदी (Hindi)<br>3. मराठी (Marathi)<br>0. Back`;
         break;
     }
   }
 
   // Handle USSD Input submission
   async function handleMenuInput(input) {
-    playTone(700, 'sine', 0.04);
+    playTone(720, 'sine', 0.04);
     const val = input.trim();
     if (!val) return;
 
@@ -339,9 +405,11 @@
       if (val === '1') state.tempData.language = 'en';
       if (val === '2') state.tempData.language = 'hi';
       if (val === '3') state.tempData.language = 'mr';
+      
+      const langNames = { en: 'English', hi: 'हिंदी (Hindi)', mr: 'मराठी (Marathi)' };
       sendSimulatedSms({
         title: 'Language Updated',
-        message: `AgriQ: Preferred language updated. All future Mandi alerts will be delivered accordingly.`,
+        message: `AgriQ: Preferred language set to ${langNames[state.tempData.language]}. All mandi alerts will be delivered in this language.`,
         type: 'status'
       });
       renderMenu('ROOT');
@@ -362,6 +430,13 @@
   // -------------------------------------------------------------
   function handleKeyPress(key) {
     playTone(500 + Math.random() * 200, 'sine', 0.04);
+
+    // Visual button press animation on screen
+    const btn = document.querySelector(`button[data-key="${key}"]`);
+    if (btn) {
+      btn.classList.add('active-key');
+      setTimeout(() => btn.classList.remove('active-key'), 100);
+    }
 
     if (state.mode === 'DIALING') {
       if (key === 'CLEAR' || key === 'END') {
@@ -402,12 +477,12 @@
       setTimeout(() => {
         showView('MENU');
         renderMenu('ROOT');
-      }, 700);
+      }, 600);
     } else {
       showLoading('Invalid MMI Code');
       setTimeout(() => {
         showView('DIALING');
-      }, 1200);
+      }, 1000);
     }
   }
 
@@ -433,9 +508,11 @@
     else if (state.mode === 'MENU') handleKeyPress('CALL');
   });
 
-  // Physical computer keyboard support
+  // Physical computer keyboard listener
   window.addEventListener('keydown', (e) => {
-    if (e.target.tagName === 'INPUT') return; // Don't hijack input forms
+    if (e.target.tagName === 'INPUT') return; // Ignore input fields
+    
+    // Support standard numbers & numpad
     if (['0','1','2','3','4','5','6','7','8','9','*','#'].includes(e.key)) {
       handleKeyPress(e.key);
     } else if (e.key === 'Enter') {
@@ -471,7 +548,7 @@
         <div class="empty-state">
           <span class="empty-icon">📭</span>
           <p>No SMS alerts yet.</p>
-          <small>Dial <b>*99#</b> to book a slot or test officer actions below.</small>
+          <small>Dial <b>*99#</b> or click <b>"Quick Book Token"</b> above to test alerts.</small>
         </div>`;
       return;
     }
@@ -501,7 +578,7 @@
       updateInspector();
       sendSimulatedSms({
         title: 'Device Registered',
-        message: `Welcome to AgriQ SMS Gateway. Your mobile number +91-${val} is now linked to Mandi services.`,
+        message: `Welcome to AgriQ SMS Gateway. Mobile number +91-${val} linked to Mandi services.`,
         type: 'confirm'
       });
     }
@@ -516,7 +593,7 @@
     demoStatusDisplay.textContent = status;
     demoStatusDisplay.className = `status-pill status-${status.toLowerCase()}`;
 
-    // Enable / disable checkpoint progression buttons
+    // Enable / disable checkpoint progression buttons in strict state machine order
     btnSimCheckin.disabled = (status !== 'BOOKED');
     btnSimWeigh.disabled = (status !== 'CHECKED_IN');
     btnSimQuality.disabled = (status !== 'WEIGHED');
@@ -580,32 +657,111 @@
   });
 
   // -------------------------------------------------------------
+  // 1-CLICK QUICK DEMO PRESETS
+  // -------------------------------------------------------------
+  btnQuickBook.addEventListener('click', async () => {
+    showLoading('Allocating Quick Demo Token...');
+    const booking = await window.agriqBackend.createBooking({
+      phone: state.tempData.phone,
+      centerId: 'c1-nsk',
+      slotId: 's2',
+      cropQuantityKg: 1450
+    });
+    state.tempData.crop = 'Wheat';
+    state.tempData.centerName = 'Nashik APMC Main';
+    state.tempData.slotTime = 'Tomorrow 08:00 AM';
+    state.activeBooking = booking;
+    state.activeToken = booking.token_number;
+    setActiveTokenDisplay(booking.token_number, booking.status);
+
+    sendSimulatedSms({
+      title: 'Demo Token Booked',
+      message: `AgriQ: Token ${booking.token_number} allocated for Wheat at Nashik APMC. Slot: Tomorrow 08:00 AM. Queue Position: 2nd.`,
+      type: 'confirm'
+    });
+
+    showView('MENU');
+    renderMenu('BOOK_SUCCESS');
+  });
+
+  btnQuickCycle.addEventListener('click', async () => {
+    if (!state.activeToken) {
+      await btnQuickBook.click();
+    }
+    // Automatically walk through all 5 stages with 1.2s delay for presentation
+    setTimeout(() => btnSimCheckin.click(), 500);
+    setTimeout(() => btnSimWeigh.click(), 1800);
+    setTimeout(() => btnSimQuality.click(), 3100);
+    setTimeout(() => btnSimPayment.click(), 4400);
+    setTimeout(() => btnSimComplete.click(), 5700);
+  });
+
+  btnQuickRates.addEventListener('click', () => {
+    state.dialBuffer = '*99#';
+    showView('MENU');
+    state.tempData.crop = 'Onion';
+    renderMenu('RATES_RESULT');
+  });
+
+  btnQuickReset.addEventListener('click', () => {
+    state.activeToken = null;
+    state.activeBooking = null;
+    state.smsList = [];
+    state.dialBuffer = '*99#';
+    state.inputBuffer = '';
+    demoTokenDisplay.textContent = 'None Booked Yet';
+    demoStatusDisplay.textContent = 'IDLE';
+    demoStatusDisplay.className = 'status-pill status-booked';
+    btnSimCheckin.disabled = true;
+    btnSimWeigh.disabled = true;
+    btnSimQuality.disabled = true;
+    btnSimPayment.disabled = true;
+    btnSimComplete.disabled = true;
+    renderSmsFeed();
+    showView('DIALING');
+    renderMenu('ROOT');
+  });
+
+  // -------------------------------------------------------------
   // SUPABASE CONFIG DRAWER
   // -------------------------------------------------------------
   const toggleConfigBtn = document.getElementById('toggle-config-btn');
+  const closeConfigBtn = document.getElementById('close-config-btn');
   const configDrawer = document.getElementById('config-drawer');
   const saveConfigBtn = document.getElementById('save-config-btn');
   const resetConfigBtn = document.getElementById('reset-config-btn');
   const supabaseUrlInput = document.getElementById('supabase-url');
   const supabaseKeyInput = document.getElementById('supabase-key');
 
-  toggleConfigBtn.addEventListener('click', () => {
-    configDrawer.classList.toggle('hidden');
-  });
+  toggleConfigBtn.addEventListener('click', () => configDrawer.classList.toggle('hidden'));
+  closeConfigBtn.addEventListener('click', () => configDrawer.classList.add('hidden'));
 
   saveConfigBtn.addEventListener('click', () => {
     const url = supabaseUrlInput.value.trim();
     const key = supabaseKeyInput.value.trim();
     if (window.agriqBackend.setCredentials(url, key)) {
-      connectionStatus.textContent = 'Mode: Supabase Live Connected 🟢';
+      connectionStatus.textContent = 'Mode: Supabase Live 🟢';
+      pulseDot.style.backgroundColor = '#10b981';
       configDrawer.classList.add('hidden');
       alert('Connected to Supabase project successfully!');
+      
+      // Subscribe to Realtime
+      window.agriqBackend.subscribeToBookings((updatedRecord) => {
+        if (state.activeToken && updatedRecord.token_number === state.activeToken) {
+          setActiveTokenDisplay(updatedRecord.token_number, updatedRecord.status);
+          sendSimulatedSms({
+            title: `Realtime Mandi Update: ${updatedRecord.status}`,
+            message: `AgriQ Alert: Token ${updatedRecord.token_number} status changed to ${updatedRecord.status} by Officer.`,
+            type: 'status'
+          });
+        }
+      });
     }
   });
 
   resetConfigBtn.addEventListener('click', () => {
     window.agriqBackend.clearCredentials();
-    connectionStatus.textContent = 'Mode: Standalone / Mock (Ready for Supabase)';
+    connectionStatus.textContent = 'Mode: Standalone / Demo Safe';
     configDrawer.classList.add('hidden');
   });
 
