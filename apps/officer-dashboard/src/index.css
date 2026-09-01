@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 0.625rem;
+
+  --background: oklch(0.99 0.005 120);
+  --foreground: oklch(0.21 0.02 145);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.02 145);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.21 0.02 145);
+
+  --primary: oklch(0.52 0.13 150);
+  --primary-foreground: oklch(0.99 0.01 150);
+  --secondary: oklch(0.96 0.01 145);
+  --secondary-foreground: oklch(0.28 0.03 150);
+  --muted: oklch(0.96 0.01 145);
+  --muted-foreground: oklch(0.53 0.02 145);
+  --accent: oklch(0.94 0.03 145);
+  --accent-foreground: oklch(0.28 0.04 150);
+
+  --destructive: oklch(0.58 0.21 27);
+  --destructive-foreground: oklch(0.99 0.01 27);
+  --warning: oklch(0.72 0.16 70);
+  --warning-foreground: oklch(0.24 0.05 70);
+  --success: oklch(0.6 0.14 150);
+  --success-foreground: oklch(0.99 0.01 150);
+
+  --border: oklch(0.9 0.01 145);
+  --input: oklch(0.9 0.01 145);
+  --ring: oklch(0.52 0.13 150);
+
+  /* Checkpoint stages are an ORDERED pipeline, not unrelated categories, so
+     they use a single-hue sequential ramp: further along = darker. A
+     categorical set was tried first and failed CVD separation (purple vs blue
+     at protan dE 2.6) — and it also mis-stated the data, because it implied the
+     stages are peers rather than a progression.
+     The three terminal states are NOT ramp steps; they are status colours. */
+  --stage-booked: oklch(0.74 0.06 250);
+  --stage-checked-in: oklch(0.68 0.11 250);
+  --stage-weighed: oklch(0.6 0.14 250);
+  --stage-quality: oklch(0.52 0.15 250);
+  --stage-payment: oklch(0.44 0.14 250);
+  --stage-completed: oklch(0.55 0.14 150);
+  --stage-cancelled: oklch(0.62 0.01 250);
+  --stage-no-show: oklch(0.55 0.2 27);
+  /* Unfilled meter track — a lighter step of the same ramp, never plain gray. */
+  --stage-track: oklch(0.93 0.03 250);
+}
+
+.dark {
+  --background: oklch(0.17 0.015 150);
+  --foreground: oklch(0.96 0.01 145);
+  --card: oklch(0.22 0.018 150);
+  --card-foreground: oklch(0.96 0.01 145);
+  --popover: oklch(0.22 0.018 150);
+  --popover-foreground: oklch(0.96 0.01 145);
+
+  --primary: oklch(0.72 0.14 150);
+  --primary-foreground: oklch(0.19 0.03 150);
+  --secondary: oklch(0.28 0.02 150);
+  --secondary-foreground: oklch(0.96 0.01 145);
+  --muted: oklch(0.28 0.02 150);
+  --muted-foreground: oklch(0.7 0.02 145);
+  --accent: oklch(0.31 0.03 150);
+  --accent-foreground: oklch(0.96 0.01 145);
+
+  --destructive: oklch(0.65 0.19 27);
+  --destructive-foreground: oklch(0.99 0.01 27);
+  --warning: oklch(0.78 0.15 70);
+  --warning-foreground: oklch(0.2 0.05 70);
+  --success: oklch(0.72 0.14 150);
+  --success-foreground: oklch(0.19 0.03 150);
+
+  --border: oklch(0.32 0.02 150);
+  --input: oklch(0.32 0.02 150);
+  --ring: oklch(0.72 0.14 150);
+
+  /* Dark mode re-steps the same ramp against the dark surface rather than
+     flipping it: further along is still the stronger step, but the whole ramp
+     moves lighter so every step clears the background. */
+  --stage-booked: oklch(0.5 0.05 250);
+  --stage-checked-in: oklch(0.58 0.1 250);
+  --stage-weighed: oklch(0.66 0.13 250);
+  --stage-quality: oklch(0.74 0.14 250);
+  --stage-payment: oklch(0.82 0.11 250);
+  --stage-completed: oklch(0.72 0.14 150);
+  --stage-cancelled: oklch(0.6 0.01 250);
+  --stage-no-show: oklch(0.68 0.18 27);
+  --stage-track: oklch(0.3 0.03 250);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Token numbers, quantities and timers are scanned at a glance across a
+     column, so they get tabular figures to stop digits from shifting. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
