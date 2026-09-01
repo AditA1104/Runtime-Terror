@@ -12,6 +12,21 @@ With no `.env.local`, the app runs on a **seeded local dataset** — 5 centres,
 ~90 bookings spread across every stage. Nothing to install, nothing to connect.
 A "Demo data" badge in the header tells you which mode you're in.
 
+## Smoke tests
+
+```bash
+npx playwright install chromium   # once
+npm run test:e2e                  # or test:e2e:ui to watch them
+```
+
+Seven Playwright specs cover the desk in mock mode: the sign-in gate, the queue
+table, filters, search, the three tabs, advancing a farmer through a checkpoint,
+and the cross-tab BroadcastChannel sync. They start their own dev server on port
+5175, so they don't collide with a hand-run `npm run dev`.
+
+The seeded dataset is deterministic (fixed-seed PRNG in `src/data/mock.ts`), so
+these assert on real token numbers rather than shapes.
+
 ## Going live
 
 ```bash

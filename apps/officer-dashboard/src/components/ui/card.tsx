@@ -22,9 +22,14 @@ const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
 )
 CardHeader.displayName = "CardHeader"
 
-const CardTitle = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+/**
+ * A real <h3>, not a styled div — a card title is the heading of its section,
+ * and screen readers need it in the document outline. Tailwind's preflight
+ * strips the default heading size and weight, so this renders identically.
+ */
+const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <div
+    <h3
       ref={ref}
       className={cn("font-semibold leading-none tracking-tight", className)}
       {...props}
