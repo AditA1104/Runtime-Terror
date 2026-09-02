@@ -44,7 +44,11 @@ function Desk() {
         </TabsList>
 
         <TabsContent value="queue">
-          <QueueDesk queue={queue} officerName={session.officer_name} />
+          <QueueDesk
+            queue={queue}
+            officerName={session.officer_name}
+            centerId={session.center_id}
+          />
         </TabsContent>
         <TabsContent value="metrics">
           <MetricsPanel metrics={metrics} center={center} />

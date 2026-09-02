@@ -8,6 +8,8 @@ import { QueueTable, LiveDot } from "./QueueTable"
 import { CheckpointDialog } from "./CheckpointDialog"
 import type { QueueEntry } from "@/lib/types"
 import { ACTIVE_STATUSES, isTerminal, nextCheckpoint, type Checkpoint } from "@/lib/status"
+import type { ScanResult } from "@/lib/scan"
+import { todayISO } from "@/lib/format"
 import type { useQueue } from "@/hooks/useQueue"
 import { cn } from "@/lib/utils"
 
@@ -31,9 +33,11 @@ const FILTERS: { key: Filter; label: string }[] = [
 interface Props {
   queue: ReturnType<typeof useQueue>
   officerName: string
+  /** The centre this desk is staffing — compared against a scanned pass. */
+  centerId: string
 }
 
-export function QueueDesk({ queue, officerName }: Props) {
+export function QueueDesk({ queue, officerName, centerId }: Props) {
   const { entries, loading, error, live, refresh, advance, markException } = queue
 
   const [search, setSearch] = React.useState("")
@@ -71,18 +75,39 @@ export function QueueDesk({ queue, officerName }: Props) {
     })
   }, [entries, search, filter])
 
-  function handleScan(result: { token?: string; bookingId?: string }, raw: string) {
+  function handleScan(result: ScanResult | null, raw: string) {
+    setScannerOpen(false)
+
+    if (!result) {
+      toast.error("Not an AgriQ token pass", {
+        description: `Scanned "${raw.slice(0, 40)}". Scan the QR on the farmer's pass, or type the token into the search box.`,
+      })
+      return
+    }
+
     const match = entries.find(
       (e) =>
         (result.bookingId && e.booking_id === result.bookingId) ||
-        (result.token && e.token_number.toUpperCase() === result.token.toUpperCase()),
+        (result.token && e.token_number.toUpperCase() === result.token),
     )
-    setScannerOpen(false)
 
     if (!match) {
-      toast.error("Token not on today's list", {
-        description: `Scanned "${raw}". Check the farmer is at the right centre and date.`,
-      })
+      // The pass says which centre and date it was issued for, so name the
+      // thing that is actually wrong instead of a bare "not found".
+      const label = result.token ?? "That pass"
+      if (result.slotDate && result.slotDate !== todayISO()) {
+        toast.error(`${label} is booked for ${result.slotDate}`, {
+          description: "This desk is showing today's queue.",
+        })
+      } else if (result.centerId && result.centerId !== centerId) {
+        toast.error(`${label} is booked at another centre`, {
+          description: "Send the farmer to the centre printed on their pass.",
+        })
+      } else {
+        toast.error(`${label} is not on today's list`, {
+          description: "Check the farmer has not already been served today.",
+        })
+      }
       return
     }
 

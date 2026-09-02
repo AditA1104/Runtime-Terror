@@ -1,76 +1,97 @@
 import { describe, expect, it } from "vitest"
-import { parseScan } from "./scan"
+import { PASS_TYPE, parseScan } from "./scan"
 
-const UUID = "b0000000-0000-4000-8000-00000000000a"
+const BOOKING_ID = "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
 
-/**
- * These pin all three payload shapes P2 might encode. When P2 confirms which
- * one the pass actually uses, the other two branches go — and these tests are
- * what says it is safe to delete them.
- */
-describe("parseScan", () => {
-  describe("shape 1 — JSON", () => {
-    it("reads both fields", () => {
-      expect(parseScan(`{"token_number":"LSG-1004","booking_id":"${UUID}"}`)).toEqual({
-        token: "LSG-1004",
-        bookingId: UUID,
-      })
-    })
+/** The pass exactly as P2 encodes it. */
+const PASS = {
+  type: PASS_TYPE,
+  booking_id: BOOKING_ID,
+  token_number: "NSK-0231",
+  phone_number: "9876543210",
+  center_id: "c1-nsk",
+  slot_date: "2026-09-03",
+}
 
-    it("tolerates either field being absent", () => {
-      expect(parseScan('{"token_number":"LSG-1004"}')).toEqual({
-        token: "LSG-1004",
-        bookingId: undefined,
-      })
-      expect(parseScan(`{"booking_id":"${UUID}"}`)).toEqual({
-        token: undefined,
-        bookingId: UUID,
-      })
-    })
+const encode = (obj: unknown) => JSON.stringify(obj)
 
-    it("ignores non-string values rather than passing them on", () => {
-      expect(parseScan('{"token_number":1004,"booking_id":null}')).toEqual({
-        token: undefined,
-        bookingId: undefined,
-      })
-    })
-
-    it("falls through to the plain-text shapes on malformed JSON", () => {
-      // A truncated scan should still be treated as a token, not throw.
-      expect(parseScan('{"token_number":"LSG-1004"')).toEqual({ token: '{"TOKEN_NUMBER":"LSG-1004"' })
+describe("parseScan — the confirmed pass", () => {
+  it("reads every field off a real pass", () => {
+    expect(parseScan(encode(PASS))).toEqual({
+      bookingId: BOOKING_ID,
+      token: "NSK-0231",
+      phone: "9876543210",
+      centerId: "c1-nsk",
+      slotDate: "2026-09-03",
     })
   })
 
-  describe("shape 2 — bare UUID", () => {
-    it("is read as a booking id, not a token", () => {
-      expect(parseScan(UUID)).toEqual({ bookingId: UUID })
-    })
+  it("upper-cases the token so the queue lookup is case-insensitive", () => {
+    expect(parseScan(encode({ ...PASS, token_number: "nsk-0231" }))?.token).toBe("NSK-0231")
+  })
 
-    it("accepts uppercase", () => {
-      const upper = UUID.toUpperCase()
-      expect(parseScan(upper)).toEqual({ bookingId: upper })
-    })
+  it("tolerates whitespace around the payload", () => {
+    expect(parseScan(`  ${encode(PASS)}\n`)?.bookingId).toBe(BOOKING_ID)
+  })
 
-    it("rejects a near-miss so it is treated as a token instead", () => {
-      // One character short — must not be mistaken for a booking id.
-      expect(parseScan("b0000000-0000-4000-8000-0000000000")).toEqual({
-        token: "B0000000-0000-4000-8000-0000000000",
-      })
+  it("keeps the optional fields null when the pass omits them", () => {
+    expect(parseScan(encode({ type: PASS_TYPE, booking_id: BOOKING_ID }))).toEqual({
+      bookingId: BOOKING_ID,
+      token: null,
+      phone: null,
+      centerId: null,
+      slotDate: null,
     })
   })
 
-  describe("shape 3 — bare token", () => {
-    it("upper-cases so a lowercase scan still matches the queue", () => {
-      expect(parseScan("lsg-1004")).toEqual({ token: "LSG-1004" })
-    })
+  it("accepts a pass carrying only a token", () => {
+    expect(parseScan(encode({ type: PASS_TYPE, token_number: "NSK-0231" }))?.token).toBe("NSK-0231")
+  })
+})
 
-    it("takes the last segment of a URL", () => {
-      expect(parseScan("https://agriq.example/pass/LSG-1004")).toEqual({ token: "LSG-1004" })
-    })
+describe("parseScan — rejects anything that is not a pass", () => {
+  it("rejects a QR code from somewhere else", () => {
+    expect(parseScan("https://example.com/promo")).toBeNull()
+    expect(parseScan("upi://pay?pa=someone@bank")).toBeNull()
   })
 
-  it("trims surrounding whitespace from any shape", () => {
-    expect(parseScan("  LSG-1004\n")).toEqual({ token: "LSG-1004" })
-    expect(parseScan(`  ${UUID}  `)).toEqual({ bookingId: UUID })
+  it("rejects a bare token or UUID — the pass is always JSON", () => {
+    expect(parseScan("NSK-0231")).toBeNull()
+    expect(parseScan(BOOKING_ID)).toBeNull()
+  })
+
+  it("rejects JSON without the discriminator", () => {
+    expect(parseScan(encode({ booking_id: BOOKING_ID, token_number: "NSK-0231" }))).toBeNull()
+  })
+
+  it("rejects a different discriminator", () => {
+    expect(parseScan(encode({ ...PASS, type: "AGRIQ_RECEIPT" }))).toBeNull()
+  })
+
+  it("rejects a pass with no identifier to look up", () => {
+    expect(parseScan(encode({ type: PASS_TYPE, phone_number: "9876543210" }))).toBeNull()
+  })
+
+  it("does not throw on a half-decoded pass", () => {
+    expect(parseScan('{"type":"AGRIQ_TOKEN","booking_id":"9b1de')).toBeNull()
+  })
+
+  it("rejects JSON that is not an object", () => {
+    expect(parseScan("[1,2,3]")).toBeNull()
+    expect(parseScan("null")).toBeNull()
+    expect(parseScan('"AGRIQ_TOKEN"')).toBeNull()
+  })
+
+  it("ignores non-string field values rather than passing them on", () => {
+    // A number token_number would otherwise reach the queue lookup as garbage.
+    expect(parseScan(encode({ ...PASS, token_number: 231, booking_id: null }))).toBeNull()
+  })
+
+  it("treats a blank identifier as absent", () => {
+    expect(parseScan(encode({ type: PASS_TYPE, booking_id: "   ", token_number: "" }))).toBeNull()
+  })
+
+  it("rejects empty input", () => {
+    expect(parseScan("")).toBeNull()
   })
 })

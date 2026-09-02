@@ -20,7 +20,7 @@ npx playwright install chromium   # once
 npm run test:e2e                  # end-to-end — or test:e2e:ui to watch
 ```
 
-**Unit (Vitest, 67 tests).** `src/lib/*.test.ts` — the state machine, the
+**Unit (Vitest, 72 tests).** `src/lib/*.test.ts` — the state machine, the
 metric derivations, the formatters, and QR payload parsing. The bottleneck rule
 ("most farmer-minutes, not the longest queue") and the check that BOOKED is
 never blamed both live in `metrics.test.ts`.
@@ -37,6 +37,30 @@ Both run in CI on any PR touching this app —
 
 > The Supabase branch of `repository.ts` has **no coverage** — it cannot run
 > until the RLS ask below lands. That is the module's main untested surface.
+
+## The QR token pass
+
+P2 encodes the farmer's pass as JSON with a `type` discriminator:
+
+```json
+{
+  "type": "AGRIQ_TOKEN",
+  "booking_id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+  "token_number": "NSK-0231",
+  "phone_number": "9876543210",
+  "center_id": "c1-nsk",
+  "slot_date": "2026-09-03"
+}
+```
+
+`parseScan()` in `src/lib/scan.ts` returns `null` for anything else — another
+app's QR code, a bare token, a half-decoded pass — so the desk says "not an
+AgriQ token pass" instead of hunting for a token the payload never held.
+
+`booking_id` is what the queue matches on, with `token_number` as the fallback.
+`center_id` and `slot_date` are **never** used to match; they only let the desk
+name what is wrong when a scan finds nothing — "booked for 2026-09-03" or
+"booked at another centre" rather than a bare "not found".
 
 ## Going live
 
@@ -55,7 +79,7 @@ No component changes — that seam is the whole point of the file.
 | `src/lib/types.ts` | Row shapes, hand-mirrored from `agriq_schema.sql` |
 | `src/lib/status.ts` | The state machine + checkpoint definitions |
 | `src/lib/metrics.ts` | Pure derivations — turnaround, bottleneck, capacity |
-| `src/lib/scan.ts` | QR payload parsing (camera-free, so it's unit-tested) |
+| `src/lib/scan.ts` | QR pass payload (camera-free, so it's unit-tested) |
 | `src/data/repository.ts` | **The only file that talks to Supabase** |
 | `src/data/mock.ts` | Seeded stand-in dataset |
 | `src/components/queue/` | Queue desk, checkpoint dialog, status badges |
@@ -154,9 +178,11 @@ mode exists and is demo-quality rather than a throwaway.
 
 - **Realtime on `bookings`** — P6's checklist item. Without it the desk falls
   back to a 30-second poll (there's a Live/Polling indicator in the toolbar).
-- **QR payload shape (P2)** — `parseScan()` in `src/lib/scan.ts` currently
-  accepts a bare token, a bare `booking_id` UUID, or a JSON object with either.
-  Tell me which one the pass actually encodes and I'll narrow it — all three
-  branches are pinned in `scan.test.ts`, so deleting two is a safe change.
+- **`center_id` on the QR pass (P2 / P1)** — the confirmed pass carries
+  `"center_id": "c1-nsk"`, but `mandi_centers.center_id` is a **UUID** in the
+  locked schema. Either the pass is carrying a human-readable slug that does
+  not exist as a column, or it is sample data. Nothing breaks today — the desk
+  only uses this field to explain a scan that missed, and never to match — but
+  it should line up before the two are wired together.
 - **Officer name on `status_log.changed_by`** — currently free text typed at
   sign-in. Once `officers` exists this should be the officer's UUID or username.

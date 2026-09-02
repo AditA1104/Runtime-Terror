@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { parseScan } from "@/lib/scan"
+import { parseScan, type ScanResult } from "@/lib/scan"
 
 const REGION_ID = "agriq-qr-region"
 
@@ -20,7 +20,8 @@ const REGION_ID = "agriq-qr-region"
 interface Props {
   open: boolean
   onClose: () => void
-  onScan: (result: { token?: string; bookingId?: string }, raw: string) => void
+  /** `null` when the code scanned is not an AgriQ pass at all. */
+  onScan: (result: ScanResult | null, raw: string) => void
 }
 
 export function QrScanner({ open, onClose, onScan }: Props) {
