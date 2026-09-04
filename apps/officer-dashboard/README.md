@@ -146,9 +146,17 @@ Run it yourself with `node scripts/verify-live.mjs` (see Tests above).
 | 2 | An officer at another centre cannot see those bookings | **PASS** — the Khanna Grain Mandi officer sees 0 of them. Not a coincidence: were the policy merely `is_officer()`, they would see all 18 |
 | 3 | A transition logs the officer's real UID | **PASS** — `DEMO-1` advanced BOOKED → CHECKED_IN and `status_log.changed_by` came back `e6f68e57-…`, the signed-in officer's UID, not a placeholder |
 
-The desk itself runs on live data: 18 rows, no "Demo data" badge, no console
-errors. The Supabase branch of `repository.ts` — untested since this module was
-written — has now executed for real.
+Also verified live, beyond P1's three: `listCenters`, `listStatusLog`,
+`updateCapacity` (quota save), realtime `subscribe` on `bookings`, and
+`markException` for both exception statuses — `DEMO-10` BOOKED → CANCELLED and
+`DEMO-11` BOOKED → NO_SHOW, each logging the officer's real UID.
+
+**All seven methods on `repository.ts` have now run against the live project.**
+The desk itself renders on live data — 18 rows, no "Demo data" badge, and a
+sweep across every tab, the filters, search, a checkpoint dialog and a full
+reload produced no console errors, failed requests or warnings. That branch of
+the repository was written weeks before it ever executed; it is no longer the
+module's untested surface.
 
 ## What it took, worth knowing for the next project
 
