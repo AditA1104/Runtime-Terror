@@ -18,9 +18,10 @@
     <header class="main-header">
       <div class="logo-group">
         <span class="badge">SIH 2026 • PS 26032</span>
-        <h1>🌾 AgriQ <span class="sub">| USSD Gateway & SMS Simulator (P4)</span></h1>
+        <h1>🌾 AgriQ <span class="sub">| USSD Gateway & SMS Simulator (P4 Lead)</span></h1>
       </div>
       <div class="header-controls">
+        <button id="guide-toggle-btn" class="btn-guide active" title="Toggle Mentor Demo Script">📖 Mentor Demo Script</button>
         <button id="sound-toggle-btn" class="btn-sm" title="Toggle Nokia Keypad Sounds">🔊 Sound: ON</button>
         <div class="status-bar-top">
           <span class="pulse-indicator" id="pulse-dot"></span>
@@ -29,6 +30,44 @@
         </div>
       </div>
     </header>
+
+    <!-- Mentor Presentation Coach Panel (Collapsible) -->
+    <div id="demo-guide-panel" class="demo-guide-panel">
+      <div class="guide-header">
+        <div class="guide-title">
+          <span class="guide-icon">🎯</span>
+          <strong>Mentor Demo Cheat-Sheet (Your Step-by-Step Flow)</strong>
+        </div>
+        <span class="guide-subtext">Follow these 5 steps in front of your mentor to demonstrate the entire system seamlessly:</span>
+      </div>
+      <div class="guide-steps-grid">
+        <div class="guide-step-card" id="step-card-1">
+          <span class="step-num">Step 1</span>
+          <strong>The Rural Hook & Booking</strong>
+          <p>Tell mentor: <em>"Over 50% of farmers don't have 4G/smartphones. They dial *99# on any ₹500 phone."</em> Dial *99# ➔ Press 1 (Book) ➔ Pick Wheat ➔ Confirm.</p>
+        </div>
+        <div class="guide-step-card" id="step-card-2">
+          <span class="step-num">Step 2</span>
+          <strong>Proactive SMS Alerts</strong>
+          <p>Point to the center panel: <em>"Within 2 seconds, an arrival window SMS lands on their phone with Token ID and slot."</em></p>
+        </div>
+        <div class="guide-step-card" id="step-card-3">
+          <span class="step-num">Step 3</span>
+          <strong>Officer Checkpoints</strong>
+          <p>Point to Right Column: <em>"As the truck moves through Gate ➔ Weighbridge ➔ Quality ➔ DBT Payment, automated SMS updates fire."</em></p>
+        </div>
+        <div class="guide-step-card" id="step-card-4">
+          <span class="step-num">Step 4</span>
+          <strong>Live Status Query</strong>
+          <p>Dial *99# ➔ Press 2 (Check Status): <em>"The farmer checks their live queue position anytime without internet."</em></p>
+        </div>
+        <div class="guide-step-card" id="step-card-5">
+          <span class="step-num">Step 5</span>
+          <strong>Vernacular Localization</strong>
+          <p>Dial *99# ➔ Press 4 ➔ Select Hindi or Marathi: <em>"100% accessible in regional languages for low-literacy farmers."</em></p>
+        </div>
+      </div>
+    </div>
 
     <!-- Supabase Config Drawer -->
     <div id="config-drawer" class="config-drawer hidden">
@@ -49,11 +88,12 @@
 
     <!-- Quick Demo Presets Bar -->
     <div class="demo-presets-bar">
-      <span class="preset-label">⚡ 1-Click Demo Actions:</span>
+      <span class="preset-label">⚡ 1-Click Automation:</span>
       <button class="preset-btn" id="btn-quick-book">1. Quick Book Token</button>
       <button class="preset-btn" id="btn-quick-cycle">2. Auto-Run Full Mandi Cycle (Check-in ➔ Pay)</button>
-      <button class="preset-btn" id="btn-quick-rates">3. View Onion & Wheat Rates</button>
-      <button class="preset-btn" id="btn-quick-reset">🔄 Reset All</button>
+      <button class="preset-btn" id="btn-quick-rates">3. View Onion & Wheat Forecast</button>
+      <button class="preset-btn btn-receipt" id="btn-view-receipt" disabled>📄 View Gate Pass Slip</button>
+      <button class="preset-btn btn-danger" id="btn-quick-reset">🔄 Reset All</button>
     </div>
 
     <!-- Main 3-Column Layout -->
@@ -82,9 +122,9 @@
             <div class="lcd-screen" id="lcd-screen">
               <!-- Dialing View -->
               <div id="dialing-view" class="screen-view">
-                <div class="dialer-prompt">Enter USSD Code:</div>
+                <div class="dialer-prompt">Enter USSD Shortcode:</div>
                 <div id="dialed-number" class="dialed-display">*99#</div>
-                <div class="dialer-hint">Dial *99# for AgriQ Mandi</div>
+                <div class="dialer-hint">Dial *99# for AgriQ Mandi Services</div>
               </div>
 
               <!-- USSD Menu View -->
@@ -98,7 +138,7 @@
                 </div>
                 <div class="ussd-input-row">
                   <span class="prompt-arrow">&gt;</span>
-                  <span id="ussd-input-display" class="input-cursor">_</span>
+                  <span id="ussd-input-display" class="input-display">_</span>
                 </div>
               </div>
 
@@ -119,11 +159,11 @@
 
           <!-- Keypad Navigation Buttons -->
           <div class="nav-keys">
-            <button class="key soft-key" id="btn-soft-left">CALL</button>
+            <button class="key soft-key" id="btn-soft-left" title="Left Soft Key / Call / Select">CALL</button>
             <div class="dpad">
-              <button class="dpad-center" id="btn-ok">OK</button>
+              <button class="dpad-center" id="btn-ok" title="OK / Enter">OK</button>
             </div>
-            <button class="key soft-key end-key" id="btn-soft-right">END</button>
+            <button class="key soft-key end-key" id="btn-soft-right" title="Right Soft Key / End / Back">END</button>
           </div>
 
           <!-- Numeric Keypad (0-9, *, #) -->
@@ -138,7 +178,7 @@
             <button class="key num-key" data-key="8"><span class="num">8</span><span class="subtext">TUV</span></button>
             <button class="key num-key" data-key="9"><span class="num">9</span><span class="subtext">WXYZ</span></button>
             <button class="key num-key star-key" data-key="*"><span class="num">*</span><span class="subtext">+</span></button>
-            <button class="key num-key" data-key="0"><span class="num">0</span><span class="subtext">_</span></button>
+            <button class="key num-key" data-key="0"><span class="num">0</span><span class="subtext">Back</span></button>
             <button class="key num-key hash-key" data-key="#"><span class="num">#</span><span class="subtext">⌕</span></button>
           </div>
         </div>
@@ -153,24 +193,27 @@
 
         <div class="sms-phone-frame">
           <div class="sms-header">
-            <span class="sender-id">AG-AGRIQ (Mandi Alerts)</span>
-            <button id="clear-sms-btn" class="btn-text">Clear Inbox</button>
+            <div class="sender-group">
+              <span class="sms-dot"></span>
+              <span class="sender-id">AG-AGRIQ (Mandi Alerts)</span>
+            </div>
+            <button id="clear-sms-btn" class="btn-text">Clear</button>
           </div>
           <div class="sms-messages" id="sms-messages">
             <div class="empty-state">
               <span class="empty-icon">📭</span>
               <p>No SMS alerts yet.</p>
-              <small>Dial <b>*99#</b> or click <b>"Quick Book Token"</b> above to test alerts.</small>
+              <small>Dial <b>*99#</b> or click <b>"Quick Book Token"</b> to trigger real-time notifications.</small>
             </div>
           </div>
         </div>
 
         <!-- Simulated Farmer Phone Number config -->
         <div class="phone-id-card">
-          <label>Farmer Active Mobile (+91):</label>
+          <label>Farmer Active Mobile Number (+91):</label>
           <div class="phone-input-group">
             <input type="text" id="farmer-phone-input" value="9876543210" maxlength="10" />
-            <button id="update-phone-btn" class="btn-sm">Set Phone</button>
+            <button id="update-phone-btn" class="btn-sm">Set</button>
           </div>
         </div>
       </section>
@@ -184,15 +227,15 @@
             <h3>🏢 Mandi Officer Checkpoint Simulator</h3>
             <span class="tag">Live State Machine</span>
           </div>
-          <p class="card-desc">Simulate the Mandi Officer scanning and progressing your latest token to watch SMS alerts fire in real-time:</p>
+          <p class="card-desc">Simulate the Mandi Officer progressing your active token through the government procurement checkpoints:</p>
           
           <div class="active-token-banner" id="active-token-banner">
             <div>
-              <span class="lbl">Latest Token:</span>
+              <span class="lbl">Active Token:</span>
               <strong id="demo-token-display">None Booked Yet</strong>
             </div>
             <div>
-              <span class="lbl">Stage:</span>
+              <span class="lbl">Current Stage:</span>
               <span class="status-pill status-booked" id="demo-status-display">IDLE</span>
             </div>
           </div>
@@ -208,11 +251,35 @@
               <span class="icon">🔍</span> 3. Quality Assayed (Grade A passed)
             </button>
             <button class="btn-step" id="btn-sim-payment" disabled>
-              <span class="icon">💳</span> 4. Payment Initiated (₹35,160 DBT)
+              <span class="icon">💳</span> 4. DBT Payment Initiated (₹35,160)
             </button>
             <button class="btn-step" id="btn-sim-complete" disabled>
-              <span class="icon">✅</span> 5. Mark Completed
+              <span class="icon">✅</span> 5. Procurement Completed
             </button>
+          </div>
+        </div>
+
+        <!-- Live Mandi Queue Desk (Visual Proof of Sync) -->
+        <div class="card queue-card">
+          <div class="card-header">
+            <h3>📋 Mandi Live Queue Desk</h3>
+            <span class="tag live-tag">● Live Sync</span>
+          </div>
+          <div class="queue-table-wrapper">
+            <table class="queue-table">
+              <thead>
+                <tr>
+                  <th>Token</th>
+                  <th>Farmer</th>
+                  <th>Crop</th>
+                  <th>Slot</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="mandi-queue-tbody">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -242,10 +309,63 @@
 
     </main>
 
+    <!-- Modal: Official APMC Gate Pass Receipt -->
+    <div id="receipt-modal" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="receipt-header">
+          <div class="gov-badge">GOVERNMENT OF MAHARASHTRA • APMC MANDI</div>
+          <h2>DIGITAL MANDI GATE PASS</h2>
+          <span class="receipt-sub">Issued via AgriQ Unified Procurement Protocol</span>
+        </div>
+        <div class="receipt-body">
+          <div class="token-hero">
+            <span class="token-lbl">TOKEN NUMBER</span>
+            <span class="token-val" id="receipt-token-val">NSK-4821</span>
+          </div>
+          <div class="receipt-grid">
+            <div>
+              <span class="r-lbl">Farmer Mobile:</span>
+              <strong id="receipt-phone">+91-9876543210</strong>
+            </div>
+            <div>
+              <span class="r-lbl">Mandi Center:</span>
+              <strong id="receipt-center">Nashik APMC Main</strong>
+            </div>
+            <div>
+              <span class="r-lbl">Commodity:</span>
+              <strong id="receipt-crop">Wheat (Grade-A)</strong>
+            </div>
+            <div>
+              <span class="r-lbl">Allocated Slot:</span>
+              <strong id="receipt-slot">Tomorrow 08:00 AM</strong>
+            </div>
+            <div>
+              <span class="r-lbl">Estimated Qty:</span>
+              <strong id="receipt-qty">1,450 kg (14.5 Q)</strong>
+            </div>
+            <div>
+              <span class="r-lbl">Queue Position:</span>
+              <strong id="receipt-queue">2nd in Window</strong>
+            </div>
+          </div>
+          <div class="receipt-qr-area">
+            <div class="qr-placeholder">
+              <span class="qr-code-icon">🏁</span>
+              <code>Payload: {"token":"NSK-4821","type":"AGRIQ"}</code>
+            </div>
+            <p class="qr-note">Scan at Gate Check-In Counter #1 for Instant Physical Entry</p>
+          </div>
+        </div>
+        <div class="receipt-footer">
+          <button id="close-receipt-btn" class="btn-primary">Close Receipt</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Footer -->
     <footer class="main-footer">
       <span>AgriQ &copy; 2026 — Team Runtime-Terror • PS 26032</span>
-      <span>Postgres Schema v2 Compliant • Edge Function Session Handshake</span>
+      <span>Postgres Schema v2 Compliant • USSD Protocol (*99#) • Edge Function State Machine</span>
     </footer>
   </div>
 

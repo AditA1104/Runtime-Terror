@@ -1,11 +1,10 @@
 ﻿/**
- * AgriQ USSD Application & SMS Simulator Engine (P4 - Optimized v2)
- * Team: Runtime-Terror | SIH 2026
+ * AgriQ USSD Application & SMS Simulator Engine (P4 - Mentor Demo Ready v3)
+ * Team: Runtime-Terror | SIH 2026 | PS 26032
  */
 
 (function () {
   // DOM Elements
-  const lcdScreen = document.getElementById('lcd-screen');
   const dialingView = document.getElementById('dialing-view');
   const menuView = document.getElementById('menu-view');
   const loadingView = document.getElementById('loading-view');
@@ -20,6 +19,8 @@
   const smsCountBadge = document.getElementById('sms-count');
   const farmerPhoneInput = document.getElementById('farmer-phone-input');
   const soundToggleBtn = document.getElementById('sound-toggle-btn');
+  const guideToggleBtn = document.getElementById('guide-toggle-btn');
+  const demoGuidePanel = document.getElementById('demo-guide-panel');
   const currentLangTag = document.getElementById('current-lang-tag');
   
   // Inspector & Demo DOM
@@ -30,6 +31,7 @@
   const demoStatusDisplay = document.getElementById('demo-status-display');
   const connectionStatus = document.getElementById('connection-status');
   const pulseDot = document.getElementById('pulse-dot');
+  const mandiQueueTbody = document.getElementById('mandi-queue-tbody');
   
   // Officer Demo Buttons
   const btnSimCheckin = document.getElementById('btn-sim-checkin');
@@ -43,8 +45,20 @@
   const btnQuickCycle = document.getElementById('btn-quick-cycle');
   const btnQuickRates = document.getElementById('btn-quick-rates');
   const btnQuickReset = document.getElementById('btn-quick-reset');
+  const btnViewReceipt = document.getElementById('btn-view-receipt');
 
-  // Application State Machine
+  // Receipt Modal DOM
+  const receiptModal = document.getElementById('receipt-modal');
+  const closeReceiptBtn = document.getElementById('close-receipt-btn');
+  const receiptTokenVal = document.getElementById('receipt-token-val');
+  const receiptPhone = document.getElementById('receipt-phone');
+  const receiptCenter = document.getElementById('receipt-center');
+  const receiptCrop = document.getElementById('receipt-crop');
+  const receiptSlot = document.getElementById('receipt-slot');
+  const receiptQty = document.getElementById('receipt-qty');
+  const receiptQueue = document.getElementById('receipt-queue');
+
+  // State
   let soundEnabled = true;
   let audioCtx = null;
 
@@ -61,23 +75,28 @@
       centerName: null,
       slotId: null,
       slotTime: null,
-      quantityKg: 1500,
-      language: 'en' // 'en' | 'hi' | 'mr'
+      quantityKg: 1450,
+      language: 'en'
     },
     activeToken: null,
     activeBooking: null,
-    smsList: []
+    smsList: [],
+    queueList: [
+      { token: 'NSK-0198', phone: '9822019283', crop: 'Wheat', slot: '08:00 AM', status: 'WEIGHED' },
+      { token: 'NSK-0215', phone: '9765432190', crop: 'Onion', slot: '08:30 AM', status: 'CHECKED_IN' },
+      { token: 'NSK-0220', phone: '9921873461', crop: 'Wheat', slot: '09:00 AM', status: 'BOOKED' }
+    ]
   };
 
-  // Multilingual Text Dictionary for USSD menus
+  // Multilingual Text Dictionary
   const I18N = {
     en: {
       langName: 'Language: English',
       rootTitle: 'AgriQ Mandi Seva (*99#)',
-      rootBody: '1. Book Slot<br>2. Check Token Status<br>3. Mandi Rates & Forecast<br>4. Change Language',
+      rootBody: '1. Book Mandi Slot<br>2. Check Token Status<br>3. Mandi Rates & Forecast<br>4. Change Language',
       selectCrop: 'Select Commodity:<br>1. Wheat (गेहूं)<br>2. Onion (प्याज)<br>3. Paddy (धान)<br>4. Cotton (कपास)<br>0. Back',
       selectCenter: 'Select Mandi Center:<br>1. Nashik APMC Main<br>2. Pune Central Mandi<br>3. Nagpur Cotton Yard<br>0. Back',
-      enterQty: 'Approx Quantity (kg):<br>Enter weight in kg<br>(e.g. type 1500 for 15 quintals)<br><br>0. Back',
+      enterQty: 'Approx Quantity (kg):<br>Enter weight in kg<br>(e.g. type 1450 for 14.5 Q)<br><br>0. Back',
       confirmPrompt: '1. Confirm Booking<br>2. Cancel',
       ratesMenu: 'Mandi Rates & Forecast:<br>1. Wheat<br>2. Onion<br>3. Paddy<br>4. Cotton<br>0. Back'
     },
@@ -87,7 +106,7 @@
       rootBody: '1. टोकन/स्लॉट बुक करें<br>2. टोकन स्थिति जांचें<br>3. मंडी भाव और पूर्वानुमान<br>4. भाषा बदलें',
       selectCrop: 'फसल चुनें:<br>1. गेहूं (Wheat)<br>2. प्याज (Onion)<br>3. धान (Paddy)<br>4. कपास (Cotton)<br>0. वापस',
       selectCenter: 'मंडी केंद्र चुनें:<br>1. नासिक एपीएमसी<br>2. पुणे सेंट्रल मंडी<br>3. नागपुर यार्ड<br>0. वापस',
-      enterQty: 'अनुमानित वजन (किलो):<br>वजन दर्ज करें (उदा. 1500)<br><br>0. वापस',
+      enterQty: 'अनुमानित वजन (किलो):<br>वजन दर्ज करें (उदा. 1450)<br><br>0. वापस',
       confirmPrompt: '1. स्लॉट पक्का करें<br>2. रद्द करें',
       ratesMenu: 'मंडी भाव व सलाह:<br>1. गेहूं<br>2. प्याज<br>3. धान<br>4. कपास<br>0. वापस'
     },
@@ -97,13 +116,13 @@
       rootBody: '1. स्लॉट बुक करा<br>2. टोकन स्थिती तपासा<br>3. बाजार भाव व अंदाज<br>4. भाषा बदला',
       selectCrop: 'पीक निवडा:<br>1. गहू (Wheat)<br>2. कांदा (Onion)<br>3. भात (Paddy)<br>4. कापूस (Cotton)<br>0. मागे',
       selectCenter: 'बाजार समिती निवडा:<br>1. नाशिक एपीएमसी<br>2. पुणे मुख्य बाजार<br>3. नागपूर यार्ड<br>0. मागे',
-      enterQty: 'अंदाजे वजन (किलो):<br>वजन टाका (उदा. 1500)<br><br>0. मागे',
+      enterQty: 'अंदाजे वजन (किलो):<br>वजन टाका (उदा. 1450)<br><br>0. मागे',
       confirmPrompt: '1. स्लॉट निश्चित करा<br>2. रद्द करा',
       ratesMenu: 'बाजार भाव व शिफारस:<br>1. गहू<br>2. कांदा<br>3. भात<br>4. कापूस<br>0. मागे'
     }
   };
 
-  // Clock in LCD screen
+  // Clock
   function updateClock() {
     const clockEl = document.getElementById('screen-clock');
     const now = new Date();
@@ -112,7 +131,7 @@
   setInterval(updateClock, 1000);
   updateClock();
 
-  // Safe Web Audio API Handler (No external files needed)
+  // Audio Handler
   function initAudio() {
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -136,9 +155,7 @@
       gain.connect(audioCtx.destination);
       osc.start();
       osc.stop(audioCtx.currentTime + duration);
-    } catch (e) {
-      // Audio context policy
-    }
+    } catch (e) {}
   }
 
   function playSmsChime() {
@@ -153,9 +170,29 @@
     soundToggleBtn.style.color = soundEnabled ? '#10b981' : '#94a3b8';
   });
 
-  // -------------------------------------------------------------
-  // VIEW SWITCHING
-  // -------------------------------------------------------------
+  guideToggleBtn.addEventListener('click', () => {
+    demoGuidePanel.classList.toggle('hidden');
+    guideToggleBtn.classList.toggle('active');
+  });
+
+  // Render Mandi Queue Table
+  function renderQueueTable() {
+    mandiQueueTbody.innerHTML = state.queueList.map(item => {
+      const isCurrent = state.activeToken === item.token;
+      return `
+        <tr class="${isCurrent ? 'highlight-row' : ''}">
+          <td><strong>${item.token}</strong></td>
+          <td>+91-${item.phone.slice(-4)}</td>
+          <td>${item.crop}</td>
+          <td>${item.slot}</td>
+          <td><span class="table-badge status-${item.status.toLowerCase()}">${item.status}</span></td>
+        </tr>
+      `;
+    }).join('');
+  }
+  renderQueueTable();
+
+  // View Switching
   function showView(viewName) {
     state.mode = viewName;
     dialingView.classList.add('hidden');
@@ -195,9 +232,7 @@
     currentLangTag.textContent = I18N[state.tempData.language]?.langName || 'Language: English';
   }
 
-  // -------------------------------------------------------------
-  // USSD MENU STATE MACHINE
-  // -------------------------------------------------------------
+  // USSD Menu State Machine
   async function renderMenu(menuKey) {
     state.currentMenu = menuKey;
     state.inputBuffer = '';
@@ -241,12 +276,12 @@
       case 'BOOK_SUCCESS':
         const tok = state.activeBooking ? state.activeBooking.token_number : 'NSK-0231';
         ussdTitle.textContent = `✅ Token Booked!`;
-        ussdBody.innerHTML = `Token: <b>${tok}</b><br>Slot: ${state.tempData.slotTime || '08:00 AM'}<br>Queue Pos: 2nd<br>Est Wait: ~20 mins<br>SMS sent to ${state.tempData.phone}<br><br>0. Main Menu`;
+        ussdBody.innerHTML = `Token: <b>${tok}</b><br>Slot: ${state.tempData.slotTime || 'Tomorrow 08:00 AM'}<br>Queue Pos: 1st in Window<br>Est Wait: ~15 mins<br>SMS sent to ${state.tempData.phone}<br><br>0. Main Menu`;
         break;
 
       case 'STATUS_PROMPT':
         ussdTitle.textContent = lang === 'hi' ? 'टोकन स्थिति:' : (lang === 'mr' ? 'टोकन स्थिती:' : 'Check Token Status:');
-        ussdBody.innerHTML = `Enter Token # or Phone:<br>(e.g. NSK-0231)<br><br>1. Check my recent token<br>0. Back`;
+        ussdBody.innerHTML = `Enter Token # or Phone:<br>(e.g. NSK-4821)<br><br>1. Check latest token<br>0. Back`;
         break;
 
       case 'STATUS_RESULT':
@@ -278,7 +313,7 @@
     }
   }
 
-  // Handle USSD Input submission
+  // Handle USSD Input
   async function handleMenuInput(input) {
     playTone(720, 'sine', 0.04);
     const val = input.trim();
@@ -286,13 +321,13 @@
 
     const cur = state.currentMenu;
 
-    // Global back to Root
+    // 0 = Always Back to ROOT
     if (val === '0') {
       renderMenu('ROOT');
       return;
     }
 
-    // ROOT NAVIGATION
+    // ROOT
     if (cur === 'ROOT') {
       if (val === '1') renderMenu('BOOK_CROP');
       else if (val === '2') renderMenu('STATUS_PROMPT');
@@ -315,9 +350,9 @@
     // BOOK CENTER
     if (cur === 'BOOK_CENTER') {
       const centers = {
-        '1': { id: 'c1-nsk', name: 'Nashik APMC' },
-        '2': { id: 'c2-pun', name: 'Pune Central' },
-        '3': { id: 'c3-nag', name: 'Nagpur Yard' }
+        '1': { id: 'c1-nsk', name: 'Nashik APMC Main' },
+        '2': { id: 'c2-pun', name: 'Pune Central Mandi' },
+        '3': { id: 'c3-nag', name: 'Nagpur Cotton Yard' }
       };
       if (centers[val]) {
         state.tempData.centerId = centers[val].id;
@@ -355,11 +390,11 @@
     // BOOK CONFIRM
     if (cur === 'BOOK_CONFIRM') {
       if (val === '1') {
-        showLoading('Allocating Token & Queue...');
+        showLoading('Allocating Token & Queue Position...');
         const booking = await window.agriqBackend.createBooking({
           phone: state.tempData.phone,
-          centerId: state.tempData.centerId,
-          slotId: state.tempData.slotId,
+          centerId: state.tempData.centerId || 'c1-nsk',
+          slotId: state.tempData.slotId || 's1',
           cropQuantityKg: state.tempData.quantityKg
         });
 
@@ -367,10 +402,21 @@
         state.activeToken = booking.token_number;
         setActiveTokenDisplay(booking.token_number, booking.status);
 
+        // Add to live queue table at top
+        state.queueList.unshift({
+          token: booking.token_number,
+          phone: state.tempData.phone,
+          crop: state.tempData.crop || 'Wheat',
+          slot: state.tempData.slotTime || 'Tomorrow 08:00 AM',
+          status: 'BOOKED'
+        });
+        renderQueueTable();
+        btnViewReceipt.disabled = false;
+
         // Fire SMS
         sendSimulatedSms({
           title: 'Booking Confirmed',
-          message: `AgriQ: Token ${booking.token_number} confirmed for ${state.tempData.crop} at ${state.tempData.centerName}. Slot: ${state.tempData.slotTime}. Arrive 15 min early.`,
+          message: `AgriQ: Token ${booking.token_number} confirmed for ${state.tempData.crop || 'Wheat'} at ${state.tempData.centerName || 'Nashik APMC'}. Slot: ${state.tempData.slotTime || 'Tomorrow 08:00 AM'}. Arrive 15 min early.`,
           type: 'confirm'
         });
 
@@ -409,14 +455,13 @@
       const langNames = { en: 'English', hi: 'हिंदी (Hindi)', mr: 'मराठी (Marathi)' };
       sendSimulatedSms({
         title: 'Language Updated',
-        message: `AgriQ: Preferred language set to ${langNames[state.tempData.language]}. All mandi alerts will be delivered in this language.`,
+        message: `AgriQ: Preferred language set to ${langNames[state.tempData.language]}. All future mandi alerts will be delivered in this language.`,
         type: 'status'
       });
       renderMenu('ROOT');
       return;
     }
 
-    // Return to ROOT on default
     renderMenu('ROOT');
   }
 
@@ -425,13 +470,10 @@
     showView('LOADING');
   }
 
-  // -------------------------------------------------------------
-  // KEYPAD INTERACTION & KEYBOARD SUPPORT
-  // -------------------------------------------------------------
+  // Keypad Handlers
   function handleKeyPress(key) {
-    playTone(500 + Math.random() * 200, 'sine', 0.04);
+    playTone(520 + Math.random() * 180, 'sine', 0.04);
 
-    // Visual button press animation on screen
     const btn = document.querySelector(`button[data-key="${key}"]`);
     if (btn) {
       btn.classList.add('active-key');
@@ -456,7 +498,6 @@
           state.inputBuffer = state.inputBuffer.slice(0, -1);
           updateInputDisplay();
         } else {
-          // Exit USSD session
           showView('DIALING');
         }
       } else if (key === 'CALL' || key === 'OK') {
@@ -477,16 +518,14 @@
       setTimeout(() => {
         showView('MENU');
         renderMenu('ROOT');
-      }, 600);
+      }, 500);
     } else {
       showLoading('Invalid MMI Code');
-      setTimeout(() => {
-        showView('DIALING');
-      }, 1000);
+      setTimeout(() => showView('DIALING'), 900);
     }
   }
 
-  // Listen to physical keypad on screen
+  // Keypad click listeners
   document.querySelectorAll('.num-key').forEach(btn => {
     btn.addEventListener('click', () => {
       const key = btn.getAttribute('data-key');
@@ -499,22 +538,22 @@
     else if (state.mode === 'MENU') handleKeyPress('CALL');
   });
 
-  document.getElementById('btn-soft-right').addEventListener('click', () => {
-    handleKeyPress('END');
-  });
-
+  document.getElementById('btn-soft-right').addEventListener('click', () => handleKeyPress('END'));
   document.getElementById('btn-ok').addEventListener('click', () => {
     if (state.mode === 'DIALING') handleKeyPress('CALL');
     else if (state.mode === 'MENU') handleKeyPress('CALL');
   });
 
-  // Physical computer keyboard listener
+  // Physical computer keyboard support
   window.addEventListener('keydown', (e) => {
-    if (e.target.tagName === 'INPUT') return; // Ignore input fields
+    if (e.target.tagName === 'INPUT') return;
     
-    // Support standard numbers & numpad
-    if (['0','1','2','3','4','5','6','7','8','9','*','#'].includes(e.key)) {
-      handleKeyPress(e.key);
+    // Support standard 0-9 and Numpad0-9
+    let k = e.key;
+    if (k.startsWith('Numpad')) k = k.replace('Numpad', '');
+
+    if (['0','1','2','3','4','5','6','7','8','9','*','#'].includes(k)) {
+      handleKeyPress(k);
     } else if (e.key === 'Enter') {
       handleKeyPress('CALL');
     } else if (e.key === 'Backspace') {
@@ -524,9 +563,7 @@
     }
   });
 
-  // -------------------------------------------------------------
-  // SIMULATED SMS NOTIFICATION FEED
-  // -------------------------------------------------------------
+  // SMS Dispatcher
   function sendSimulatedSms({ title, message, type = 'status' }) {
     playSmsChime();
     const sms = {
@@ -548,7 +585,7 @@
         <div class="empty-state">
           <span class="empty-icon">📭</span>
           <p>No SMS alerts yet.</p>
-          <small>Dial <b>*99#</b> or click <b>"Quick Book Token"</b> above to test alerts.</small>
+          <small>Dial <b>*99#</b> or click <b>"Quick Book Token"</b> to trigger real-time notifications.</small>
         </div>`;
       return;
     }
@@ -570,7 +607,7 @@
     renderSmsFeed();
   });
 
-  // Update farmer phone
+  // Phone number updater
   document.getElementById('update-phone-btn').addEventListener('click', () => {
     const val = farmerPhoneInput.value.trim();
     if (val.length === 10) {
@@ -584,16 +621,21 @@
     }
   });
 
-  // -------------------------------------------------------------
-  // OFFICER CHECKPOINT SIMULATOR (DEMO CONTROLS)
-  // -------------------------------------------------------------
+  // Officer Checkpoint Progression
   function setActiveTokenDisplay(token, status) {
     state.activeToken = token;
     demoTokenDisplay.textContent = token;
     demoStatusDisplay.textContent = status;
     demoStatusDisplay.className = `status-pill status-${status.toLowerCase()}`;
 
-    // Enable / disable checkpoint progression buttons in strict state machine order
+    // Update queue table item status
+    const item = state.queueList.find(q => q.token === token);
+    if (item) {
+      item.status = status;
+      renderQueueTable();
+    }
+
+    // Enable/disable in strict sequential order
     btnSimCheckin.disabled = (status !== 'BOOKED');
     btnSimWeigh.disabled = (status !== 'CHECKED_IN');
     btnSimQuality.disabled = (status !== 'WEIGHED');
@@ -656,15 +698,29 @@
     });
   });
 
-  // -------------------------------------------------------------
-  // 1-CLICK QUICK DEMO PRESETS
-  // -------------------------------------------------------------
+  // Modal: Gate Pass Receipt
+  btnViewReceipt.addEventListener('click', () => {
+    if (!state.activeToken) return;
+    receiptTokenVal.textContent = state.activeToken;
+    receiptPhone.textContent = '+91-' + state.tempData.phone;
+    receiptCenter.textContent = state.tempData.centerName || 'Nashik APMC Main';
+    receiptCrop.textContent = (state.tempData.crop || 'Wheat') + ' (Grade-A)';
+    receiptSlot.textContent = state.tempData.slotTime || 'Tomorrow 08:00 AM';
+    receiptQty.textContent = (state.tempData.quantityKg || 1450) + ' kg (' + ((state.tempData.quantityKg || 1450)/100).toFixed(1) + ' Q)';
+    receiptModal.classList.remove('hidden');
+  });
+
+  closeReceiptBtn.addEventListener('click', () => {
+    receiptModal.classList.add('hidden');
+  });
+
+  // Quick Presets
   btnQuickBook.addEventListener('click', async () => {
     showLoading('Allocating Quick Demo Token...');
     const booking = await window.agriqBackend.createBooking({
       phone: state.tempData.phone,
       centerId: 'c1-nsk',
-      slotId: 's2',
+      slotId: 's1',
       cropQuantityKg: 1450
     });
     state.tempData.crop = 'Wheat';
@@ -674,9 +730,19 @@
     state.activeToken = booking.token_number;
     setActiveTokenDisplay(booking.token_number, booking.status);
 
+    state.queueList.unshift({
+      token: booking.token_number,
+      phone: state.tempData.phone,
+      crop: 'Wheat',
+      slot: 'Tomorrow 08:00 AM',
+      status: 'BOOKED'
+    });
+    renderQueueTable();
+    btnViewReceipt.disabled = false;
+
     sendSimulatedSms({
       title: 'Demo Token Booked',
-      message: `AgriQ: Token ${booking.token_number} allocated for Wheat at Nashik APMC. Slot: Tomorrow 08:00 AM. Queue Position: 2nd.`,
+      message: `AgriQ: Token ${booking.token_number} allocated for Wheat at Nashik APMC. Slot: Tomorrow 08:00 AM. Queue Position: 1st in Window.`,
       type: 'confirm'
     });
 
@@ -688,12 +754,11 @@
     if (!state.activeToken) {
       await btnQuickBook.click();
     }
-    // Automatically walk through all 5 stages with 1.2s delay for presentation
-    setTimeout(() => btnSimCheckin.click(), 500);
-    setTimeout(() => btnSimWeigh.click(), 1800);
-    setTimeout(() => btnSimQuality.click(), 3100);
-    setTimeout(() => btnSimPayment.click(), 4400);
-    setTimeout(() => btnSimComplete.click(), 5700);
+    setTimeout(() => btnSimCheckin.click(), 400);
+    setTimeout(() => btnSimWeigh.click(), 1600);
+    setTimeout(() => btnSimQuality.click(), 2800);
+    setTimeout(() => btnSimPayment.click(), 4000);
+    setTimeout(() => btnSimComplete.click(), 5200);
   });
 
   btnQuickRates.addEventListener('click', () => {
@@ -717,14 +782,19 @@
     btnSimQuality.disabled = true;
     btnSimPayment.disabled = true;
     btnSimComplete.disabled = true;
+    btnViewReceipt.disabled = true;
+    state.queueList = [
+      { token: 'NSK-0198', phone: '9822019283', crop: 'Wheat', slot: '08:00 AM', status: 'WEIGHED' },
+      { token: 'NSK-0215', phone: '9765432190', crop: 'Onion', slot: '08:30 AM', status: 'CHECKED_IN' },
+      { token: 'NSK-0220', phone: '9921873461', crop: 'Wheat', slot: '09:00 AM', status: 'BOOKED' }
+    ];
+    renderQueueTable();
     renderSmsFeed();
     showView('DIALING');
     renderMenu('ROOT');
   });
 
-  // -------------------------------------------------------------
-  // SUPABASE CONFIG DRAWER
-  // -------------------------------------------------------------
+  // Supabase Config
   const toggleConfigBtn = document.getElementById('toggle-config-btn');
   const closeConfigBtn = document.getElementById('close-config-btn');
   const configDrawer = document.getElementById('config-drawer');
@@ -745,7 +815,6 @@
       configDrawer.classList.add('hidden');
       alert('Connected to Supabase project successfully!');
       
-      // Subscribe to Realtime
       window.agriqBackend.subscribeToBookings((updatedRecord) => {
         if (state.activeToken && updatedRecord.token_number === state.activeToken) {
           setActiveTokenDisplay(updatedRecord.token_number, updatedRecord.status);
@@ -765,7 +834,7 @@
     configDrawer.classList.add('hidden');
   });
 
-  // Initialize view
+  // Init
   showView('DIALING');
   updateInspector();
 
