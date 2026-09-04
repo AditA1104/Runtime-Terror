@@ -24,13 +24,26 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
   isSubmitting,
 }) => {
   const { t } = useTranslation();
-  const [unit, setUnit] = useState<'quintal' | 'kg'>('quintal');
-  const [quantity, setQuantity] = useState<number>(25); // Default 25 quintals (2500 kg)
+  const [unit, setUnit] = useState<'quintal' | 'kg'>('kg');
+  const [quantity, setQuantity] = useState<number>(2500); // Default 2,500 kg (25 quintals)
 
   const crop = CROPS_DATA.find(c => c.id === cropId) || CROPS_DATA[0];
   const quantityKg = unit === 'quintal' ? quintalToKg(quantity) : quantity;
   const quantityQuintals = unit === 'quintal' ? quantity : quantity / 100;
   const estimatedPayout = Math.round(quantityQuintals * crop.mspPrice);
+
+  const handleUnitToggle = (newUnit: 'quintal' | 'kg') => {
+    if (newUnit === unit) return;
+    if (newUnit === 'quintal') {
+      setQuantity(Math.max(1, Math.round(quantity / 100)));
+    } else {
+      setQuantity(quantity * 100);
+    }
+    setUnit(newUnit);
+  };
+
+  const kgPresets = [500, 1000, 2500, 5000, 10000];
+  const quintalPresets = [5, 10, 25, 50, 100];
 
   const handleSubmit = async () => {
     try {
@@ -113,21 +126,21 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
           <div className="flex bg-slate-100 p-0.5 rounded-lg text-xs font-semibold">
             <button
               type="button"
-              onClick={() => setUnit('quintal')}
-              className={`px-2.5 py-1 rounded-md transition-all ${
-                unit === 'quintal' ? 'bg-white text-green-800 shadow-sm' : 'text-slate-600'
+              onClick={() => handleUnitToggle('kg')}
+              className={`px-3 py-1 rounded-md transition-all ${
+                unit === 'kg' ? 'bg-white text-green-800 shadow-sm font-bold' : 'text-slate-600'
               }`}
             >
-              Quintals (q)
+              Kilograms (Kg)
             </button>
             <button
               type="button"
-              onClick={() => setUnit('kg')}
-              className={`px-2.5 py-1 rounded-md transition-all ${
-                unit === 'kg' ? 'bg-white text-green-800 shadow-sm' : 'text-slate-600'
+              onClick={() => handleUnitToggle('quintal')}
+              className={`px-3 py-1 rounded-md transition-all ${
+                unit === 'quintal' ? 'bg-white text-green-800 shadow-sm font-bold' : 'text-slate-600'
               }`}
             >
-              Kg
+              Quintals (q)
             </button>
           </div>
         </div>
@@ -136,14 +149,43 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
           <input
             type="number"
             min={1}
-            max={50000}
+            max={100000}
             value={quantity}
             onChange={e => setQuantity(Math.max(1, Number(e.target.value)))}
-            className="w-full text-xl font-bold px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 focus:ring-2 focus:ring-green-600 focus:outline-none"
+            className="w-full text-xl font-black px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 focus:ring-2 focus:ring-green-600 focus:outline-none font-mono"
           />
-          <div className="shrink-0 text-sm font-bold text-slate-600">
-            {unit === 'quintal' ? `${quantity} Quintals (${quantity * 100} kg)` : `${quantity} kg`}
+          <div className="shrink-0 text-xs font-bold text-slate-600 text-right">
+            {unit === 'kg' ? (
+              <>
+                <span className="block text-slate-900 text-sm font-black">{quantity.toLocaleString('en-IN')} kg</span>
+                <span className="text-slate-400">({(quantity / 100).toFixed(1)} Quintals)</span>
+              </>
+            ) : (
+              <>
+                <span className="block text-slate-900 text-sm font-black">{quantity} Quintals</span>
+                <span className="text-slate-400">({(quantity * 100).toLocaleString('en-IN')} kg)</span>
+              </>
+            )}
           </div>
+        </div>
+
+        {/* Quick Presets */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+          <span className="text-[10px] uppercase font-bold text-slate-400 shrink-0 mr-1">Quick:</span>
+          {(unit === 'kg' ? kgPresets : quintalPresets).map(presetVal => (
+            <button
+              key={presetVal}
+              type="button"
+              onClick={() => setQuantity(presetVal)}
+              className={`px-2.5 py-1 text-xs rounded-lg font-bold border transition-all shrink-0 ${
+                quantity === presetVal
+                  ? 'bg-green-700 text-white border-green-700 shadow-2xs'
+                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+              }`}
+            >
+              {presetVal.toLocaleString('en-IN')} {unit === 'kg' ? 'kg' : 'q'}
+            </button>
+          ))}
         </div>
 
         {/* Real-time Value Calculation */}

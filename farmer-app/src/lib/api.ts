@@ -21,6 +21,7 @@ import {
 let localFarmer: Farmer = { ...DEFAULT_FARMER };
 let localBookings: Booking[] = [{ ...INITIAL_DEMO_BOOKING }];
 let localNotifications: NotificationItem[] = [...INITIAL_NOTIFICATIONS];
+const localSlotsStore: Record<string, SlotAvailable[]> = {};
 
 // Event emitter to notify components of simulated realtime updates
 type Listener = () => void;
@@ -72,7 +73,10 @@ export async function getSlotsAvailable(centerId: string): Promise<SlotAvailable
       console.warn('Supabase fetch slots fallback:', e);
     }
   }
-  return generateAvailableSlots(centerId, 7);
+  if (!localSlotsStore[centerId]) {
+    localSlotsStore[centerId] = generateAvailableSlots(centerId, 7);
+  }
+  return localSlotsStore[centerId];
 }
 
 // 3. Daily Rates Cache & Predictive Engine (Calls P5 RPC get_best_selling_days with fallback)
@@ -193,11 +197,28 @@ export async function createBooking(params: {
   mandiCenter?: MandiCenter;
 }): Promise<Booking> {
   const center = params.mandiCenter || MOCK_MANDI_CENTERS.find(c => c.center_id === params.centerId) || MOCK_MANDI_CENTERS[0];
-  const centerPrefix = center.center_name.substring(0, 3).toUpperCase();
+  const centerPrefix = center.center_name.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, '') || 'MND';
   const randomNum = Math.floor(1000 + Math.random() * 9000);
   const tokenNumber = `${centerPrefix}-${randomNum}`;
-  const queuePos = Math.floor(Math.random() * 5) + 1;
-  const waitMins = queuePos * (center.avg_processing_min || 15);
+
+  // Calculate queue position specifically for this Mandi center
+  const activeAtThisCenter = localBookings.filter(
+    b => b.center_id === params.centerId && b.status !== 'COMPLETED' && b.status !== 'CANCELLED'
+  );
+  const queuePos = activeAtThisCenter.length + 1;
+  const avgWaitPerFarmer = center.avg_processing_min || 12;
+  const waitMins = queuePos * avgWaitPerFarmer;
+
+  // Update in-memory slot store to decrement remaining slots
+  let updatedSlot = params.selectedSlot;
+  if (localSlotsStore[params.centerId]) {
+    const targetSlot = localSlotsStore[params.centerId].find(s => s.slot_id === params.slotId);
+    if (targetSlot) {
+      targetSlot.booked_count += 1;
+      targetSlot.remaining = Math.max(0, targetSlot.max_farmers - targetSlot.booked_count);
+      updatedSlot = { ...targetSlot };
+    }
+  }
 
   if (isSupabaseLive && supabase) {
     try {
@@ -260,7 +281,7 @@ export async function createBooking(params: {
     created_at: new Date().toISOString(),
     mandi_centers: center,
     farmers: localFarmer,
-    slots: params.selectedSlot,
+    slots: updatedSlot,
   };
 
   localBookings.unshift(newBooking);
@@ -271,7 +292,7 @@ export async function createBooking(params: {
     farmer_id: params.farmerId,
     booking_id: newBooking.booking_id,
     channel: 'sms',
-    message: `AgriQ: Slot confirmed! Token ${newBooking.token_number} generated for ${center.crop_type} at ${center.center_name}. Queue Pos: #${queuePos}. Keep QR pass ready.`,
+    message: `AgriQ: Slot confirmed! Token ${newBooking.token_number} generated for ${center.crop_type} at ${center.center_name}. Queue Pos: #${queuePos} at this mandi. Keep QR pass ready.`,
     sent_at: new Date().toISOString(),
   };
   localNotifications.unshift(newNotif);
@@ -318,6 +339,17 @@ export async function transitionBookingStatus(bookingId: string, newStatus: Book
       booking.completed_at = new Date().toISOString();
       booking.actual_wait_mins = 35;
       booking.queue_position = 0;
+      booking.predicted_wait_mins = 0;
+
+      // Advance other waiting bookings at the SAME mandi center
+      localBookings
+        .filter(b => b.center_id === booking.center_id && b.booking_id !== booking.booking_id && b.status !== 'COMPLETED' && b.status !== 'CANCELLED')
+        .forEach(b => {
+          if (b.queue_position && b.queue_position > 1) {
+            b.queue_position -= 1;
+            b.predicted_wait_mins = b.queue_position * (booking.mandi_centers?.avg_processing_min || 12);
+          }
+        });
     }
 
     // Add status change notification
@@ -343,7 +375,26 @@ export async function transitionBookingStatus(bookingId: string, newStatus: Book
   return false;
 }
 
-// 8. Notifications
+// 8. Dispatch Share Notification
+export function dispatchShareNotification(params: {
+  farmerId: string;
+  bookingId: string;
+  recipientPhone: string;
+  message: string;
+}) {
+  const notif: NotificationItem = {
+    notification_id: `notif-share-${Date.now()}`,
+    farmer_id: params.farmerId,
+    booking_id: params.bookingId,
+    channel: 'sms',
+    message: `AgriQ SMS Dispatched to +91-${params.recipientPhone}: ${params.message}`,
+    sent_at: new Date().toISOString(),
+  };
+  localNotifications.unshift(notif);
+  emitChange();
+}
+
+// 9. Notifications
 export async function getFarmerNotifications(farmerId: string): Promise<NotificationItem[]> {
   if (isSupabaseLive && supabase) {
     try {
