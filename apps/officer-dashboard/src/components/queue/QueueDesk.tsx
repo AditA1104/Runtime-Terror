@@ -32,12 +32,13 @@ const FILTERS: { key: Filter; label: string }[] = [
 
 interface Props {
   queue: ReturnType<typeof useQueue>
-  officerName: string
+  /** Written to status_log.changed_by — an auth UID when live. */
+  changedBy: string
   /** The centre this desk is staffing — compared against a scanned pass. */
   centerId: string
 }
 
-export function QueueDesk({ queue, officerName, centerId }: Props) {
+export function QueueDesk({ queue, changedBy, centerId }: Props) {
   const { entries, loading, error, live, refresh, advance, markException } = queue
 
   const [search, setSearch] = React.useState("")
@@ -133,7 +134,7 @@ export function QueueDesk({ queue, officerName, centerId }: Props) {
       return
     }
     try {
-      await markException(entry.booking_id, status, officerName)
+      await markException(entry.booking_id, status, changedBy)
       toast.success(`${entry.token_number} marked ${status === "NO_SHOW" ? "no-show" : "cancelled"}`)
     } catch (err) {
       toast.error("Could not update this token", {
@@ -229,7 +230,7 @@ export function QueueDesk({ queue, officerName, centerId }: Props) {
       <CheckpointDialog
         entry={pending?.entry ?? null}
         checkpoint={pending?.checkpoint ?? null}
-        officerName={officerName}
+        changedBy={changedBy}
         onClose={() => setPending(null)}
         onConfirm={advance}
       />

@@ -27,7 +27,7 @@ import { formatPhone } from "@/lib/format"
 interface Props {
   entry: QueueEntry | null
   checkpoint: Checkpoint | null
-  officerName: string
+  changedBy: string
   onClose: () => void
   onConfirm: (input: AdvanceInput) => Promise<void>
 }
@@ -40,7 +40,7 @@ interface Props {
 export function CheckpointDialog({
   entry,
   checkpoint,
-  officerName,
+  changedBy,
   onClose,
   onConfirm,
 }: Props) {
@@ -76,7 +76,7 @@ export function CheckpointDialog({
         bookingId: entry.booking_id,
         from: entry.status,
         to: checkpoint.to,
-        changedBy: officerName,
+        changedBy,
         field: field ? { column: field.column, value: numeric ? Number(value) : value } : undefined,
       })
       toast.success(`${entry.token_number} → ${checkpoint.action.toLowerCase()} done`, {

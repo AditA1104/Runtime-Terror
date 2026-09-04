@@ -1,6 +1,7 @@
 import * as React from "react"
 import { repository } from "@/data/repository"
-import { DEFAULT_CENTER_ID } from "@/lib/supabase"
+import { DEFAULT_CENTER_ID, isLiveMode } from "@/lib/supabase"
+import { useAuth } from "@/hooks/useAuth"
 import type { MandiCenter, OfficerSession } from "@/lib/types"
 
 const STORAGE_KEY = "agriq.officer.session"
@@ -12,6 +13,11 @@ interface OfficerContextValue {
   loading: boolean
   signIn: (session: OfficerSession) => void
   signOut: () => void
+  /**
+   * What goes into status_log.changed_by. Live mode writes the officer's real
+   * auth UID; mock mode has no auth server, so it writes the typed name.
+   */
+  changedBy: string
   setCenter: (centerId: string) => void
   /** Applied after a capacity edit so the header figures stay in step. */
   replaceCenter: (center: MandiCenter) => void
@@ -32,7 +38,12 @@ function readStored(): OfficerSession | null {
 }
 
 export function OfficerProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = React.useState<OfficerSession | null>(readStored)
+  const auth = useAuth()
+  // A live officer's identity comes from their `officers` row, never from a
+  // text box, so the stored session is only the fallback for mock mode.
+  const [session, setSession] = React.useState<OfficerSession | null>(
+    isLiveMode ? null : readStored,
+  )
   const [centers, setCenters] = React.useState<MandiCenter[]>([])
   const [loading, setLoading] = React.useState(true)
 
@@ -59,6 +70,19 @@ export function OfficerProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  // Adopt the officer row as the session once auth resolves it.
+  React.useEffect(() => {
+    if (!isLiveMode) return
+    if (auth.officer) {
+      setSession({
+        officer_name: auth.officer.full_name,
+        center_id: auth.officer.center_id ?? "",
+      })
+    } else {
+      setSession(null)
+    }
+  }, [auth.officer])
+
   const persist = React.useCallback((next: OfficerSession | null) => {
     setSession(next)
     try {
@@ -76,7 +100,11 @@ export function OfficerProvider({ children }: { children: React.ReactNode }) {
       loading,
       center: session ? (centers.find((c) => c.center_id === session.center_id) ?? null) : null,
       signIn: persist,
-      signOut: () => persist(null),
+      signOut: () => {
+        if (isLiveMode) void auth.signOut()
+        persist(null)
+      },
+      changedBy: isLiveMode ? (auth.user?.id ?? "") : (session?.officer_name ?? ""),
       setCenter: (centerId) =>
         persist(session ? { ...session, center_id: centerId } : null),
       replaceCenter: (updated) =>
@@ -84,7 +112,7 @@ export function OfficerProvider({ children }: { children: React.ReactNode }) {
           prev.map((c) => (c.center_id === updated.center_id ? updated : c)),
         ),
     }),
-    [session, centers, loading, persist],
+    [session, centers, loading, persist, auth],
   )
 
   return <OfficerContext.Provider value={value}>{children}</OfficerContext.Provider>

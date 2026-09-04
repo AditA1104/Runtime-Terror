@@ -4,15 +4,23 @@ import { Toaster } from "sonner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AppShell } from "@/components/layout/AppShell"
 import { SignIn } from "@/components/layout/SignIn"
+import { NotAnOfficer, OfficerLogin } from "@/components/layout/OfficerLogin"
 import { QueueDesk } from "@/components/queue/QueueDesk"
 import { MetricsPanel } from "@/components/metrics/MetricsPanel"
 import { CapacityPanel } from "@/components/config/CapacityPanel"
+import { AuthProvider, useAuth } from "@/hooks/useAuth"
 import { OfficerProvider, useOfficer } from "@/hooks/useOfficer"
 import { useQueue } from "@/hooks/useQueue"
 import { computeMetrics } from "@/lib/metrics"
+import { isLiveMode } from "@/lib/supabase"
+
+const Loading = () => (
+  <div className="grid min-h-dvh place-items-center text-sm text-muted-foreground">Loading…</div>
+)
 
 function Desk() {
-  const { session, center, loading } = useOfficer()
+  const { session, center, loading, changedBy } = useOfficer()
+  const auth = useAuth()
   const queue = useQueue(session?.center_id ?? null)
 
   const metrics = React.useMemo(
@@ -20,9 +28,16 @@ function Desk() {
     [queue.entries, queue.log, center],
   )
 
-  if (loading && !session) {
-    return <div className="grid min-h-dvh place-items-center text-sm text-muted-foreground">Loading…</div>
+  // Live mode gates on the Supabase session. Mock mode has no auth server, so
+  // it keeps the name-and-centre card — which is what lets the demo run with
+  // no backend at all.
+  if (isLiveMode) {
+    if (auth.loading) return <Loading />
+    if (!auth.user) return <OfficerLogin />
+    if (auth.notAnOfficer) return <NotAnOfficer email={auth.user.email} />
   }
+
+  if (loading && !session) return <Loading />
   if (!session?.officer_name || !session.center_id) return <SignIn />
 
   return (
@@ -44,11 +59,7 @@ function Desk() {
         </TabsList>
 
         <TabsContent value="queue">
-          <QueueDesk
-            queue={queue}
-            officerName={session.officer_name}
-            centerId={session.center_id}
-          />
+          <QueueDesk queue={queue} changedBy={changedBy} centerId={session.center_id} />
         </TabsContent>
         <TabsContent value="metrics">
           <MetricsPanel metrics={metrics} center={center} />
@@ -63,9 +74,11 @@ function Desk() {
 
 export default function App() {
   return (
-    <OfficerProvider>
-      <Desk />
-      <Toaster position="bottom-right" richColors closeButton />
-    </OfficerProvider>
+    <AuthProvider>
+      <OfficerProvider>
+        <Desk />
+        <Toaster position="bottom-right" richColors closeButton />
+      </OfficerProvider>
+    </AuthProvider>
   )
 }

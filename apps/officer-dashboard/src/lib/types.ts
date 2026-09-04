@@ -98,6 +98,17 @@ export interface QueueEntry extends Booking {
   live_position: number | null
 }
 
+/**
+ * A row in `officers`. `officer_id` IS the Supabase Auth UID — there is no
+ * separate lookup — which is what makes it safe to write straight into
+ * status_log.changed_by.
+ */
+export interface Officer {
+  officer_id: string
+  full_name: string
+  center_id: string | null
+}
+
 /** Identity of whoever is staffing this dashboard. Written to status_log.changed_by. */
 export interface OfficerSession {
   officer_name: string
