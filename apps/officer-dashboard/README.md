@@ -35,6 +35,20 @@ token numbers rather than shapes.
 Both run in CI on any PR touching this app —
 `.github/workflows/officer-dashboard.yml`.
 
+**Against the live project.** `scripts/verify-live.mjs` runs P1's officer-access
+test plan end to end — sign in, confirm the `officers` row matches the auth UID,
+check no other centre's bookings leak, and verify a transition writes that UID
+into `status_log.changed_by`:
+
+```bash
+node scripts/verify-live.mjs --email officer1@example.com --password ...
+node scripts/verify-live.mjs --phone 9111111111 --otp 123456
+```
+
+Read-only unless you add `--transition`, which advances exactly one booking by
+one stage. Run it once per officer and compare — an officer at another centre
+seeing zero of the first officer's rows is the RLS-scoping proof.
+
 > The Supabase branch of `repository.ts` has **no coverage** — it cannot run
 > until the RLS ask below lands. That is the module's main untested surface.
 
@@ -121,10 +135,10 @@ token pass has the same problem.
 
 ---
 
-# Status — 2 Sept 2026
+# Status — 4 Sept 2026
 
 P1 has delivered a live project, an `officers` table, and 3 test officer
-logins. Verified against it directly with the anon key (credentials are in
+logins. Verified directly against it with the anon key (credentials are in
 `.env.local`, which is gitignored — ask P1 if you need them):
 
 **Working.** All six tables exist and respond. `officers` is there, so the
@@ -136,14 +150,21 @@ caller — `mandi_centers` and `slots` read, while `bookings`, `farmers` and
 `https://<ref>.supabase.co/rest/v1/`. `createClient()` needs the bare origin —
 supabase-js appends its own paths, so the REST suffix breaks every call.
 
-## Four things still block the handover test plan
+Since 2 Sept P1 has also seeded **five centres** and **slots for 4–17 Sept**,
+which clears two of the four blockers listed here previously.
+
+## What still blocks the handover test plan
 
 | # | Blocker | Owner |
 |---|---|---|
-| 1 | **Phone auth is off.** `/auth/v1/settings` reports `"phone": false` (`"email": true`). The "sign in via phone OTP" path cannot work for anyone, farmers included. Needs the provider enabled, or email + temp password for the 3 test accounts — **temp password, not magic link**, since a link needs an inbox to click it from. | P1 |
-| 2 | **Only one centre exists.** `mandi_centers` holds a single row, `Test Mandi`. The plan's test 2 ("Officer 3 on a different center → confirm they cannot see Officer 1/2's bookings") has no second centre to scope against, so it cannot prove anything yet. | P1 |
-| 3 | **No data for today.** The only `slots` row is dated `2026-08-31`. The desk queries today's slots by design (`useQueue` → `listQueue(centerId, todayISO())`), so the queue renders empty even fully authenticated. Needs slots + bookings seeded for the current date. | P1 |
-| 4 | **This app has no auth code.** `SignIn.tsx` is a name box and a dropdown — deliberately, because officer auth was the thing blocked. There is no `supabase.auth` call in the module yet. All three tests need this built first, and it is also what turns `status_log.changed_by` from typed free text into the officer's real UID. | P3 (next task) |
+| 1 | **No officer can sign in.** `/auth/v1/settings` still reports `"phone": false` (`"email": true`), and the 3 test accounts have no password set, so neither route resolves. Editing this needs an Owner/Administrator role on the Supabase project. Fastest fix: **Authentication → Users**, set an email + password on each test officer. To keep the phone flow instead: enable the Phone provider, leave the Twilio fields empty, and add **Test OTPs** (`919111111111 → 123456`) — real SMS will never reach those numbers, they are not handsets. Worth raising `SMS OTP Expiry` from 60s to 300s either way. | project owner |
+
+**Done since:** officer auth is built — `useAuth.tsx` plus `OfficerLogin.tsx`,
+phone OTP and email/password side by side, the `officers` row supplying the
+desk's name and centre, and the officer's real auth UID going into
+`status_log.changed_by`. It renders against the live project with no console
+errors, but **has never completed a sign-in**, because of the row above. That
+plus the Supabase branch of `repository.ts` are the module's untested surfaces.
 
 Settled on the way: `mandi_centers.center_id` really is a UUID here
 (`affc5449-8ea1-4da3-b1f4-0246eee93595`), which confirms the QR pass's
