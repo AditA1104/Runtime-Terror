@@ -16,7 +16,7 @@ export const CROPS_DATA: CropInfo[] = [
 export const MOCK_MANDI_CENTERS: MandiCenter[] = [
   // --- Karnataka APMC Centers ---
   {
-    center_id: 'c1-blr',
+    center_id: 'c0000000-0000-0000-0000-000000000001',
     center_name: 'Bengaluru APMC (Yeshwanthpur Main Yard)',
     location: 'APMC Market Yard, Yeshwanthpur',
     district: 'Bengaluru Urban',
@@ -29,7 +29,7 @@ export const MOCK_MANDI_CENTERS: MandiCenter[] = [
     operating_end: '18:00',
   },
   {
-    center_id: 'c2-hub',
+    center_id: 'c0000000-0000-0000-0000-000000000002',
     center_name: 'Hubballi APMC (Amaragol Market Yard)',
     location: 'Amaragol, PB Road',
     district: 'Dharwad',
@@ -42,7 +42,7 @@ export const MOCK_MANDI_CENTERS: MandiCenter[] = [
     operating_end: '18:00',
   },
   {
-    center_id: 'c3-mys',
+    center_id: 'c0000000-0000-0000-0000-000000000003',
     center_name: 'Mysuru APMC (Bandipalya Yard)',
     location: 'Bandipalya, Nanjangud Road',
     district: 'Mysuru',
@@ -55,7 +55,7 @@ export const MOCK_MANDI_CENTERS: MandiCenter[] = [
     operating_end: '18:00',
   },
   {
-    center_id: 'c4-klb',
+    center_id: 'c0000000-0000-0000-0000-000000000004',
     center_name: 'Kalaburagi APMC (Nehru Gunj Hub)',
     location: 'Nehru Gunj Market',
     district: 'Kalaburagi',
@@ -68,7 +68,7 @@ export const MOCK_MANDI_CENTERS: MandiCenter[] = [
     operating_end: '18:00',
   },
   {
-    center_id: 'c5-bel',
+    center_id: 'c0000000-0000-0000-0000-000000000005',
     center_name: 'Belagavi APMC Central Yard',
     location: 'RMC Yard, Shivaji Nagar',
     district: 'Belagavi',
@@ -81,7 +81,7 @@ export const MOCK_MANDI_CENTERS: MandiCenter[] = [
     operating_end: '18:00',
   },
   {
-    center_id: 'c6-rai',
+    center_id: 'c0000000-0000-0000-0000-000000000006',
     center_name: 'Raichur Cotton & Paddy APMC',
     location: 'Gunj Area, Raichur',
     district: 'Raichur',
@@ -109,7 +109,7 @@ export const MOCK_MANDI_CENTERS: MandiCenter[] = [
     operating_end: '18:00',
   },
   {
-    center_id: 'c2-las',
+    center_id: 'c2222222-2222-2222-2222-222222222222',
     center_name: 'Lasalgaon Onion & Grain Market Yard',
     location: 'Station Road, Lasalgaon',
     district: 'Nashik',
@@ -122,7 +122,7 @@ export const MOCK_MANDI_CENTERS: MandiCenter[] = [
     operating_end: '18:00',
   },
   {
-    center_id: 'c3-pun',
+    center_id: 'c3333333-3333-3333-3333-333333333333',
     center_name: 'Pune APMC (Gultekdi Market Yard)',
     location: 'Gultekdi, Market Yard Road',
     district: 'Pune',
@@ -135,7 +135,7 @@ export const MOCK_MANDI_CENTERS: MandiCenter[] = [
     operating_end: '18:00',
   },
   {
-    center_id: 'c4-nag',
+    center_id: 'c4444444-4444-4444-4444-444444444444',
     center_name: 'Nagpur APMC Cotton & Grain Yard',
     location: 'Kalamna Market, Kamptee Road',
     district: 'Nagpur',
@@ -148,7 +148,7 @@ export const MOCK_MANDI_CENTERS: MandiCenter[] = [
     operating_end: '18:00',
   },
   {
-    center_id: 'c5-ahm',
+    center_id: 'c5555555-5555-5555-5555-555555555555',
     center_name: 'Ahmednagar APMC Market Yard',
     location: 'Station Road, Market Yard',
     district: 'Ahmednagar',
@@ -286,10 +286,10 @@ export const DEFAULT_SAVED_ACCOUNTS: Farmer[] = [
 ];
 
 export const INITIAL_DEMO_BOOKING: Booking = {
-  booking_id: 'b-demo-initial-001',
+  booking_id: 'b1111111-1111-1111-1111-111111111101',
   farmer_id: 'f1111111-1111-1111-1111-111111111111',
-  center_id: 'c1-blr',
-  slot_id: 'slot-c1-blr-today-1',
+  center_id: 'c0000000-0000-0000-0000-000000000001',
+  slot_id: 's0000000-0000-0000-0000-000000000001',
   token_number: 'BLR-0231',
   crop_quantity_kg: 1850,
   status: 'BOOKED',
@@ -300,8 +300,8 @@ export const INITIAL_DEMO_BOOKING: Booking = {
   mandi_centers: MOCK_MANDI_CENTERS[0],
   farmers: DEFAULT_SAVED_ACCOUNTS[0],
   slots: {
-    slot_id: 'slot-c1-blr-today-1',
-    center_id: 'c1-blr',
+    slot_id: 's0000000-0000-0000-0000-000000000001',
+    center_id: 'c0000000-0000-0000-0000-000000000001',
     slot_date: new Date().toISOString().split('T')[0],
     slot_start_time: '10:00:00',
     slot_end_time: '12:00:00',

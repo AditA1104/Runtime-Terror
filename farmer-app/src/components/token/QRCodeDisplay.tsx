@@ -7,6 +7,8 @@ interface QRCodeDisplayProps {
   bookingId: string;
   farmerId: string;
   centerId: string;
+  phoneNumber?: string;
+  slotDate?: string;
   size?: number;
 }
 
@@ -15,17 +17,22 @@ export const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
   bookingId,
   farmerId,
   centerId,
+  phoneNumber,
+  slotDate,
   size = 180,
 }) => {
   const [copied, setCopied] = useState(false);
 
-  // Payload scanned by Mandi Officer scanner app
+  // Payload scanned by Mandi Officer scanner app (P3)
   const qrPayload = JSON.stringify({
     type: 'AGRIQ_TOKEN',
-    token: tokenNumber,
     booking_id: bookingId,
+    token_number: tokenNumber,
+    token: tokenNumber, // backward compatibility
     farmer_id: farmerId,
     center_id: centerId,
+    phone_number: phoneNumber || '',
+    slot_date: slotDate || new Date().toISOString().split('T')[0],
   });
 
   const handleCopy = () => {

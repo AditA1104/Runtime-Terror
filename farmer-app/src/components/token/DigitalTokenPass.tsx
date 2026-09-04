@@ -221,6 +221,8 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
             bookingId={booking.booking_id}
             farmerId={booking.farmer_id}
             centerId={booking.center_id}
+            phoneNumber={booking.farmers?.phone_number || ''}
+            slotDate={booking.slots?.slot_date || booking.created_at?.split('T')[0] || new Date().toISOString().split('T')[0]}
             size={180}
           />
         </div>

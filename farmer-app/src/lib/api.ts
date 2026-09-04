@@ -17,6 +17,18 @@ import {
   INITIAL_NOTIFICATIONS 
 } from './mockData';
 
+// Helper for UUID generation in mock/offline mode
+export function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 // Local in-memory state for offline/demo operation
 let localFarmer: Farmer = { ...DEFAULT_FARMER };
 let localBookings: Booking[] = [{ ...INITIAL_DEMO_BOOKING }];
@@ -268,7 +280,7 @@ export async function createBooking(params: {
 
   // Local state generation
   const newBooking: Booking = {
-    booking_id: `b-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    booking_id: generateUUID(),
     farmer_id: params.farmerId,
     center_id: params.centerId,
     slot_id: params.slotId,
@@ -288,7 +300,7 @@ export async function createBooking(params: {
 
   // Auto-generate SMS confirmation
   const newNotif: NotificationItem = {
-    notification_id: `notif-${Date.now()}`,
+    notification_id: generateUUID(),
     farmer_id: params.farmerId,
     booking_id: newBooking.booking_id,
     channel: 'sms',
