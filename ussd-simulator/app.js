@@ -285,7 +285,7 @@
     currentMenu: 'ROOT',
     menuHistory: ['ROOT'],
     lang: 'en',
-    sessionTimer: 30,
+    sessionTimer: 60,
     timerInterval: null,
     sessionId: 'sess_' + Math.random().toString(36).substr(2, 8),
     tempData: {
@@ -432,11 +432,11 @@
   setInterval(updateClock, 1000);
   updateClock();
 
-  // --- Session Timeout (Authentic Telecom 30s Window) ---
+  // --- Session Timeout (Configurable Telecom Window) ---
   function resetSessionTimer() {
-    state.sessionTimer = 30;
+    state.sessionTimer = 60;
     if (sessionTimerBadge) {
-      sessionTimerBadge.textContent = `⏱ 30s`;
+      sessionTimerBadge.textContent = `⏱ 60s`;
     }
   }
 
@@ -614,7 +614,7 @@
 
     // Button states
     btnSimCheckin.disabled = (stage !== 'BOOKED');
-    btnScanQr.disabled = (stage !== 'BOOKED');
+    if (btnScanQr) btnScanQr.disabled = (stage !== 'BOOKED');
     btnSimWeigh.disabled = (stage !== 'CHECKED_IN');
     btnSimQuality.disabled = (stage !== 'WEIGHED' || parseFloat(inputMoisture.value) > 14.0);
     btnSimPayment.disabled = (stage !== 'QUALITY_CHECKED');
@@ -837,7 +837,7 @@
     leftSoftLabel.textContent = 'Dial';
     rightSoftLabel.textContent = 'Clear';
     if (state.timerInterval) clearInterval(state.timerInterval);
-    if (sessionTimerBadge) sessionTimerBadge.textContent = '⏱ 30s';
+    if (sessionTimerBadge) sessionTimerBadge.textContent = '⏱ 60s';
   }
 
   function renderCurrentMenu() {
@@ -1215,21 +1215,23 @@
 
   // --- Officer Checkpoint Transitions ---
 
-  // Checkpoint 1: Gate Security QR Scanner Simulation
-  btnScanQr.addEventListener('click', () => {
-    if (!state.activeToken) return;
-    scannerView.classList.remove('hidden');
-    playScannerBeep();
-    scannerStatusText.textContent = `Scanning Token QR: ${state.activeToken}...`;
+  // Checkpoint 1: Gate Security QR Scanner Simulation (Optional)
+  if (btnScanQr) {
+    btnScanQr.addEventListener('click', () => {
+      if (!state.activeToken) return;
+      if (scannerView) scannerView.classList.remove('hidden');
+      playScannerBeep();
+      if (scannerStatusText) scannerStatusText.textContent = `Scanning Token QR: ${state.activeToken}...`;
 
-    setTimeout(() => {
-      scannerStatusText.textContent = `✔ Gate Pass Verified: ${state.activeToken} (Valid)`;
       setTimeout(() => {
-        scannerView.classList.add('hidden');
-        btnSimCheckin.click();
-      }, 500);
-    }, 700);
-  });
+        if (scannerStatusText) scannerStatusText.textContent = `✔ Gate Pass Verified: ${state.activeToken} (Valid)`;
+        setTimeout(() => {
+          if (scannerView) scannerView.classList.add('hidden');
+          btnSimCheckin.click();
+        }, 500);
+      }, 700);
+    });
+  }
 
   // Checkpoint 1: Gate Security Check-In Action
   btnSimCheckin.addEventListener('click', async () => {

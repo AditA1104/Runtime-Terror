@@ -90,7 +90,7 @@
             <div class="screen-header">
               <span class="network-carrier" id="carrier-indicator">📶 BSNL 2G</span>
               <span id="screen-clock" class="clock">10:45</span>
-              <span class="screen-timer" id="session-timer-badge">⏱ 30s</span>
+              <span class="screen-timer" id="session-timer-badge">⏱ 60s</span>
             </div>
 
             <!-- LCD Screen -->
@@ -227,8 +227,8 @@
         <div class="card checkpoint-card">
           <div class="card-header">
             <div class="card-title-group">
-              <h3>🏢 Mandi Officer Checkpoint Operations</h3>
-              <span class="tag verified-tag">APMC Desk #1</span>
+              <h3>🏢 Mandi Operations (P3 Officer Integration Desk)</h3>
+              <span class="tag verified-tag">Schema v2 Event Sync</span>
             </div>
             <span class="mandi-location-badge" id="mandi-yard-location">Nashik APMC Main Yard</span>
           </div>
@@ -288,7 +288,7 @@
             <div class="checkpoint-box" id="box-checkin">
               <div class="cp-header">
                 <span class="cp-num">1</span>
-                <strong>Gate Security & QR Check-In</strong>
+                <strong>Gate Security & Token Check-In (P3 Event)</strong>
                 <span class="cp-stage-tag">Arrival Intake</span>
               </div>
               <div class="cp-inputs">
@@ -298,12 +298,6 @@
                   <option value="Gate #3 (Heavy Tractor Bay)">Gate #3 (Heavy Tractor Bay)</option>
                 </select>
                 <button class="btn-step-action" id="btn-sim-checkin" disabled>Confirm Gate Entry</button>
-                <button class="btn-secondary btn-scan" id="btn-scan-qr" title="Scan Token QR / Gate Pass" disabled>📷 Scan QR</button>
-              </div>
-              <!-- Simulated Scanner Animation View -->
-              <div id="scanner-view" class="scanner-preview hidden">
-                <div class="laser-scanner-line"></div>
-                <span class="scanner-text" id="scanner-status-text">Optical QR Scanner Active: Verifying Token...</span>
               </div>
             </div>
 
