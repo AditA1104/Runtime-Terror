@@ -1041,7 +1041,7 @@
     state.activeToken = tokenNumber;
     state.tempData.bookingId = bookingId;
 
-    if (state.dynamicSlots && state.tempData.slotId) {
+    if (!window.agriqBackend && state.dynamicSlots && state.tempData.slotId) {
       const targetSlot = state.dynamicSlots.find(s => s.slot_id === state.tempData.slotId);
       if (targetSlot && targetSlot.remaining > 0) {
         targetSlot.remaining--;
