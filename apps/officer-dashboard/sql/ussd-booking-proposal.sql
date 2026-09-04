@@ -20,6 +20,16 @@
 --   own validation, so the privilege lives in one auditable place instead of
 --   being handed to every anonymous caller.
 --
+-- P2 NEEDS THIS TOO. Their farmer app has the same problem, verified against
+-- the live project: it invokes the same missing edge function (404), falls back
+-- to a direct INSERT that RLS refuses (42501), then falls back again to local
+-- browser state — catching each failure with console.warn. So a farmer books
+-- "successfully", gets a token and a QR, and nothing was ever written. The
+-- officer desk shows an empty queue and nobody sees an error.
+--
+-- Hence p_created_via: one booking-creation path for both channels rather than
+-- two functions that drift.
+--
 -- AFTER THIS LANDS, P4 changes one call:
 --     - await client.functions.invoke('create-booking', { body: {...} })
 --     + await client.rpc('create_ussd_booking', {
@@ -30,12 +40,18 @@
 --     +   })
 -- =============================================================================
 
+-- Adding a parameter changes the signature, so the old one is dropped rather
+-- than overloaded — two functions differing only by a defaulted argument make
+-- every call ambiguous.
+DROP FUNCTION IF EXISTS create_ussd_booking(TEXT, UUID, UUID, NUMERIC, TEXT);
+
 CREATE OR REPLACE FUNCTION create_ussd_booking(
     p_phone_number     TEXT,
     p_center_id        UUID,
     p_slot_id          UUID,
     p_crop_quantity_kg NUMERIC DEFAULT NULL,
-    p_full_name        TEXT    DEFAULT NULL
+    p_full_name        TEXT    DEFAULT NULL,
+    p_created_via      TEXT    DEFAULT 'ussd'
 ) RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -86,6 +102,9 @@ BEGIN
     IF p_crop_quantity_kg IS NOT NULL
        AND (p_crop_quantity_kg <= 0 OR p_crop_quantity_kg > 100000) THEN
         RAISE EXCEPTION 'Crop quantity is out of range' USING ERRCODE = '22023';
+    END IF;
+    IF p_created_via NOT IN ('web', 'ussd') THEN
+        RAISE EXCEPTION 'created_via must be web or ussd' USING ERRCODE = '22023';
     END IF;
 
     -- A feature-phone farmer has no account, so identity is the phone number.
@@ -145,7 +164,7 @@ BEGIN
         gen_random_uuid(), v_farmer_id, p_slot_id, p_center_id, v_token,
         p_crop_quantity_kg, 'BOOKED', v_position,
         COALESCE(v_centre.avg_processing_min, 15) * greatest(v_position - 1, 0),
-        'ussd'
+        p_created_via
     )
     RETURNING * INTO v_booking;
 
@@ -163,8 +182,8 @@ $$;
 
 -- Grant to the anonymous role only through this function; the bookings table
 -- itself stays closed.
-REVOKE ALL ON FUNCTION create_ussd_booking(TEXT, UUID, UUID, NUMERIC, TEXT) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION create_ussd_booking(TEXT, UUID, UUID, NUMERIC, TEXT) TO anon, authenticated;
+REVOKE ALL ON FUNCTION create_ussd_booking(TEXT, UUID, UUID, NUMERIC, TEXT, TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION create_ussd_booking(TEXT, UUID, UUID, NUMERIC, TEXT, TEXT) TO anon, authenticated;
 
 -- =============================================================================
 -- WORTH SAYING OUT LOUD
