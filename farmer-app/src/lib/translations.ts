@@ -8,12 +8,10 @@ export interface LangInfo {
 }
 
 export const SUPPORTED_LANGUAGES: LangInfo[] = [
-  { code: 'en', label: 'English', nativeLabel: 'English', flag: '🇬🇧' },
+  { code: 'en', label: 'English', nativeLabel: 'English', flag: '🌐' },
+  { code: 'kn', label: 'Kannada', nativeLabel: 'ಕನ್ನಡ', flag: '🟡' },
   { code: 'hi', label: 'Hindi', nativeLabel: 'हिंदी', flag: '🇮🇳' },
-  { code: 'mr', label: 'Marathi', nativeLabel: 'मराठी', flag: '🇮🇳' },
-  { code: 'kn', label: 'Kannada', nativeLabel: 'ಕನ್ನಡ', flag: '🇮🇳' },
-  { code: 'te', label: 'Telugu', nativeLabel: 'తెలుగు', flag: '🇮🇳' },
-  { code: 'pa', label: 'Punjabi', nativeLabel: 'ਪੰਜਾਬੀ', flag: '🇮🇳' },
+  { code: 'mr', label: 'Marathi', nativeLabel: 'मराठी', flag: '🟠' },
 ];
 
 export const translations: Record<SupportedLang, Record<string, string>> = {
@@ -78,6 +76,8 @@ export const translations: Record<SupportedLang, Record<string, string>> = {
     wizard_step4_desc: 'Enter estimated quantity and receive your digital QR token',
 
     // Crops
+    crop_ragi: 'Ragi (Finger Millet / ರಾಗಿ)',
+    crop_tur: 'Tur / Red Gram (ತೊಗರಿ / अरहर)',
     crop_wheat: 'Wheat (गेहूं)',
     crop_soybean: 'Soybean (सोयाबीन)',
     crop_cotton: 'Cotton (कपास)',
@@ -197,6 +197,8 @@ export const translations: Record<SupportedLang, Record<string, string>> = {
     wizard_step4_title: 'मात्रा दर्ज कर पास बनाएं',
     wizard_step4_desc: 'अनुमानित फसल वजन दर्ज करें और डिजिटल क्यूआर पास प्राप्त करें',
 
+    crop_ragi: 'रागी / मड़ुआ (Ragi)',
+    crop_tur: 'अरहर / तुअर (Tur / Red Gram)',
     crop_wheat: 'गेहूं (Wheat)',
     crop_soybean: 'सोयाबीन (Soybean)',
     crop_cotton: 'कपास (Cotton)',
@@ -311,6 +313,8 @@ export const translations: Record<SupportedLang, Record<string, string>> = {
     wizard_step4_title: 'वजन नोंदवून पास तयार करा',
     wizard_step4_desc: 'अंदाजे वजन टाका व डिजिटल क्यूआर पास मिळवा',
 
+    crop_ragi: 'नाचणी / रागी (Ragi)',
+    crop_tur: 'तूर / तूर डाळ (Tur Dal)',
     crop_wheat: 'गहू (Wheat)',
     crop_soybean: 'सोयाबीन (Soybean)',
     crop_cotton: 'कापूस (Cotton)',
@@ -425,6 +429,8 @@ export const translations: Record<SupportedLang, Record<string, string>> = {
     wizard_step4_title: 'ಪ್ರಮಾಣ ನಮೂದಿಸಿ ಪಾಸ್ ಪಡೆಯಿರಿ',
     wizard_step4_desc: 'ಅಂದಾಜು ತೂಕ ನಮೂದಿಸಿ ಮತ್ತು QR ಕೋಡ್ ಪಾಸ್ ಪಡೆಯಿರಿ',
 
+    crop_ragi: 'ರಾಗಿ (Ragi / Finger Millet)',
+    crop_tur: 'ತೊಗರಿ / ತೊಗರಿ ಬೇಳೆ (Tur Dal)',
     crop_wheat: 'ಗೋಧಿ (Wheat)',
     crop_soybean: 'ಸೋಯಾಬೀನ್ (Soybean)',
     crop_cotton: 'ಹತ್ತಿ (Cotton)',
@@ -539,6 +545,8 @@ export const translations: Record<SupportedLang, Record<string, string>> = {
     wizard_step4_title: 'పరిమాణం నమోదు చేసి పాస్ పొందండి',
     wizard_step4_desc: 'అంచనా దిగుబడి బరువు నమోదు చేసి QR కోడ్ పాస్ పొందండి',
 
+    crop_ragi: 'రాగులు (Ragi / Finger Millet)',
+    crop_tur: 'కందులు (Tur / Red Gram)',
     crop_wheat: 'గోధుమలు (Wheat)',
     crop_soybean: 'సోయాబీన్ (Soybean)',
     crop_cotton: 'పత్తి (Cotton)',
@@ -653,6 +661,8 @@ export const translations: Record<SupportedLang, Record<string, string>> = {
     wizard_step4_title: 'ਮਾਤਰਾ ਦਰਜ ਕਰਕੇ ਪਾਸ ਪ੍ਰਾਪਤ ਕਰੋ',
     wizard_step4_desc: 'ਅੰਦਾਜ਼ਨ ਫਸਲ ਭਾਰ ਦਰਜ ਕਰੋ ਅਤੇ ਡਿਜੀਟਲ QR ਪਾਸ ਪ੍ਰਾਪਤ ਕਰੋ',
 
+    crop_ragi: 'ਰਾਗੀ (Ragi / Finger Millet)',
+    crop_tur: 'ਤੂਰ / ਅਰਹਰ (Tur Dal)',
     crop_wheat: 'ਕਣਕ (Wheat)',
     crop_soybean: 'ਸੋਇਆਬੀਨ (Soybean)',
     crop_cotton: 'ਨਰਮਾ / ਕਪਾਹ (Cotton)',

@@ -1,17 +1,100 @@
 import { MandiCenter, SlotAvailable, DailyRatesCache, Booking, Farmer, NotificationItem, CropInfo } from '../types/schema';
 
 export const CROPS_DATA: CropInfo[] = [
-  { id: 'Soybean', nameKey: 'crop_soybean', icon: '🌱', mspPrice: 4892, unit: 'Quintal', category: 'Oilseeds' },
-  { id: 'Wheat', nameKey: 'crop_wheat', icon: '🌾', mspPrice: 2275, unit: 'Quintal', category: 'Cereals' },
-  { id: 'Cotton', nameKey: 'crop_cotton', icon: '☁️', mspPrice: 7121, unit: 'Quintal', category: 'Fiber' },
+  { id: 'Ragi', nameKey: 'crop_ragi', icon: '🌾', mspPrice: 4290, unit: 'Quintal', category: 'Millets' },
+  { id: 'Tur', nameKey: 'crop_tur', icon: '🥣', mspPrice: 7550, unit: 'Quintal', category: 'Pulses' },
   { id: 'Paddy', nameKey: 'crop_paddy', icon: '🍚', mspPrice: 2300, unit: 'Quintal', category: 'Cereals' },
+  { id: 'Onion', nameKey: 'crop_onion', icon: '🧅', mspPrice: 1850, unit: 'Quintal', category: 'Vegetables' },
+  { id: 'Cotton', nameKey: 'crop_cotton', icon: '☁️', mspPrice: 7120, unit: 'Quintal', category: 'Fiber' },
+  { id: 'Maize', nameKey: 'crop_maize', icon: '🌽', mspPrice: 2225, unit: 'Quintal', category: 'Cereals' },
+  { id: 'Soybean', nameKey: 'crop_soybean', icon: '🌱', mspPrice: 4892, unit: 'Quintal', category: 'Oilseeds' },
+  { id: 'Wheat', nameKey: 'crop_wheat', icon: '🌾', mspPrice: 2425, unit: 'Quintal', category: 'Cereals' },
   { id: 'Mustard', nameKey: 'crop_mustard', icon: '🌼', mspPrice: 5650, unit: 'Quintal', category: 'Oilseeds' },
   { id: 'Gram', nameKey: 'crop_chana', icon: '🧆', mspPrice: 5440, unit: 'Quintal', category: 'Pulses' },
-  { id: 'Onion', nameKey: 'crop_onion', icon: '🧅', mspPrice: 2600, unit: 'Quintal', category: 'Vegetables' },
-  { id: 'Maize', nameKey: 'crop_maize', icon: '🌽', mspPrice: 2090, unit: 'Quintal', category: 'Cereals' },
 ];
 
 export const MOCK_MANDI_CENTERS: MandiCenter[] = [
+  // --- Karnataka APMC Centers ---
+  {
+    center_id: 'c1-blr',
+    center_name: 'Bengaluru APMC (Yeshwanthpur Main Yard)',
+    location: 'APMC Market Yard, Yeshwanthpur',
+    district: 'Bengaluru Urban',
+    state: 'Karnataka',
+    crop_type: 'Ragi',
+    daily_capacity_kg: 60000,
+    hourly_intake_limit: 45,
+    avg_processing_min: 12,
+    operating_start: '08:00',
+    operating_end: '18:00',
+  },
+  {
+    center_id: 'c2-hub',
+    center_name: 'Hubballi APMC (Amaragol Market Yard)',
+    location: 'Amaragol, PB Road',
+    district: 'Dharwad',
+    state: 'Karnataka',
+    crop_type: 'Onion',
+    daily_capacity_kg: 75000,
+    hourly_intake_limit: 50,
+    avg_processing_min: 14,
+    operating_start: '08:00',
+    operating_end: '18:00',
+  },
+  {
+    center_id: 'c3-mys',
+    center_name: 'Mysuru APMC (Bandipalya Yard)',
+    location: 'Bandipalya, Nanjangud Road',
+    district: 'Mysuru',
+    state: 'Karnataka',
+    crop_type: 'Paddy',
+    daily_capacity_kg: 55000,
+    hourly_intake_limit: 40,
+    avg_processing_min: 15,
+    operating_start: '08:00',
+    operating_end: '18:00',
+  },
+  {
+    center_id: 'c4-klb',
+    center_name: 'Kalaburagi APMC (Nehru Gunj Hub)',
+    location: 'Nehru Gunj Market',
+    district: 'Kalaburagi',
+    state: 'Karnataka',
+    crop_type: 'Tur',
+    daily_capacity_kg: 80000,
+    hourly_intake_limit: 60,
+    avg_processing_min: 16,
+    operating_start: '08:00',
+    operating_end: '18:00',
+  },
+  {
+    center_id: 'c5-bel',
+    center_name: 'Belagavi APMC Central Yard',
+    location: 'RMC Yard, Shivaji Nagar',
+    district: 'Belagavi',
+    state: 'Karnataka',
+    crop_type: 'Maize',
+    daily_capacity_kg: 50000,
+    hourly_intake_limit: 35,
+    avg_processing_min: 15,
+    operating_start: '08:00',
+    operating_end: '18:00',
+  },
+  {
+    center_id: 'c6-rai',
+    center_name: 'Raichur Cotton & Paddy APMC',
+    location: 'Gunj Area, Raichur',
+    district: 'Raichur',
+    state: 'Karnataka',
+    crop_type: 'Cotton',
+    daily_capacity_kg: 70000,
+    hourly_intake_limit: 50,
+    avg_processing_min: 18,
+    operating_start: '08:00',
+    operating_end: '18:00',
+  },
+
+  // --- Maharashtra APMC Centers ---
   {
     center_id: 'c1111111-1111-1111-1111-111111111111',
     center_name: 'Nashik APMC Main Yard',
@@ -26,53 +109,53 @@ export const MOCK_MANDI_CENTERS: MandiCenter[] = [
     operating_end: '18:00',
   },
   {
-    center_id: 'c2222222-2222-2222-2222-222222222222',
-    center_name: 'Khanna Grain Market Yard A',
-    location: 'GT Road, Mandi Gobindgarh Side',
-    district: 'Ludhiana',
-    state: 'Punjab',
-    crop_type: 'Wheat',
-    daily_capacity_kg: 80000,
-    hourly_intake_limit: 60,
-    avg_processing_min: 15,
-    operating_start: '08:00',
-    operating_end: '18:00',
-  },
-  {
-    center_id: 'c3333333-3333-3333-3333-333333333333',
-    center_name: 'Abohar Cotton Market Yard',
-    location: 'Hanumangarh Road',
-    district: 'Fazilka',
-    state: 'Punjab',
-    crop_type: 'Cotton',
-    daily_capacity_kg: 40000,
-    hourly_intake_limit: 30,
-    avg_processing_min: 18,
-    operating_start: '08:00',
-    operating_end: '18:00',
-  },
-  {
-    center_id: 'c4444444-4444-4444-4444-444444444444',
-    center_name: 'Nizamabad APMC Procurement Hub',
-    location: 'Bodhan Road',
-    district: 'Nizamabad',
-    state: 'Telangana',
-    crop_type: 'Paddy',
-    daily_capacity_kg: 60000,
-    hourly_intake_limit: 45,
+    center_id: 'c2-las',
+    center_name: 'Lasalgaon Onion & Grain Market Yard',
+    location: 'Station Road, Lasalgaon',
+    district: 'Nashik',
+    state: 'Maharashtra',
+    crop_type: 'Onion',
+    daily_capacity_kg: 85000,
+    hourly_intake_limit: 65,
     avg_processing_min: 14,
     operating_start: '08:00',
     operating_end: '18:00',
   },
   {
-    center_id: 'c5555555-5555-5555-5555-555555555555',
-    center_name: 'Bharatpur Krishi Upaj Mandi',
-    location: 'Agra-Jaipur Highway Gate 2',
-    district: 'Bharatpur',
-    state: 'Rajasthan',
-    crop_type: 'Mustard',
-    daily_capacity_kg: 45000,
-    hourly_intake_limit: 35,
+    center_id: 'c3-pun',
+    center_name: 'Pune APMC (Gultekdi Market Yard)',
+    location: 'Gultekdi, Market Yard Road',
+    district: 'Pune',
+    state: 'Maharashtra',
+    crop_type: 'Wheat',
+    daily_capacity_kg: 75000,
+    hourly_intake_limit: 50,
+    avg_processing_min: 15,
+    operating_start: '08:00',
+    operating_end: '18:00',
+  },
+  {
+    center_id: 'c4-nag',
+    center_name: 'Nagpur APMC Cotton & Grain Yard',
+    location: 'Kalamna Market, Kamptee Road',
+    district: 'Nagpur',
+    state: 'Maharashtra',
+    crop_type: 'Cotton',
+    daily_capacity_kg: 65000,
+    hourly_intake_limit: 45,
+    avg_processing_min: 16,
+    operating_start: '08:00',
+    operating_end: '18:00',
+  },
+  {
+    center_id: 'c5-ahm',
+    center_name: 'Ahmednagar APMC Market Yard',
+    location: 'Station Road, Market Yard',
+    district: 'Ahmednagar',
+    state: 'Maharashtra',
+    crop_type: 'Soybean',
+    daily_capacity_kg: 50000,
+    hourly_intake_limit: 40,
     avg_processing_min: 15,
     operating_start: '08:00',
     operating_end: '18:00',
@@ -96,7 +179,6 @@ export function generateAvailableSlots(centerId: string, daysAhead: number = 7):
     const dateStr = slotDate.toISOString().split('T')[0];
 
     times.forEach((t, idx) => {
-      // Add slight variability based on day
       const dayFactor = (d + idx) % 3;
       const bookedCount = Math.min(t.max, t.booked + dayFactor * 4);
       slots.push({
@@ -115,38 +197,44 @@ export function generateAvailableSlots(centerId: string, daysAhead: number = 7):
 }
 
 export function generateDailyRatesCache(cropType: string, centerId: string, daysAhead: number = 7): DailyRatesCache[] {
-  const baseRate = CROPS_DATA.find(c => c.id === cropType)?.mspPrice || 4800;
+  const baseRate = CROPS_DATA.find(c => c.id.toLowerCase() === cropType.toLowerCase())?.mspPrice || 4290;
   const rates: DailyRatesCache[] = [];
   const today = new Date();
-
-  // Pattern of price predictions
-  const trends = [
-    { diff: 45, score: 92, rushPenalty: 8, reason: 'High market demand + Low expected mandi rush' },
-    { diff: -20, score: 72, rushPenalty: 18, reason: 'Moderate rate, heavy mandi intake expected' },
-    { diff: 90, score: 96, rushPenalty: 6, reason: 'Peak price forecast (₹' + (baseRate + 90) + '/q) + Fast processing' },
-    { diff: 15, score: 81, rushPenalty: 12, reason: 'Steady prices, normal queue wait' },
-    { diff: -50, score: 65, rushPenalty: 22, reason: 'Price dip expected, high load' },
-    { diff: 70, score: 89, rushPenalty: 9, reason: 'Favorable buying demand from government mills' },
-    { diff: 30, score: 84, rushPenalty: 10, reason: 'Good price stability' },
-  ];
 
   for (let d = 0; d < daysAhead; d++) {
     const forecastDate = new Date(today);
     forecastDate.setDate(today.getDate() + d);
     const dateStr = forecastDate.toISOString().split('T')[0];
-    const trend = trends[d % trends.length];
 
-    const priceTrendScore = baseRate + trend.diff;
-    const adjustedBestDayScore = Math.max(10, trend.score - trend.rushPenalty);
+    // Simulated market fluctuation curve
+    const priceVariance = Math.round(Math.sin(d * 0.9) * 140 + Math.cos(d * 0.5) * 60);
+    const predictedPrice = Math.max(baseRate - 100, baseRate + priceVariance);
+
+    // Queue congestion penalty (0 to 25 pts)
+    const simulatedLoad = ((d * 37) % 100) / 100;
+    const congestionPenalty = Math.round(simulatedLoad * 25);
+
+    // Smart dispatch score (0-100)
+    const baseScore = Math.min(95, Math.max(50, Math.round(65 + (priceVariance / 15))));
+    const bestDayScore = Math.max(10, baseScore - congestionPenalty);
+
+    let reason = 'Standard market slot with normal wait time';
+    if (bestDayScore >= 82) {
+      reason = '🌟 High MSP premium, optimal queue intake capacity';
+    } else if (congestionPenalty > 18) {
+      reason = '⚠️ High mandi arrival rush anticipated, expected queue delay';
+    } else if (priceVariance > 50) {
+      reason = '📈 Bullish spot rates expected from bulk institutional buyers';
+    }
 
     rates.push({
-      cache_id: `rate-${cropType}-${dateStr}`,
+      cache_id: `cache-${cropType}-${centerId.slice(0, 4)}-${dateStr}`,
       crop_type: cropType,
       center_id: centerId,
       forecast_date: dateStr,
-      price_trend_score: priceTrendScore,
-      best_day_score: adjustedBestDayScore,
-      reason_text: trend.reason,
+      price_trend_score: predictedPrice,
+      best_day_score: bestDayScore,
+      reason_text: reason,
       updated_at: new Date().toISOString(),
     });
   }
@@ -154,61 +242,49 @@ export function generateDailyRatesCache(cropType: string, centerId: string, days
 }
 
 export const DEFAULT_FARMER: Farmer = {
-  farmer_id: 'f8888888-8888-8888-8888-888888888888',
-  full_name: 'Ramesh Patil',
-  phone_number: '9876543210',
-  village: 'Pimpalgaon Baswant',
-  district: 'Nashik',
-  state: 'Maharashtra',
-  preferred_lang: 'mr',
-  created_at: new Date().toISOString(),
+  farmer_id: 'f1111111-1111-1111-1111-111111111111',
+  full_name: 'Ramesh Gowda',
+  phone_number: '9845012345',
+  village: 'Nelamangala',
+  district: 'Bengaluru Rural',
+  state: 'Karnataka',
+  preferred_lang: 'kn',
+  created_at: '2026-09-01T10:00:00Z',
 };
 
 export const INITIAL_DEMO_BOOKING: Booking = {
-  booking_id: 'b9999999-9999-9999-9999-999999999999',
-  farmer_id: 'f8888888-8888-8888-8888-888888888888',
-  slot_id: 'slot-c111-today-0',
-  center_id: 'c1111111-1111-1111-1111-111111111111',
-  token_number: 'NSK-0231',
-  crop_quantity_kg: 2500, // 25 Quintals
-  quality_grade: undefined,
-  payment_amount: undefined,
+  booking_id: 'b-demo-initial-001',
+  farmer_id: 'f1111111-1111-1111-1111-111111111111',
+  center_id: 'c1-blr',
+  slot_id: 'slot-c1-blr-today-1',
+  token_number: 'BLR-0231',
+  crop_quantity_kg: 1850,
   status: 'BOOKED',
-  queue_position: 4,
-  predicted_wait_mins: 28,
-  actual_wait_mins: undefined,
+  queue_position: 3,
+  predicted_wait_mins: 36,
   created_via: 'web',
-  checked_in_at: undefined,
-  completed_at: undefined,
   created_at: new Date().toISOString(),
   mandi_centers: MOCK_MANDI_CENTERS[0],
   farmers: DEFAULT_FARMER,
   slots: {
-    slot_id: 'slot-c111-today-0',
-    center_id: 'c1111111-1111-1111-1111-111111111111',
+    slot_id: 'slot-c1-blr-today-1',
+    center_id: 'c1-blr',
     slot_date: new Date().toISOString().split('T')[0],
-    slot_start_time: '08:00:00',
-    slot_end_time: '10:00:00',
-    max_farmers: 35,
-    booked_count: 18,
-    remaining: 17,
-  }
+    slot_start_time: '10:00:00',
+    slot_end_time: '12:00:00',
+    max_farmers: 40,
+    booked_count: 24,
+    remaining: 16,
+  },
 };
 
 export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     notification_id: 'notif-1',
-    farmer_id: 'f8888888-8888-8888-8888-888888888888',
-    booking_id: 'b9999999-9999-9999-9999-999999999999',
+    farmer_id: 'f1111111-1111-1111-1111-111111111111',
+    booking_id: 'b-demo-initial-001',
     channel: 'sms',
-    message: 'AgriQ: Your Mandi Token NSK-0231 for Soybean at Nashik APMC is CONFIRMED for 08:00 AM - 10:00 AM slot. Keep QR code ready.',
-    sent_at: new Date(Date.now() - 3600000).toISOString(),
+    message: 'AgriQ: Slot confirmed! Token BLR-0231 generated for Ragi at Bengaluru APMC (Yeshwanthpur). Queue Pos: #3. Keep QR pass ready.',
+    sent_at: new Date().toISOString(),
   },
-  {
-    notification_id: 'notif-0',
-    farmer_id: 'f8888888-8888-8888-8888-888888888888',
-    channel: 'sms',
-    message: 'AgriQ Smart Advisory: Soybean prices at Nashik APMC are forecast to rise +₹90/q on Thursday. Optimal selling window open.',
-    sent_at: new Date(Date.now() - 86400000).toISOString(),
-  }
 ];

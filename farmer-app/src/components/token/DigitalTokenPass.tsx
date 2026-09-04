@@ -31,18 +31,123 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
 }) => {
   const { t } = useTranslation();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [isSavedOffline, setIsSavedOffline] = useState(false);
 
   const center = booking.mandi_centers;
   const slot = booking.slots;
 
-  const handleSaveOffline = () => {
+  const handleDownloadPass = async () => {
+    setIsDownloading(true);
     try {
       localStorage.setItem(`agriq_cached_pass_${booking.booking_id}`, JSON.stringify(booking));
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 600;
+      canvas.height = 820;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // Card Background & Header Gradient
+      const headerGrad = ctx.createLinearGradient(0, 0, 600, 200);
+      headerGrad.addColorStop(0, '#065f46');
+      headerGrad.addColorStop(1, '#047857');
+      ctx.fillStyle = headerGrad;
+      ctx.fillRect(0, 0, 600, 200);
+
+      // Body Background
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 200, 600, 620);
+
+      // Border
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(2, 2, 596, 816);
+
+      // Header Texts
+      ctx.fillStyle = '#a7f3d0';
+      ctx.font = 'bold 13px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('GOVERNMENT OF INDIA • DEPARTMENT OF CONSUMER AFFAIRS • APMC', 300, 38);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.fillText('OFFICIAL DIGITAL MANDI GATE PASS', 300, 72);
+
+      // Big Token Number
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 38px monospace';
+      ctx.fillText(booking.token_number, 300, 130);
+
+      ctx.fillStyle = '#d1fae5';
+      ctx.font = 'bold 13px sans-serif';
+      ctx.fillText(`Status: ${booking.status} • Intake Bay: #1 (Standard Queue)`, 300, 165);
+
+      // Draw QR Code from DOM SVG
+      const svgEl = document.querySelector('.agriq-qr-svg') as SVGGraphicsElement;
+      if (svgEl) {
+        const xml = new XMLSerializer().serializeToString(svgEl);
+        const svg64 = btoa(unescape(encodeURIComponent(xml)));
+        const image64 = 'data:image/svg+xml;base64,' + svg64;
+        const img = new Image();
+        await new Promise<void>((resolve) => {
+          img.onload = () => {
+            ctx.drawImage(img, 200, 225, 200, 200);
+            resolve();
+          };
+          img.onerror = () => resolve();
+          img.src = image64;
+        });
+      }
+
+      // Center Name & Location
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 18px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(center?.center_name || 'APMC Mandi Procurement Yard', 300, 460);
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '13px sans-serif';
+      ctx.fillText(`${center?.location || 'Mandi Yard'}, ${center?.district || ''}, ${center?.state || ''}`, 300, 485);
+
+      // Metadata Box
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(40, 515, 520, 195);
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(40, 515, 520, 195);
+
+      ctx.fillStyle = '#1e293b';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`Commodity: ${center?.crop_type || 'Crop'} (Declared: ${booking.crop_quantity_kg || 2500} kg / ${((booking.crop_quantity_kg || 2500)/100).toFixed(1)} Q)`, 60, 550);
+      ctx.fillText(`Arrival Slot: ${slot?.slot_date || 'Today'} (${slot?.slot_start_time || '08:00 AM'} - ${slot?.slot_end_time || '10:00 AM'})`, 60, 585);
+      ctx.fillText(`Farmer Mobile: +91-${booking.farmers?.phone_number || '9845012345'} (Aadhaar Verified)`, 60, 620);
+      ctx.fillText(`Queue Position: #${booking.queue_position || 1} (~${booking.predicted_wait_mins || 15} mins wait estimate)`, 60, 655);
+      ctx.fillText(`Gate Verification: Valid without internet (Offline Feature Pass)`, 60, 688);
+
+      // Footer
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Present this pass at Mandi Entry Gate & Weighbridge Counter #2', 300, 745);
+      ctx.fillText('AgriQ © 2026 • Team Runtime-Terror • PS 26032', 300, 770);
+
+      // Download
+      const pngUrl = canvas.toDataURL('image/png');
+      const dlLink = document.createElement('a');
+      dlLink.href = pngUrl;
+      dlLink.download = `AgriQ-GatePass-${booking.token_number}.png`;
+      document.body.appendChild(dlLink);
+      dlLink.click();
+      document.body.removeChild(dlLink);
+
       setIsSavedOffline(true);
-      setTimeout(() => setIsSavedOffline(false), 2500);
+      setTimeout(() => setIsSavedOffline(false), 3000);
     } catch (e) {
-      console.error('Error saving pass offline:', e);
+      console.error('Error downloading pass:', e);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -231,13 +336,19 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
       {/* Action Buttons Row */}
       <div className="grid grid-cols-2 gap-2.5">
         <button
-          onClick={handleSaveOffline}
+          onClick={handleDownloadPass}
+          disabled={isDownloading}
           className="py-3 px-4 bg-white border border-slate-200 hover:border-slate-300 active:scale-95 rounded-2xl text-xs font-bold text-slate-800 shadow-xs flex items-center justify-center gap-1.5 transition-all"
         >
           {isSavedOffline ? (
             <>
               <CheckCircle2 className="w-4 h-4 text-green-600" />
-              <span className="text-green-800">Saved Offline!</span>
+              <span className="text-green-800">Pass Downloaded!</span>
+            </>
+          ) : isDownloading ? (
+            <>
+              <span className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+              <span>Generating Pass...</span>
             </>
           ) : (
             <>

@@ -20,20 +20,52 @@ export const TokenShareModal: React.FC<TokenShareModalProps> = ({
 
   if (!isOpen) return null;
 
-  const shareText = `*AgriQ Digital Mandi Pass*\nToken: *${booking.token_number}*\nCenter: ${booking.mandi_centers?.center_name || 'APMC Center'}\nSlot: ${booking.slots?.slot_start_time || '08:00 AM'} - ${booking.slots?.slot_end_time || '10:00 AM'}\nStatus: ${booking.status}`;
+  const center = booking.mandi_centers;
+  const slot = booking.slots;
+
+  const shareText = `🌾 *AgriQ Digital Mandi Gate Pass*\n\n` +
+    `🎫 *Token Number:* *${booking.token_number}*\n` +
+    `🏢 *Procurement Center:* ${center?.center_name || 'APMC Center'}\n` +
+    `📍 *Location:* ${center?.location || 'Mandi Yard'}, ${center?.district || ''}\n` +
+    `📅 *Arrival Slot:* ${slot?.slot_date || 'Today'} (${slot?.slot_start_time || '08:00 AM'} - ${slot?.slot_end_time || '10:00 AM'})\n` +
+    `📦 *Commodity:* ${center?.crop_type || 'Produce'} (${booking.crop_quantity_kg || 2500} kg)\n` +
+    `🚦 *Queue Status:* ${booking.status} (Position #${booking.queue_position || 1})\n\n` +
+    `🔗 *Verify Gate Pass Online:* https://agriq.gov.in/t/${booking.token_number}\n\n` +
+    `_Present this message or QR pass at Gate Security Counter #1. Valid for offline entry._`;
 
   const handleShareWhatsApp = () => {
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
     window.open(url, '_blank');
   };
 
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `AgriQ Mandi Gate Pass - ${booking.token_number}`,
+          text: shareText,
+          url: `https://agriq.gov.in/t/${booking.token_number}`,
+        });
+      } catch (err) {
+        console.warn('Native share cancelled or failed:', err);
+      }
+    } else {
+      handleShareWhatsApp();
+    }
+  };
+
   const handleSendSms = (e: React.FormEvent) => {
     e.preventDefault();
+    if (recipientPhone) {
+      // Trigger native SMS link
+      const smsUrl = `sms:${recipientPhone}?body=${encodeURIComponent(shareText)}`;
+      window.open(smsUrl, '_blank');
+    }
     setSentSuccess(true);
     setTimeout(() => {
       setSentSuccess(false);
       onClose();
-    }, 1800);
+    }, 2200);
   };
 
   return (
@@ -65,6 +97,16 @@ export const TokenShareModal: React.FC<TokenShareModalProps> = ({
           </div>
         ) : (
           <div className="mt-4 space-y-3">
+            {typeof navigator !== 'undefined' && 'share' in navigator && (
+              <button
+                onClick={handleNativeShare}
+                className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>Share via Any App / Messaging</span>
+              </button>
+            )}
+
             <button
               onClick={handleShareWhatsApp}
               className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-xs shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2"

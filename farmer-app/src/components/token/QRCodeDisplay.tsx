@@ -38,6 +38,7 @@ export const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
     <div className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl border-2 border-dashed border-slate-200">
       <div className="p-3 bg-white rounded-xl shadow-xs border border-slate-100 relative group">
         <QRCodeSVG
+          className="agriq-qr-svg"
           value={qrPayload}
           size={size}
           level="H"
