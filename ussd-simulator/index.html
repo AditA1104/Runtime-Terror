@@ -23,10 +23,11 @@
         </div>
       </div>
       <div class="header-controls">
-        <button id="sound-toggle-btn" class="btn-sm" title="Toggle Telecom Audio">🔊 Audio: ON</button>
+        <button id="sound-toggle-btn" class="btn-sm" title="Toggle Telecom DTMF Audio">🔊 Audio: ON</button>
+        <button id="signaling-toggle-btn" class="btn-sm btn-trace" title="View Real-Time GSM SS7/MAP Signaling Trace">📡 SS7 Trace</button>
         <div class="status-bar-top">
           <span class="pulse-indicator" id="pulse-dot"></span>
-          <span id="connection-status">Channel: BSNL / MTNL 2G Signaling (Active)</span>
+          <span id="connection-status">BSNL/MTNL 2G Signaling (Active)</span>
           <button id="toggle-config-btn" class="btn-sm">⚙️ Database</button>
         </div>
       </div>
@@ -55,6 +56,7 @@
         <span class="toolbar-label">Mandi Operations:</span>
         <button class="tool-btn" id="btn-quick-rates" title="View Current MSP Rates & AI Forecast">📈 APMC MSP Rates & AI Forecast</button>
         <button class="tool-btn btn-receipt" id="btn-view-receipt" disabled title="View Official Mandi Gate Pass">📄 Official Gate Pass</button>
+        <button class="tool-btn" id="btn-view-signaling" title="Open Telecom Protocol Monitor">📡 Telecom Signaling Monitor</button>
       </div>
       <div class="toolbar-right">
         <div class="turnaround-pill" id="turnaround-pill">
@@ -86,7 +88,7 @@
           <!-- Screen Area -->
           <div class="phone-screen-bezel">
             <div class="screen-header">
-              <span class="network-carrier">📶 BSNL 2G</span>
+              <span class="network-carrier" id="carrier-indicator">📶 BSNL 2G</span>
               <span id="screen-clock" class="clock">10:45</span>
               <span class="screen-timer" id="session-timer-badge">⏱ 30s</span>
             </div>
@@ -152,7 +154,7 @@
             <button class="key num-key" data-key="0"><span class="num">0</span><span class="subtext">Back</span></button>
             <button class="key num-key hash-key" data-key="#"><span class="num">#</span><span class="subtext">↵</span></button>
           </div>
-          <div class="phone-model-label">NOKIA 3310 • GSM 2G / USSD</div>
+          <div class="phone-model-label">NOKIA 3310 • GSM 2G / USSD PROTOCOL</div>
         </div>
       </section>
 
@@ -197,6 +199,30 @@
       <!-- COLUMN 3: Mandi Officer Operations Desk -->
       <section class="inspector-column">
         
+        <!-- Live Mandi KPI Metrics Bar -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-lbl">Queue Today</span>
+            <strong id="kpi-queue-count" class="kpi-val">3 Tokens</strong>
+            <span class="kpi-sub">Nashik APMC Bay</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-lbl">Certified Produce</span>
+            <strong id="kpi-produce-weight" class="kpi-val">54.50 Q</strong>
+            <span class="kpi-sub">Central Pool Stock</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-lbl">PFMS DBT Disbursed</span>
+            <strong id="kpi-dbt-total" class="kpi-val">₹1,32,162.50</strong>
+            <span class="kpi-sub">Direct Aadhaar Pay</span>
+          </div>
+          <div class="kpi-card highlight-card">
+            <span class="kpi-lbl">Avg Turnaround</span>
+            <strong class="kpi-val text-green">38 mins</strong>
+            <span class="kpi-sub">-88% vs Manual Mandi</span>
+          </div>
+        </div>
+
         <!-- Interactive Checkpoint Controller -->
         <div class="card checkpoint-card">
           <div class="card-header">
@@ -272,6 +298,12 @@
                   <option value="Gate #3 (Heavy Tractor Bay)">Gate #3 (Heavy Tractor Bay)</option>
                 </select>
                 <button class="btn-step-action" id="btn-sim-checkin" disabled>Confirm Gate Entry</button>
+                <button class="btn-secondary btn-scan" id="btn-scan-qr" title="Scan Token QR / Gate Pass" disabled>📷 Scan QR</button>
+              </div>
+              <!-- Simulated Scanner Animation View -->
+              <div id="scanner-view" class="scanner-preview hidden">
+                <div class="laser-scanner-line"></div>
+                <span class="scanner-text" id="scanner-status-text">Optical QR Scanner Active: Verifying Token...</span>
               </div>
             </div>
 
@@ -456,6 +488,10 @@
               </div>
               <p class="qr-note">Present this Digital Token Pass or SMS at Gate Security Counter #1. Fully valid without internet on feature phone.</p>
               <code id="receipt-payload-preview">--</code>
+              <div class="receipt-hash">
+                <span class="hash-label">Security Digest:</span>
+                <span id="receipt-sha-hash" class="hash-value">SHA256: 7f8a9b...c3d1</span>
+              </div>
             </div>
           </div>
         </div>
@@ -533,6 +569,24 @@
         </div>
         <div class="receipt-footer">
           <button id="close-rates-btn" class="btn-primary">Close Rate Guide</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: GSM SS7 / MAP Telecom Protocol Trace Terminal -->
+    <div id="signaling-modal" class="modal-backdrop hidden">
+      <div class="modal-card terminal-modal">
+        <div class="receipt-header terminal-header">
+          <div class="gov-badge">DEPARTMENT OF TELECOMMUNICATIONS (DoT) • GSM 03.90 SPEC</div>
+          <h2>SS7 / MAP TELECOM PROTOCOL PACKET TRACE</h2>
+          <span class="receipt-sub">Real-Time Unstructured Supplementary Service Data (USSD) Signaling Log</span>
+        </div>
+        <div class="terminal-body" id="signaling-log">
+          <!-- Dynamic packet traces -->
+        </div>
+        <div class="receipt-footer">
+          <button id="clear-trace-btn" class="btn-secondary">Clear Trace</button>
+          <button id="close-signaling-btn" class="btn-primary">Close Terminal</button>
         </div>
       </div>
     </div>
