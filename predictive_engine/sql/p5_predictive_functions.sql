@@ -2,6 +2,11 @@
 -- AgriQ (Runtime-Terror) — SIH 2026 — PS 26032
 -- P5 Predictive Engine & Smart Dispatch Functions
 -- Target: PostgreSQL / Supabase
+--
+-- SINGLE SOURCE OF TRUTH: PostgreSQL OWNS "LIVE" RE-SCORING.
+-- get_best_selling_days() recomputes the congestion penalty
+-- from the daily_booking_load view dynamically at query time
+-- and generates matching, canonical reason text.
 -- =========================================================
 
 -- 1. Helper function: Compute single adjusted score
@@ -21,8 +26,63 @@ END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
 
--- 2. Query function for Farmer App (P2) and USSD (P4):
--- Returns ranked best selling days combining cached price trends with live booking load
+-- 2. Helper function: Canonical Reason Text Generator in SQL
+-- Unifies text generation across live RPCs and batch table refreshes.
+-- Thresholds strictly align with traffic light bands:
+--   Score >= 70.0 -> GREEN  ("⭐ Recommended: ")
+--   Score >= 45.0 -> YELLOW ("✓ Moderate / Fair: ")
+--   Score < 45.0  -> RED    ("⚠️ Avoid / Busy: ")
+CREATE OR REPLACE FUNCTION generate_smart_reason_text(
+    p_price_trend_score NUMERIC,
+    p_load_ratio NUMERIC,
+    p_best_day_score NUMERIC
+) RETURNS TEXT AS $$
+DECLARE
+    v_badge TEXT;
+    v_price_text TEXT;
+    v_crowd_text TEXT;
+    v_load_pct INT;
+BEGIN
+    -- 1. Badge (Strictly aligned with traffic light bands)
+    IF p_best_day_score >= 70.0 THEN
+        v_badge := '⭐ Recommended: ';
+    ELSIF p_best_day_score >= 45.0 THEN
+        v_badge := '✓ Moderate / Fair: ';
+    ELSE
+        v_badge := '⚠️ Avoid / Busy: ';
+    END IF;
+
+    -- 2. Price Trend component
+    IF p_price_trend_score >= 70.0 THEN
+        v_price_text := '📈 Rising price trend';
+    ELSIF p_price_trend_score >= 50.0 THEN
+        v_price_text := '↗️ Favorable price';
+    ELSIF p_price_trend_score >= 35.0 THEN
+        v_price_text := '➡️ Stable rate';
+    ELSE
+        v_price_text := '📉 Softening prices';
+    END IF;
+
+    -- 3. Crowd / Load component
+    v_load_pct := ROUND(COALESCE(p_load_ratio, 0.0) * 100)::INT;
+    IF p_load_ratio <= 0.30 THEN
+        v_crowd_text := '🟢 Low crowd (' || v_load_pct || '% booked, minimal wait)';
+    ELSIF p_load_ratio <= 0.65 THEN
+        v_crowd_text := '🟡 Normal rush (' || v_load_pct || '% booked)';
+    ELSIF p_load_ratio <= 0.85 THEN
+        v_crowd_text := '🟠 Heavy booking (' || v_load_pct || '% filled, wait ~45-60m)';
+    ELSE
+        v_crowd_text := '🔴 High congestion (' || v_load_pct || '% capacity booked)';
+    END IF;
+
+    RETURN v_badge || v_price_text || ' • ' || v_crowd_text;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+
+-- 3. Query function for Farmer App (P2) and USSD (P4):
+-- LIVE RECOMPUTATION: Joins daily_rates_cache.price_trend_score (from P5 batch ML)
+-- with live daily_booking_load.load_ratio at query time.
 CREATE OR REPLACE FUNCTION get_best_selling_days(
     p_crop_type TEXT,
     p_center_id UUID DEFAULT NULL,
@@ -52,12 +112,12 @@ BEGIN
             drc.price_trend_score,
             COALESCE(dbl.load_ratio, 0.0) AS load_ratio,
             COALESCE(dbl.bookings_count, 0) AS bookings_count,
+            -- LIVE RECOMPUTATION OF PENALTY TERM FROM daily_booking_load
             compute_smart_dispatch_score(
                 drc.price_trend_score,
                 COALESCE(dbl.load_ratio, 0.0),
                 25.0
-            ) AS live_best_score,
-            drc.reason_text AS base_reason
+            ) AS live_best_score
         FROM daily_rates_cache drc
         LEFT JOIN daily_booking_load dbl
             ON drc.center_id = dbl.center_id
@@ -87,14 +147,7 @@ BEGIN
             WHEN r.live_best_score >= 45.0 THEN 'YELLOW'
             ELSE 'RED'
         END AS traffic_light,
-        CASE
-            WHEN r.load_ratio >= 0.85 THEN
-                '⚠️ Heavy Mandi Congestion (' || ROUND(r.load_ratio * 100) || '% booked). Expected delay. Choose an alternative slot.'
-            WHEN r.score_rank = 1 THEN
-                '🌟 Best Day to Sell: Favorable price trend with optimal mandi intake capacity.'
-            ELSE
-                COALESCE(r.base_reason, 'Standard slot with normal wait estimate.')
-        END AS reason_text,
+        generate_smart_reason_text(r.price_trend_score, r.load_ratio, r.live_best_score) AS reason_text,
         (r.score_rank = 1) AS is_best_day
     FROM ranked r
     ORDER BY r.forecast_date ASC;
@@ -102,9 +155,9 @@ END;
 $$ LANGUAGE plpgsql STABLE;
 
 
--- 3. Batch Maintenance Procedure:
--- Periodically re-syncs best_day_score and reason_text in daily_rates_cache
--- using current load from daily_booking_load
+-- 4. Maintenance Procedure:
+-- Updates BOTH best_day_score AND reason_text in daily_rates_cache
+-- for static reads (e.g. USSD direct SELECT queries)
 CREATE OR REPLACE FUNCTION refresh_daily_rates_scores(
     p_penalty_weight NUMERIC DEFAULT 25.0
 ) RETURNS INTEGER AS $$
@@ -117,6 +170,15 @@ BEGIN
             drc.price_trend_score,
             COALESCE(dbl.load_ratio, 0.0),
             p_penalty_weight
+        ),
+        reason_text = generate_smart_reason_text(
+            drc.price_trend_score,
+            COALESCE(dbl.load_ratio, 0.0),
+            compute_smart_dispatch_score(
+                drc.price_trend_score,
+                COALESCE(dbl.load_ratio, 0.0),
+                p_penalty_weight
+            )
         ),
         updated_at = now()
     FROM (

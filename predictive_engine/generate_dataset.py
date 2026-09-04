@@ -107,10 +107,20 @@ CROP_PROFILES: Dict[str, Dict] = {
     },
 }
 
-# Mandi Centers (Consistent with P1/P6 schema & seed data)
-DEFAULT_MANDI_CENTERS = [
+# =========================================================
+# Mandi Centers — loaded LIVE from Supabase when credentials are available.
+# Falls back to placeholder data (clearly fake IDs) ONLY for offline/local
+# testing when SUPABASE_URL / SUPABASE_ANON_KEY aren't set. Never assume
+# the fallback IDs match your real database — they won't, and inserting
+# against them will fail the foreign key constraint on daily_rates_cache.
+# =========================================================
+import os
+from dotenv import load_dotenv
+load_dotenv()  # loads .env from repo root automatically if present
+
+_PLACEHOLDER_MANDI_CENTERS = [
     {
-        "center_id": "c1111111-1111-1111-1111-111111111111",
+        "center_id": "c1111111-1111-1111-1111-111111111111",  # FAKE — offline testing only
         "center_name": "Nashik APMC Main Market",
         "district": "Nashik",
         "state": "Maharashtra",
@@ -119,7 +129,7 @@ DEFAULT_MANDI_CENTERS = [
         "hourly_intake_limit": 25,
     },
     {
-        "center_id": "c2222222-2222-2222-2222-222222222222",
+        "center_id": "c2222222-2222-2222-2222-222222222222",  # FAKE — offline testing only
         "center_name": "Khanna Grain Mandi",
         "district": "Ludhiana",
         "state": "Punjab",
@@ -128,7 +138,7 @@ DEFAULT_MANDI_CENTERS = [
         "hourly_intake_limit": 40,
     },
     {
-        "center_id": "c3333333-3333-3333-3333-333333333333",
+        "center_id": "c3333333-3333-3333-3333-333333333333",  # FAKE — offline testing only
         "center_name": "Indore Krishi Upaj Mandi",
         "district": "Indore",
         "state": "Madhya Pradesh",
@@ -137,7 +147,7 @@ DEFAULT_MANDI_CENTERS = [
         "hourly_intake_limit": 30,
     },
     {
-        "center_id": "c4444444-4444-4444-4444-444444444444",
+        "center_id": "c4444444-4444-4444-4444-444444444444",  # FAKE — offline testing only
         "center_name": "Guntur Mirchi & Cotton Yard",
         "district": "Guntur",
         "state": "Andhra Pradesh",
@@ -146,7 +156,7 @@ DEFAULT_MANDI_CENTERS = [
         "hourly_intake_limit": 25,
     },
     {
-        "center_id": "c5555555-5555-5555-5555-555555555555",
+        "center_id": "c5555555-5555-5555-5555-555555555555",  # FAKE — offline testing only
         "center_name": "Kota Mandi Samiti",
         "district": "Kota",
         "state": "Rajasthan",
@@ -155,6 +165,47 @@ DEFAULT_MANDI_CENTERS = [
         "hourly_intake_limit": 20,
     },
 ]
+
+
+def load_mandi_centers() -> List[Dict]:
+    """
+    Fetches real mandi centers from Supabase (public read, anon key is
+    enough — centers_public_read policy allows this). Falls back to
+    clearly-fake placeholder centers ONLY if credentials are missing or
+    the request fails, so local/offline dataset generation still works —
+    but a loud warning is printed so nobody mistakes fake IDs for real ones.
+    """
+    supabase_url = os.environ.get("SUPABASE_URL")
+    supabase_key = os.environ.get("SUPABASE_ANON_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+
+    if not supabase_url or not supabase_key:
+        print("⚠️  SUPABASE_URL / SUPABASE_ANON_KEY not set — using FAKE placeholder")
+        print("    center IDs. These will NOT match your real database. Set the")
+        print("    env vars before running batch_forecaster.py for real output.")
+        return _PLACEHOLDER_MANDI_CENTERS
+
+    try:
+        import requests
+        endpoint = f"{supabase_url.rstrip('/')}/rest/v1/mandi_centers"
+        headers = {"apikey": supabase_key, "Authorization": f"Bearer {supabase_key}"}
+        params = {"select": "center_id,center_name,district,state,crop_type,daily_capacity_kg,hourly_intake_limit"}
+        resp = requests.get(endpoint, headers=headers, params=params, timeout=10)
+        if resp.status_code == 200 and resp.json():
+            centers = resp.json()
+            print(f"✅ Loaded {len(centers)} real mandi centers from Supabase.")
+            return centers
+        else:
+            print(f"⚠️  Supabase returned no centers (status {resp.status_code}) — "
+                  f"falling back to placeholder data. Has P6 seeded mandi_centers yet?")
+            return _PLACEHOLDER_MANDI_CENTERS
+    except Exception as e:
+        print(f"⚠️  Failed to reach Supabase ({e}) — falling back to placeholder data.")
+        return _PLACEHOLDER_MANDI_CENTERS
+
+
+# Loaded once at import time. If you need to refresh mid-session (e.g. after
+# P6 reseeds), call load_mandi_centers() again explicitly.
+DEFAULT_MANDI_CENTERS = load_mandi_centers()
 
 
 def generate_mandi_dataset(
@@ -313,5 +364,6 @@ if __name__ == "__main__":
     print(f"Generated {len(df)} synthetic mandi market records across {df['crop_type'].nunique()} crops.")
     print("Sample records:")
     print(df[["date", "crop_type", "center_name", "modal_price", "arrival_tonnes"]].head(10))
-    df.to_csv("/Users/adit/.gemini/antigravity/scratch/agriq/predictive_engine/synthetic_mandi_data.csv", index=False)
-    print("Saved to synthetic_mandi_data.csv")
+    output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "synthetic_mandi_data.csv")
+    df.to_csv(output_path, index=False)
+    print(f"Saved to {output_path}")

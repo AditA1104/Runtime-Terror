@@ -60,25 +60,32 @@ def generate_reason_text(
         crowd_desc = f"🟢 Low crowd ({load_pct}% booked, minimal wait)"
         crowd_hi = f"कम भीड़ ({load_pct}% स्लॉट, त्वरित तौल)"
     elif load_ratio <= 0.65:
-        crowd_desc = f"🟡 Moderate crowd ({load_pct}% booked, normal turnaround)"
-        crowd_hi = f"मध्यम भीड़ ({load_pct}% स्लॉट)"
+        crowd_desc = f"🟡 Normal rush ({load_pct}% booked, normal turnaround)"
+        crowd_hi = f"सामान्य भीड़ ({load_pct}% स्लॉट)"
     elif load_ratio <= 0.85:
         crowd_desc = f"🟠 Heavy booking ({load_pct}% filled, expected wait ~45-60m)"
         crowd_hi = f"अधिक बुकिंग ({load_pct}% स्लॉट, ~45-60 मिनट प्रतीक्षा)"
     else:
-        crowd_desc = f"🔴 Severe congestion ({load_pct}% booked, bottleneck alert)"
+        crowd_desc = f"🔴 High congestion ({load_pct}% booked, bottleneck alert)"
         crowd_hi = f"अत्यधिक भीड़ ({load_pct}% स्लॉट, भारी प्रतीक्षा)"
 
     # 3. Overall Recommendation Tag
-    if best_day_score >= 75.0:
-        badge = "⭐ Highly Recommended: "
-        badge_hi = "⭐ सर्वोत्तम दिन: "
-    elif best_day_score >= 50.0:
-        badge = "✓ Good Day to Sell: "
-        badge_hi = "✓ उपयुक्त दिन: "
+    # NOTE: these cutoffs are the SAME as the traffic_light cutoffs in
+    # score_and_rank_forecasts() below (>=70 GREEN, >=45 YELLOW, else RED).
+    # They used to be 75/50 (with different wording), which let a day be
+    # marked GREEN / is_best_day=True while this text still said
+    # "Avoid/Delay" - confirmed live in daily_rates_cache.json (e.g. Onion
+    # 2026-09-10, Mustard 2026-09-04, Cotton 2026-09-04 all shipped with
+    # is_best_day=true + traffic_light="RED" + "Avoid/Delay" wording).
+    if best_day_score >= 70.0:
+        badge = "⭐ Recommended: "
+        badge_hi = "⭐ अनुशंसित: "
+    elif best_day_score >= 45.0:
+        badge = "✓ Moderate / Fair: "
+        badge_hi = "✓ मध्यम: "
     else:
-        badge = "⚠️ Avoid/Delay: "
-        badge_hi = "⚠️ सलाह: "
+        badge = "⚠️ Avoid / Busy: "
+        badge_hi = "⚠️ बचें / व्यस्त: "
 
     if lang == "hi":
         return f"{badge_hi}{price_hi} • {crowd_hi}"

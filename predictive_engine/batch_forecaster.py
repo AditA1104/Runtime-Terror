@@ -11,6 +11,7 @@ import sys
 import json
 import argparse
 import datetime
+from pathlib import Path
 from typing import Dict, List, Optional
 import pandas as pd
 
@@ -18,11 +19,22 @@ from predictive_engine.generate_dataset import generate_mandi_dataset, DEFAULT_M
 from predictive_engine.model import MandiPriceForecaster
 from predictive_engine.dispatch_scorer import score_and_rank_forecasts
 
+# Portable base directory — resolves relative to THIS file's location, so it
+# works regardless of where the repo is cloned or who's running it.
+BASE_DIR = Path(__file__).resolve().parent
+DEFAULT_MODELS_DIR = str(BASE_DIR / "saved_models")
+DEFAULT_SQL_OUT = str(BASE_DIR / "sql" / "seed_daily_rates_cache.sql")
+DEFAULT_JSON_OUT = str(BASE_DIR / "daily_rates_cache.json")
+
+# Flip this to "ridge" for a simpler, more easily-explained-in-Q&A model if
+# preferred over the more complex HistGradientBoosting default.
+MODEL_TYPE = "hist_gb"
+
 
 def run_batch_pipeline(
     days_ahead: int = 14,
     history_days: int = 365,
-    models_dir: str = "/Users/adit/.gemini/antigravity/scratch/agriq/predictive_engine/saved_models",
+    models_dir: str = DEFAULT_MODELS_DIR,
     output_sql_path: Optional[str] = None,
     output_json_path: Optional[str] = None,
     supabase_sync: bool = False,
@@ -51,7 +63,7 @@ def run_batch_pipeline(
     print(f"🧠 Training forecasting models across {len(unique_crops)} commodities...")
 
     for crop in unique_crops:
-        forecaster = MandiPriceForecaster(crop_type=crop, model_type="hist_gb")
+        forecaster = MandiPriceForecaster(crop_type=crop, model_type=MODEL_TYPE)
         metrics = forecaster.train(df_history)
         model_path = os.path.join(models_dir, f"{crop.lower()}_model.joblib")
         forecaster.save(model_path)
@@ -61,11 +73,21 @@ def run_batch_pipeline(
     # 3. Generate Forecasts & Scores for Each Mandi Center
     print(f"\n🔮 Generating {days_ahead}-day forward price trends & smart dispatch scores...")
 
+    # Case-insensitive lookup: a center's crop_type from the DB might be
+    # saved as 'onion' while CROP_PROFILES keys (and models_trained) use
+    # 'Onion'. Match on lowercase so seeding casing never breaks this.
+    models_trained_lower = {k.lower(): v for k, v in models_trained.items()}
+
     for center in DEFAULT_MANDI_CENTERS:
         center_id = center["center_id"]
         center_name = center["center_name"]
         crop = center["crop_type"]
-        forecaster = models_trained[crop]
+        forecaster = models_trained_lower.get(crop.lower())
+        if forecaster is None:
+            print(f"  ⚠️  Skipping {center_name} — no trained model for crop "
+                  f"'{crop}' (check CROP_PROFILES in generate_dataset.py "
+                  f"covers this crop).")
+            continue
 
         raw_forecasts = forecaster.forecast_trajectory(days_ahead=days_ahead)
 
@@ -184,6 +206,12 @@ def sync_to_supabase_table(records: List[Dict]) -> bool:
 
     import requests
     endpoint = f"{supabase_url.rstrip('/')}/rest/v1/daily_rates_cache"
+    # on_conflict tells PostgREST which columns define uniqueness for this
+    # upsert — without it, merge-duplicates falls back to the primary key
+    # (cache_id, which is always a fresh UUID), so it attempts a plain
+    # INSERT and collides with the real unique constraint instead of
+    # updating the existing row.
+    params = {"on_conflict": "crop_type,center_id,forecast_date"}
     headers = {
         "apikey": supabase_key,
         "Authorization": f"Bearer {supabase_key}",
@@ -204,7 +232,7 @@ def sync_to_supabase_table(records: List[Dict]) -> bool:
     ]
 
     try:
-        response = requests.post(endpoint, headers=headers, json=payload, timeout=15)
+        response = requests.post(endpoint, headers=headers, params=params, json=payload, timeout=15)
         if response.status_code in [200, 201]:
             print(f"✅ Successfully synced {len(payload)} records to Supabase daily_rates_cache!")
             return True
@@ -219,8 +247,8 @@ def sync_to_supabase_table(records: List[Dict]) -> bool:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="AgriQ P5 Predictive Forecaster & Dispatch Scorer")
     parser.add_argument("--days", type=int, default=14, help="Forecast horizon in days (default: 14)")
-    parser.add_argument("--sql-out", type=str, default="/Users/adit/.gemini/antigravity/scratch/agriq/sql/seed_daily_rates_cache.sql", help="Path to write SQL seed file")
-    parser.add_argument("--json-out", type=str, default="/Users/adit/.gemini/antigravity/scratch/agriq/predictive_engine/daily_rates_cache.json", help="Path to write JSON dump")
+    parser.add_argument("--sql-out", type=str, default=DEFAULT_SQL_OUT, help="Path to write SQL seed file")
+    parser.add_argument("--json-out", type=str, default=DEFAULT_JSON_OUT, help="Path to write JSON dump")
     parser.add_argument("--sync-db", action="store_true", help="Sync directly to Supabase table via REST API")
 
     args = parser.parse_args()
