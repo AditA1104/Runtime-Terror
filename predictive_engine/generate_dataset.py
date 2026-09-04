@@ -115,6 +115,8 @@ CROP_PROFILES: Dict[str, Dict] = {
 # against them will fail the foreign key constraint on daily_rates_cache.
 # =========================================================
 import os
+from dotenv import load_dotenv
+load_dotenv()  # loads .env from repo root automatically if present
 
 _PLACEHOLDER_MANDI_CENTERS = [
     {
