@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { mockDb, MOCK_CENTERS } from "./mock"
+import type { Booking } from "@/lib/types"
 import { parseScan } from "@/lib/scan"
 import { nextCheckpoint } from "@/lib/status"
 
@@ -96,5 +97,38 @@ describe("P2's demo pass resolves on this desk", () => {
     renumbered.token_number = "XXX-9999"
     const match = resolve(parseScan(JSON.stringify(renumbered))!)
     expect(match?.booking_id).toBe("b1111111-1111-1111-1111-111111111101")
+  })
+})
+
+/**
+ * P4's USSD simulator books on a farmer's behalf and stamps
+ * `created_via: 'ussd'`. Nothing else about such a row differs, so the desk
+ * must treat it as an ordinary booking and simply mark how it arrived — a
+ * feature-phone farmer is not a second-class one at the gate.
+ */
+describe("USSD bookings from P4", () => {
+  const ussd = mockDb.bookings.filter((b) => b.created_via === "ussd")
+
+  it("are present in the seeded dataset", () => {
+    expect(ussd.length).toBeGreaterThan(0)
+  })
+
+  it("carry the same shape as a web booking", () => {
+    const keys = (b: Booking) => Object.keys(b).sort().join(",")
+    const web = mockDb.bookings.find((b) => b.created_via === "web")!
+    expect(keys(ussd[0])).toBe(keys(web))
+  })
+
+  it("move through the same checkpoints as any other booking", () => {
+    // The desk resolves the next action from status alone, never from the
+    // channel, so a USSD row is actionable exactly like a web one.
+    const bookedUssd = ussd.find((b) => b.status === "BOOKED")
+    expect(bookedUssd).toBeDefined()
+    expect(nextCheckpoint(bookedUssd!.status)?.to).toBe("CHECKED_IN")
+  })
+
+  it("are findable by token, which is all a USSD farmer is told", () => {
+    const found = mockDb.bookings.find((b) => b.token_number === ussd[0].token_number)
+    expect(found?.booking_id).toBe(ussd[0].booking_id)
   })
 })
