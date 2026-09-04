@@ -135,42 +135,51 @@ token pass has the same problem.
 
 ---
 
-# Status — 4 Sept 2026
+# Status — 4 Sept 2026 · live and verified
 
-P1 has delivered a live project, an `officers` table, and 3 test officer
-logins. Verified directly against it with the anon key (credentials are in
-`.env.local`, which is gitignored — ask P1 if you need them):
+**P1's officer-access test plan passes end to end against the live project.**
+Run it yourself with `node scripts/verify-live.mjs` (see Tests above).
 
-**Working.** All six tables exist and respond. `officers` is there, so the
-proposal below was implemented. RLS scopes correctly for an unauthenticated
-caller — `mandi_centers` and `slots` read, while `bookings`, `farmers` and
-`status_log` all return `[]`.
-
-**One gotcha:** P1 circulated the URL as
-`https://<ref>.supabase.co/rest/v1/`. `createClient()` needs the bare origin —
-supabase-js appends its own paths, so the REST suffix breaks every call.
-
-Since 2 Sept P1 has also seeded **five centres** and **slots for 4–17 Sept**,
-which clears two of the four blockers listed here previously.
-
-## What still blocks the handover test plan
-
-| # | Blocker | Owner |
+| # | P1's test | Result |
 |---|---|---|
-| 1 | **No officer can sign in.** `/auth/v1/settings` still reports `"phone": false` (`"email": true`), and the 3 test accounts have no password set, so neither route resolves. Editing this needs an Owner/Administrator role on the Supabase project. Fastest fix: **Authentication → Users**, set an email + password on each test officer. To keep the phone flow instead: enable the Phone provider, leave the Twilio fields empty, and add **Test OTPs** (`919111111111 → 123456`) — real SMS will never reach those numbers, they are not handsets. Worth raising `SMS OTP Expiry` from 60s to 300s either way. | project owner |
+| 1 | Officer signs in, sees/updates bookings at their centre | **PASS** — 18 bookings visible at Test Mandi, `officers.officer_id` equals the auth UID |
+| 2 | An officer at another centre cannot see those bookings | **PASS** — the Khanna Grain Mandi officer sees 0 of them. Not a coincidence: were the policy merely `is_officer()`, they would see all 18 |
+| 3 | A transition logs the officer's real UID | **PASS** — `DEMO-1` advanced BOOKED → CHECKED_IN and `status_log.changed_by` came back `e6f68e57-…`, the signed-in officer's UID, not a placeholder |
 
-**Done since:** officer auth is built — `useAuth.tsx` plus `OfficerLogin.tsx`,
-phone OTP and email/password side by side, the `officers` row supplying the
-desk's name and centre, and the officer's real auth UID going into
-`status_log.changed_by`. It renders against the live project with no console
-errors, but **has never completed a sign-in**, because of the row above. That
-plus the Supabase branch of `repository.ts` are the module's untested surfaces.
+The desk itself runs on live data: 18 rows, no "Demo data" badge, no console
+errors. The Supabase branch of `repository.ts` — untested since this module was
+written — has now executed for real.
 
-Settled on the way: `mandi_centers.center_id` really is a UUID here
-(`affc5449-8ea1-4da3-b1f4-0246eee93595`), which confirms the QR pass's
-`"center_id": "c1-nsk"` is not a real centre id — that one is P2's to fix.
+## What it took, worth knowing for the next project
+
+- **The URL.** P1 circulated `https://<ref>.supabase.co/rest/v1/`.
+  `createClient()` needs the bare origin; the REST suffix breaks every call.
+- **Phone auth was a dead end.** The provider will not save without Twilio
+  credentials, and the seeded officer numbers are not real handsets, so no SMS
+  could ever arrive. Email + password needs no third-party service and took
+  two minutes. The login screen offers both, so either works.
+- **`officers.phone_number` is NOT NULL** — not in the original proposal, and
+  an insert without it fails.
+- **One slot per centre per day**, with a unique key on
+  `(center_id, slot_date, slot_start_time)`. Re-dating slots collides; point
+  the bookings at the existing slot instead.
+- **Seeded bookings sit on future dates.** The desk queries today by design, so
+  a fresh project shows an empty queue until something is dated today.
+
+## Still open
+
+- **`center_id` on P2's QR pass** was `"c1-nsk"` in the first revision; live
+  centre ids are UUIDs. Fixed in P2's second revision — worth confirming which
+  build is on farmers' phones.
+- **`slot_date` dropped from the pass.** The desk uses it to say "that pass is
+  for tomorrow" rather than a bare "not found"; the code still reads it if
+  restored.
+- **The three original test officers** (9111111111 etc.) remain unusable — no
+  password, and phone auth is off. The accounts in use are
+  `officer1@agriq.test` and `officer3@agriq.test`.
 
 ---
+
 
 # ⚠️ Blocking ask for P1 — officer access is closed by RLS
 
