@@ -1093,6 +1093,7 @@ body {
 .status-ok { color: #34d399; }
 .status-warn { color: #fbbf24; }
 .status-err { color: #f87171; }
+.status-neutral { color: #94a3b8; font-style: italic; font-size: 0.68rem; }
 
 .dbt-summary {
   display: flex;

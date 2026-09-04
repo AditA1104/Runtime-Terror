@@ -1,5 +1,5 @@
 /**
- * AgriQ National Mandi Procurement Gateway Engine (v6.1)
+ * AgriQ National Mandi Procurement Gateway Engine (v6.2)
  * Truly Dynamic, User-Input Driven Architecture
  * Team: Runtime-Terror | SIH 2026 | PS 26032
  */
@@ -45,6 +45,7 @@
   const pulseDot = document.getElementById('pulse-dot');
   const mandiQueueTbody = document.getElementById('mandi-queue-tbody');
   const queueSearchInput = document.getElementById('queue-search-input');
+  const mandiYardLocation = document.getElementById('mandi-yard-location');
 
   // Checkpoint Form Fields
   const inputGateNo = document.getElementById('input-gate-no');
@@ -62,6 +63,7 @@
 
   const dbtRateVal = document.getElementById('dbt-rate-val');
   const dbtAmountVal = document.getElementById('dbt-amount-val');
+  const dbtBankText = document.getElementById('dbt-bank-text');
   const btnSimPayment = document.getElementById('btn-sim-payment');
 
   const btnSimComplete = document.getElementById('btn-sim-complete');
@@ -234,7 +236,6 @@
     'Soybean': 4892
   };
 
-  // Grade Multipliers
   const GRADE_MULTIPLIERS = {
     'GRADE-A': 1.0,
     'GRADE-B': 0.95,
@@ -255,24 +256,28 @@
     tempData: {
       phone: '9876543210',
       crop: 'Wheat',
-      centerId: 'c1-nsk',
-      centerName: 'Nashik APMC Main',
-      slotId: 's1',
-      slotTime: 'Tomorrow 08:00 AM',
-      quantityKg: 1450,
-      stage: 'BOOKED'
+      centerId: null,
+      centerName: '',
+      slotId: null,
+      slotTime: '',
+      quantityKg: 0,
+      stage: 'IDLE',
+      bookingId: null,
+      grade: 'GRADE-A'
     },
+    dynamicCenters: [],
+    dynamicSlots: [],
     activeToken: null,
     activeBooking: null,
     smsCount: 0,
     queueList: [
-      { token: 'NSK-0198', phone: '9822019283', crop: 'Wheat', slot: '08:00 AM', netWeight: 1850, status: 'WEIGHED', grade: 'GRADE-A' },
-      { token: 'NSK-0215', phone: '9765432190', crop: 'Onion', slot: '08:30 AM', netWeight: 2200, status: 'CHECKED_IN', grade: 'GRADE-B' },
-      { token: 'NSK-0220', phone: '9921873461', crop: 'Wheat', slot: '09:00 AM', netWeight: 1400, status: 'BOOKED', grade: null }
+      { token: 'NSK-0198', phone: '9822019283', crop: 'Wheat', slot: '08:00 AM', netWeight: 1850, status: 'WEIGHED', grade: 'GRADE-A', bookingId: 'bk_0198' },
+      { token: 'NSK-0215', phone: '9765432190', crop: 'Onion', slot: '08:30 AM', netWeight: 2200, status: 'CHECKED_IN', grade: 'GRADE-B', bookingId: 'bk_0215' },
+      { token: 'NSK-0220', phone: '9921873461', crop: 'Wheat', slot: '09:00 AM', netWeight: 1400, status: 'BOOKED', grade: null, bookingId: 'bk_0220' }
     ]
   };
 
-  // --- Multilingual Dictionaries (Clean Unicode) ---
+  // --- Multilingual Dictionaries ---
   const I18N = {
     en: {
       rootTitle: 'AgriQ Mandi Seva (*99#)',
@@ -280,18 +285,16 @@
       selectCropTitle: 'Select Commodity:',
       selectCrop: '1. Wheat (गेहूं)\n2. Onion (प्याज)\n3. Paddy (धान)\n4. Cotton (कपास)\n0. Back',
       selectCenterTitle: 'Select Mandi Center:',
-      selectCenter: '1. Nashik APMC Main\n2. Pune Central Mandi\n3. Nagpur Cotton Yard\n0. Back',
       selectSlotTitle: 'Available Slots:',
-      selectSlot: '1. Tomorrow 08:00 AM (15 left)\n2. Tomorrow 11:00 AM (12 left)\n3. Tomorrow 02:00 PM (8 left)\n0. Back',
       enterQtyTitle: 'Approx Quantity (kg):',
       enterQty: 'Enter declared weight in kg\n(e.g. type 1450 for 14.5 Q)\n\n0. Back',
       confirmTitle: 'Confirm Mandi Slot:',
       confirmPrompt: '1. Confirm Booking\n2. Cancel',
       successTitle: '✅ Token Confirmed!',
       statusPromptTitle: 'Check Token Status:',
-      statusPromptBody: 'Enter Token # or Mobile:\n(e.g. NSK-4821 or 9876543210)\n\n1. Check active token\n0. Back',
-      ratesMenuTitle: 'APMC MSP Rates & Forecast:',
-      ratesMenu: '1. Wheat (₹2,425/Q ↗ Hold)\n2. Onion (₹1,850/Q ↘ Sell)\n3. Paddy (₹2,300/Q → Stable)\n4. Cotton (₹7,120/Q ↗ High)\n0. Back',
+      statusPromptBody: 'Enter Token # or Mobile:\n(e.g. NSK-0198 or 9822019283)\n\n0. Back',
+      ratesMenuTitle: 'Select Crop for Forecast:',
+      ratesMenu: '1. Wheat (गेहूं)\n2. Onion (प्याज)\n3. Paddy (धान)\n4. Cotton (कपास)\n0. Back',
       langTitle: 'Select Language / भाषा:',
       langBody: '1. English\n2. हिंदी (Hindi)\n3. मराठी (Marathi)\n0. Back'
     },
@@ -301,18 +304,16 @@
       selectCropTitle: 'फसल चुनें:',
       selectCrop: '1. गेहूं (Wheat)\n2. प्याज (Onion)\n3. धान (Paddy)\n4. कपास (Cotton)\n0. वापस',
       selectCenterTitle: 'मंडी केंद्र चुनें:',
-      selectCenter: '1. नासिक एपीएमसी मुख्य\n2. पुणे सेंट्रल मंडी\n3. नागपुर यार्ड\n0. वापस',
       selectSlotTitle: 'उपलब्ध समय:',
-      selectSlot: '1. कल सुबह 08:00 (15 शेष)\n2. कल सुबह 11:00 (12 शेष)\n3. कल दोपहर 02:00 (8 शेष)\n0. वापस',
       enterQtyTitle: 'अनुमानित वजन (किलो):',
       enterQty: 'वजन दर्ज करें (उदा. 1450)\n\n0. वापस',
       confirmTitle: 'स्लॉट पुष्टि:',
       confirmPrompt: '1. स्लॉट पक्का करें\n2. रद्द करें',
       successTitle: '✅ टोकन बुक हो गया!',
       statusPromptTitle: 'टोकन स्थिति जांचें:',
-      statusPromptBody: 'टोकन नंबर दर्ज करें:\n(उदा. NSK-4821)\n\n1. सक्रिय टोकन जांचें\n0. वापस',
-      ratesMenuTitle: 'सरकारी MSP भाव व पूर्वानुमान:',
-      ratesMenu: '1. गेहूं (₹2,425/क्विंटल ↗)\n2. प्याज (₹1,850/क्विंटल ↘)\n3. धान (₹2,300/क्विंटल →)\n4. कपास (₹7,120/क्विंटल ↗)\n0. वापस',
+      statusPromptBody: 'टोकन नंबर या मोबाइल दर्ज करें:\n(उदा. NSK-0198)\n\n0. वापस',
+      ratesMenuTitle: 'भाव व सलाह हेतु फसल चुनें:',
+      ratesMenu: '1. गेहूं (Wheat)\n2. प्याज (Onion)\n3. धान (Paddy)\n4. कपास (Cotton)\n0. वापस',
       langTitle: 'भाषा चुनें / Select Language:',
       langBody: '1. English\n2. हिंदी (Hindi)\n3. मराठी (Marathi)\n0. वापस'
     },
@@ -322,18 +323,16 @@
       selectCropTitle: 'पीक निवडा:',
       selectCrop: '1. गहू (Wheat)\n2. कांदा (Onion)\n3. भात (Paddy)\n4. कापूस (Cotton)\n0. मागे',
       selectCenterTitle: 'बाजार समिती निवडा:',
-      selectCenter: '1. नाशिक एपीएमसी मुख्य\n2. पुणे मुख्य बाजार\n3. नागपूर यार्ड\n0. मागे',
       selectSlotTitle: 'उपलब्ध वेळ:',
-      selectSlot: '1. उद्या सकाळी 08:00 (15 शिल्लक)\n2. उद्या सकाळी 11:00 (12 शिल्लक)\n3. उद्या दुपारी 02:00 (8 शिल्लक)\n0. मागे',
       enterQtyTitle: 'अंदाजे वजन (किलो):',
       enterQty: 'वजन टाका (उदा. 1450)\n\n0. मागे',
       confirmTitle: 'बुकिंग खात्री:',
       confirmPrompt: '1. स्लॉट निश्चित करा\n2. रद्द करा',
       successTitle: '✅ टोकन बुक झाले!',
       statusPromptTitle: 'टोकन स्थिती तपासा:',
-      statusPromptBody: 'टोकन क्रमांक टाका:\n(उदा. NSK-4821)\n\n1. चालू टोकन तपासा\n0. मागे',
-      ratesMenuTitle: 'बाजार हमीभाव व शिफारस:',
-      ratesMenu: '1. गहू (₹२,४२५/क्विंटल ↗)\n2. कांदा (₹१,८५०/क्विंटल ↘)\n3. भात (₹२,३००/क्विंटल →)\n4. कापूस (₹७,१२०/क्विंटल ↗)\n0. मागे',
+      statusPromptBody: 'टोकन क्रमांक किंवा मोबाईल टाका:\n(उदा. NSK-0198)\n\n0. मागे',
+      ratesMenuTitle: 'भावासाठी पीक निवडा:',
+      ratesMenu: '1. गहू (Wheat)\n2. कांदा (Onion)\n3. भात (Paddy)\n4. कापूस (Cotton)\n0. मागे',
       langTitle: 'भाषा निवडा / Select Language:',
       langBody: '1. English\n2. हिंदी (Hindi)\n3. मराठी (Marathi)\n0. मागे'
     }
@@ -416,19 +415,39 @@
     });
   });
 
-  // --- Calculations for Officer Operations Desk ---
+  // --- Dynamic Live Calculations for Officer Operations Desk ---
   function updateCalculatedWeights() {
-    const gross = parseFloat(inputGrossWeight.value) || 0;
-    const tare = parseFloat(inputTareWeight.value) || 0;
-    const net = Math.max(0, gross - tare);
-    const quintals = (net / 100).toFixed(2);
-    calcNetWeight.textContent = `${net.toLocaleString()} kg (${quintals} Q)`;
+    const grossRaw = inputGrossWeight.value;
+    const tareRaw = inputTareWeight.value;
 
-    // Check Grade Multiplier
+    if (!grossRaw && !tareRaw) {
+      calcNetWeight.textContent = '-- kg (-- Q)';
+      dbtRateVal.textContent = '-- / Quintal';
+      dbtAmountVal.textContent = '--';
+      return { net: 0, quintals: '0', totalAmt: '0', effectiveRate: 0 };
+    }
+
+    const gross = parseFloat(grossRaw) || 0;
+    const tare = parseFloat(tareRaw) || 0;
+    let net = Math.max(0, gross - tare);
+
+    // Apply moisture deduction if moisture is between 12.1% and 14.0%
+    const moistureVal = parseFloat(inputMoisture.value) || 0;
+    let moistureDeductionKg = 0;
+    if (moistureVal > 12.0 && moistureVal <= 14.0) {
+      const excessPercent = moistureVal - 12.0;
+      moistureDeductionKg = Math.round(net * (excessPercent / 100));
+      net = Math.max(0, net - moistureDeductionKg);
+    }
+
+    const quintals = (net / 100).toFixed(2);
+    calcNetWeight.textContent = `${net.toLocaleString()} kg (${quintals} Q)${moistureDeductionKg > 0 ? ` [Moisture -${moistureDeductionKg}kg]` : ''}`;
+
+    // Quality Grade Multiplier
     const grade = selectQualityGrade.value;
     const mult = GRADE_MULTIPLIERS[grade] || 1.0;
 
-    // Recalculate DBT Amount using active crop
+    // Recalculate DBT Amount using selected token's crop
     const activeCrop = state.tempData.crop || 'Wheat';
     const baseRate = MSP_RATES[activeCrop] || 2425;
     const effectiveRate = Math.round(baseRate * mult);
@@ -445,20 +464,30 @@
 
   // Moisture Validation
   function validateMoisture() {
-    const val = parseFloat(inputMoisture.value) || 0;
+    const valStr = inputMoisture.value.trim();
+    if (!valStr) {
+      moistureStatus.textContent = 'Enter moisture % to test compliance';
+      moistureStatus.className = 'status-neutral';
+      btnSimQuality.disabled = true;
+      return;
+    }
+
+    const val = parseFloat(valStr) || 0;
     if (val <= 12.0) {
-      moistureStatus.textContent = '✔ Within Agmarknet Limit (≤ 12.0%)';
+      moistureStatus.textContent = `✔ Within Agmarknet Limit (${val}% ≤ 12.0%)`;
       moistureStatus.className = 'status-ok';
       btnSimQuality.disabled = (state.tempData.stage !== 'WEIGHED');
     } else if (val <= 14.0) {
-      moistureStatus.textContent = '⚠ Marginal Moisture (1% Weight Deduction)';
+      const diff = (val - 12.0).toFixed(1);
+      moistureStatus.textContent = `⚠ Marginal Moisture (${val}%): ${diff}% weight deduction applied`;
       moistureStatus.className = 'status-warn';
       btnSimQuality.disabled = (state.tempData.stage !== 'WEIGHED');
     } else {
-      moistureStatus.textContent = '✖ Moisture Exceeds Mandi Acceptance Limit (> 14%)';
+      moistureStatus.textContent = `✖ Moisture Exceeds Mandi Acceptance Limit (${val}% > 14.0% Rejected)`;
       moistureStatus.className = 'status-err';
       btnSimQuality.disabled = true;
     }
+    updateCalculatedWeights();
   }
 
   inputMoisture.addEventListener('input', validateMoisture);
@@ -499,10 +528,10 @@
       box.classList.remove('active-checkpoint', 'completed-checkpoint');
     });
 
-    // Enable / disable respective step action buttons
+    // Button states
     btnSimCheckin.disabled = (stage !== 'BOOKED');
     btnSimWeigh.disabled = (stage !== 'CHECKED_IN');
-    btnSimQuality.disabled = (stage !== 'WEIGHED');
+    btnSimQuality.disabled = (stage !== 'WEIGHED' || parseFloat(inputMoisture.value) > 14.0);
     btnSimPayment.disabled = (stage !== 'QUALITY_CHECKED');
     btnSimComplete.disabled = (stage !== 'PAYMENT_PROCESSED');
 
@@ -531,7 +560,7 @@
     }
   }
 
-  // --- SVG QR Code Generator (Pure JavaScript Scalable Vector) ---
+  // --- SVG QR Code Generator (Pure Scalable Vector) ---
   function generateSvgQrCode(dataObj) {
     const jsonStr = typeof dataObj === 'string' ? dataObj : JSON.stringify(dataObj);
     let hash = 0;
@@ -590,7 +619,7 @@
     receiptPayloadPreview.textContent = jsonStr;
   }
 
-  // --- SMS Delivery & Text-to-Speech Accessibility ---
+  // --- SMS Delivery & Accessibility TTS ---
   function sendFarmerSms(title, messageText, alertType = 'alert-status') {
     if (smsEmptyState) smsEmptyState.style.display = 'none';
     state.smsCount++;
@@ -614,7 +643,6 @@
       </div>
     `;
 
-    // Speech synthesis for accessibility
     const speakBtn = bubble.querySelector('.btn-speak');
     speakBtn.addEventListener('click', () => {
       if ('speechSynthesis' in window) {
@@ -626,12 +654,9 @@
         else if (state.lang === 'mr') utter.lang = 'mr-IN';
         else utter.lang = 'en-IN';
         window.speechSynthesis.speak(utter);
-      } else {
-        alert('Text-to-speech is not supported by your browser.');
       }
     });
 
-    // Copy to clipboard
     const copyBtn = bubble.querySelector('.btn-copy');
     copyBtn.addEventListener('click', () => {
       const cleanText = messageText.replace(/<[^>]*>?/gm, '');
@@ -658,7 +683,7 @@
   });
 
   // --- USSD State Machine Navigation ---
-  function showLoading(text, durationMs = 450) {
+  function showLoading(text, durationMs = 400) {
     dialingView.classList.add('hidden');
     menuView.classList.add('hidden');
     loadingView.classList.remove('hidden');
@@ -730,12 +755,23 @@
 
       case 'BOOK_CENTER':
         ussdTitle.textContent = dict.selectCenterTitle;
-        ussdBody.textContent = dict.selectCenter;
+        let centerListText = '';
+        state.dynamicCenters.forEach((c, idx) => {
+          centerListText += `${idx + 1}. ${c.center_name}\n`;
+        });
+        centerListText += '0. Back';
+        ussdBody.textContent = centerListText;
         break;
 
       case 'BOOK_SLOT':
         ussdTitle.textContent = dict.selectSlotTitle;
-        ussdBody.textContent = dict.selectSlot;
+        let slotListText = '';
+        state.dynamicSlots.forEach((s, idx) => {
+          const dateLabel = s.slot_date === new Date().toISOString().split('T')[0] ? 'Today' : 'Tomorrow';
+          slotListText += `${idx + 1}. ${dateLabel} ${s.slot_start_time} (${s.remaining} left)\n`;
+        });
+        slotListText += '0. Back';
+        ussdBody.textContent = slotListText;
         break;
 
       case 'BOOK_QTY':
@@ -746,7 +782,7 @@
       case 'BOOK_CONFIRM':
         ussdTitle.textContent = dict.confirmTitle;
         ussdBody.textContent = `${state.tempData.crop} (${state.tempData.quantityKg} kg)\n` +
-          `Center: ${state.tempData.centerName}\n` +
+          `Mandi: ${state.tempData.centerName}\n` +
           `Slot: ${state.tempData.slotTime}\n\n` +
           dict.confirmPrompt;
         break;
@@ -766,16 +802,17 @@
 
       case 'STATUS_RESULT':
         ussdTitle.textContent = 'Token Status Live:';
-        ussdBody.textContent = `Token: ${state.activeToken || 'NSK-0220'}\n` +
-          `Stage: ${state.tempData.stage || 'BOOKED'}\n` +
-          `Commodity: ${state.tempData.crop}\n` +
-          `Slot: ${state.tempData.slotTime}\n\n` +
-          `Gate: Gate #1 Intake\n\n0. Back`;
+        ussdBody.textContent = state.statusLookupResult || 'No record found.\n\n0. Back';
         break;
 
       case 'RATES_MENU':
         ussdTitle.textContent = dict.ratesMenuTitle;
         ussdBody.textContent = dict.ratesMenu;
+        break;
+
+      case 'RATES_DETAIL':
+        ussdTitle.textContent = 'APMC Price & AI Forecast:';
+        ussdBody.textContent = state.rateLookupResult || 'Rates unavailable.\n\n0. Back';
         break;
 
       case 'LANG_MENU':
@@ -821,9 +858,11 @@
         const crops = { '1': 'Wheat', '2': 'Onion', '3': 'Paddy', '4': 'Cotton' };
         if (crops[input]) {
           state.tempData.crop = crops[input];
-          demoCropDisplay.textContent = `${crops[input]} (Standard)`;
-          updateCalculatedWeights();
-          await showLoading('Fetching Mandi Centers...');
+          await showLoading('Fetching APMC Centers...');
+          // Fetch centers dynamically from backend
+          if (window.agriqBackend) {
+            state.dynamicCenters = await window.agriqBackend.getMandiCenters();
+          }
           enterMenu('BOOK_CENTER');
         } else {
           flashScreenError();
@@ -831,15 +870,16 @@
         break;
 
       case 'BOOK_CENTER':
-        const centers = {
-          '1': { id: 'c1-nsk', name: 'Nashik APMC Main' },
-          '2': { id: 'c2-pun', name: 'Pune Central Mandi' },
-          '3': { id: 'c3-nag', name: 'Nagpur Cotton Yard' }
-        };
-        if (centers[input]) {
-          state.tempData.centerId = centers[input].id;
-          state.tempData.centerName = centers[input].name;
+        const centerIdx = parseInt(input, 10) - 1;
+        if (state.dynamicCenters && state.dynamicCenters[centerIdx]) {
+          const selected = state.dynamicCenters[centerIdx];
+          state.tempData.centerId = selected.center_id;
+          state.tempData.centerName = selected.center_name;
           await showLoading('Checking Slot Capacity...');
+          // Fetch available slots dynamically from backend
+          if (window.agriqBackend) {
+            state.dynamicSlots = await window.agriqBackend.getAvailableSlots(selected.center_id);
+          }
           enterMenu('BOOK_SLOT');
         } else {
           flashScreenError();
@@ -847,14 +887,12 @@
         break;
 
       case 'BOOK_SLOT':
-        const slots = {
-          '1': { id: 's1', time: 'Tomorrow 08:00 AM' },
-          '2': { id: 's2', time: 'Tomorrow 11:00 AM' },
-          '3': { id: 's3', time: 'Tomorrow 02:00 PM' }
-        };
-        if (slots[input]) {
-          state.tempData.slotId = slots[input].id;
-          state.tempData.slotTime = slots[input].time;
+        const slotIdx = parseInt(input, 10) - 1;
+        if (state.dynamicSlots && state.dynamicSlots[slotIdx]) {
+          const slot = state.dynamicSlots[slotIdx];
+          state.tempData.slotId = slot.slot_id;
+          const dateLabel = slot.slot_date === new Date().toISOString().split('T')[0] ? 'Today' : 'Tomorrow';
+          state.tempData.slotTime = `${dateLabel} ${slot.slot_start_time} - ${slot.slot_end_time}`;
           enterMenu('BOOK_QTY');
         } else {
           flashScreenError();
@@ -865,9 +903,6 @@
         const qty = parseInt(input, 10);
         if (qty && qty >= 50 && qty <= 50000) {
           state.tempData.quantityKg = qty;
-          inputGrossWeight.value = qty + 200;
-          inputTareWeight.value = 200;
-          updateCalculatedWeights();
           enterMenu('BOOK_CONFIRM');
         } else {
           flashScreenError();
@@ -877,7 +912,7 @@
       case 'BOOK_CONFIRM':
         if (input === '1') {
           await showLoading('Issuing Official APMC Token...', 700);
-          finalizeBookingToken();
+          await finalizeBookingToken();
         } else if (input === '2') {
           exitToDialer();
         } else {
@@ -890,15 +925,67 @@
         break;
 
       case 'STATUS_PROMPT':
-        if (input === '1' || input.length >= 4) {
-          await showLoading('Querying Central Mandi DB...');
+        if (input.length >= 3) {
+          await showLoading('Querying Central Mandi Database...');
+          // Dynamic lookup from queue / backend
+          let match = state.queueList.find(q => q.token.toLowerCase() === input.toLowerCase() || q.phone.includes(input));
+          if (!match && window.agriqBackend) {
+            const backendMatch = await window.agriqBackend.getBookingStatus(input);
+            if (backendMatch) {
+              match = {
+                token: backendMatch.token_number || input,
+                status: backendMatch.status || 'BOOKED',
+                crop: backendMatch.crop || 'Wheat',
+                slot: backendMatch.slot_time || '08:00 AM',
+                netWeight: backendMatch.crop_quantity_kg || 1400
+              };
+            }
+          }
+
+          if (match) {
+            state.statusLookupResult = `Token: ${match.token}\n` +
+              `Status: ${match.status}\n` +
+              `Commodity: ${match.crop}\n` +
+              `Weight: ${match.netWeight.toLocaleString()} kg\n` +
+              `Slot: ${match.slot}\n\n0. Back`;
+          } else {
+            state.statusLookupResult = `No record found for "${input}".\nCheck number & retry.\n\n0. Back`;
+          }
           enterMenu('STATUS_RESULT');
         } else {
           flashScreenError();
         }
         break;
 
+      case 'STATUS_RESULT':
+        goBackMenu();
+        break;
+
       case 'RATES_MENU':
+        const rateCrops = { '1': 'Wheat', '2': 'Onion', '3': 'Paddy', '4': 'Cotton' };
+        if (rateCrops[input]) {
+          const cropName = rateCrops[input];
+          await showLoading(`Fetching ${cropName} Rates & AI Forecast...`);
+          let info = null;
+          if (window.agriqBackend) {
+            info = await window.agriqBackend.getMandiRates(cropName);
+          }
+          if (info) {
+            state.rateLookupResult = `${cropName.toUpperCase()}:\n` +
+              `MSP: ${info.rate}\n` +
+              `AI Forecast: ${info.forecast}\n` +
+              `Optimal Sell Day: ${info.bestDay}\n` +
+              `Analysis: ${info.reason}\n\n0. Back`;
+          } else {
+            state.rateLookupResult = `Current MSP for ${cropName}: ₹${MSP_RATES[cropName] || 2425}/Q\n\n0. Back`;
+          }
+          enterMenu('RATES_DETAIL');
+        } else {
+          flashScreenError();
+        }
+        break;
+
+      case 'RATES_DETAIL':
         goBackMenu();
         break;
 
@@ -919,36 +1006,60 @@
     }
   }
 
-  // --- Finalize Token Creation ---
-  function finalizeBookingToken(customToken = null) {
-    const prefix = state.tempData.centerId ? state.tempData.centerId.slice(0, 3).toUpperCase() : 'NSK';
-    const randNum = Math.floor(1000 + Math.random() * 9000);
-    const tokenNumber = customToken || `${prefix}-${randNum}`;
+  // --- Finalize Token Creation (Dynamic Database Backend) ---
+  async function finalizeBookingToken(customToken = null) {
+    const callerPhone = farmerPhoneInput.value.trim() || '9876543210';
+    state.tempData.phone = callerPhone;
+
+    let backendResult = null;
+    if (window.agriqBackend) {
+      backendResult = await window.agriqBackend.createBooking({
+        phone: callerPhone,
+        centerId: state.tempData.centerId,
+        slotId: state.tempData.slotId,
+        cropQuantityKg: state.tempData.quantityKg
+      });
+    }
+
+    const tokenNumber = customToken || (backendResult ? backendResult.token_number : `NSK-${Math.floor(1000 + Math.random() * 9000)}`);
+    const bookingId = backendResult ? backendResult.booking_id : ('bk_' + Math.random().toString(36).substr(2, 9));
 
     state.activeToken = tokenNumber;
+    state.tempData.bookingId = bookingId;
     state.tempData.stage = 'BOOKED';
 
     demoTokenDisplay.textContent = tokenNumber;
     demoCropDisplay.textContent = `${state.tempData.crop} (${state.tempData.quantityKg} kg)`;
+    mandiYardLocation.textContent = state.tempData.centerName || 'Nashik APMC Main Yard';
     updateLifecycleStepper('BOOKED');
     btnViewReceipt.disabled = false;
+
+    // Load initial values for officer weighbridge
+    inputGrossWeight.value = state.tempData.quantityKg + 200;
+    inputTareWeight.value = 200;
+    inputMoisture.value = '11.4';
+    validateMoisture();
+    updateCalculatedWeights();
+
+    dbtBankText.innerHTML = `Beneficiary A/C: <strong>State Bank of India (***${callerPhone.slice(-4)})</strong> • Aadhaar Authenticated`;
 
     // Add to Mandi Queue table
     state.queueList.unshift({
       token: tokenNumber,
-      phone: state.tempData.phone,
+      phone: callerPhone,
       crop: state.tempData.crop,
-      slot: state.tempData.slotTime.replace('Tomorrow ', ''),
+      slot: state.tempData.slotTime.replace('Tomorrow ', '').replace('Today ', ''),
       netWeight: state.tempData.quantityKg,
       status: 'BOOKED',
-      grade: 'GRADE-A'
+      grade: 'GRADE-A',
+      bookingId: bookingId
     });
     renderQueueTable();
 
     // Prepare Gate Pass details
     receiptTokenVal.textContent = tokenNumber;
-    receiptPhone.textContent = `+91-${state.tempData.phone}`;
-    receiptCenter.textContent = state.tempData.centerName;
+    receiptPhone.textContent = `+91-${callerPhone}`;
+    receiptCenter.textContent = state.tempData.centerName || 'Nashik APMC Main Yard';
     receiptCrop.textContent = `${state.tempData.crop} (Grade-A)`;
     receiptSlot.textContent = state.tempData.slotTime;
     const qtl = (state.tempData.quantityKg / 100).toFixed(2);
@@ -958,10 +1069,10 @@
     // Generate P3 Contract Payload
     const qrPayload = {
       type: 'AGRIQ_TOKEN',
-      booking_id: 'bk_' + Math.random().toString(36).substr(2, 9),
+      booking_id: bookingId,
       token_number: tokenNumber,
-      phone_number: state.tempData.phone,
-      center_id: state.tempData.centerId,
+      phone_number: callerPhone,
+      center_id: state.tempData.centerId || 'c1-nsk',
       slot_date: new Date().toISOString().split('T')[0]
     };
     generateSvgQrCode(qrPayload);
@@ -970,19 +1081,19 @@
     if (state.lang === 'hi') {
       sendFarmerSms(
         'टोकन पुष्टि',
-        `भारत सरकार / APMC: टोकन <strong>${tokenNumber}</strong> पक्का हुआ।\nफसल: ${state.tempData.crop} (${qtl} क्विंटल)\nकेंद्र: ${state.tempData.centerName}\nसमय: ${state.tempData.slotTime}\nगेट पास: agriq.gov.in/t/${tokenNumber}\nसमय से 15 मिनट पहले पहुंचें।`,
+        `भारत सरकार / APMC: टोकन <strong>${tokenNumber}</strong> पक्का हुआ।\nफसल: ${state.tempData.crop} (${qtl} क्विंटल)\nकेंद्र: ${state.tempData.centerName || 'नासिक एपीएमसी'}\nसमय: ${state.tempData.slotTime}\nगेट पास: agriq.gov.in/t/${tokenNumber}\nसमय से 15 मिनट पहले पहुंचें।`,
         'alert-confirm'
       );
     } else if (state.lang === 'mr') {
       sendFarmerSms(
         'टोकन खात्री',
-        `APMC बाजार: टोकन <strong>${tokenNumber}</strong> निश्चित झाले.\nपीक: ${state.tempData.crop} (${qtl} क्विंटल)\nबाजार: ${state.tempData.centerName}\nवेळ: ${state.tempData.slotTime}\nगेट पास: agriq.gov.in/t/${tokenNumber}`,
+        `APMC बाजार: टोकन <strong>${tokenNumber}</strong> निश्चित झाले.\nपीक: ${state.tempData.crop} (${qtl} क्विंटल)\nबाजार: ${state.tempData.centerName || 'नाशिक एपीएमसी'}\nवेळ: ${state.tempData.slotTime}\nगेट पास: agriq.gov.in/t/${tokenNumber}`,
         'alert-confirm'
       );
     } else {
       sendFarmerSms(
         'Token Confirmed',
-        `Govt of India / APMC: Token <strong>${tokenNumber}</strong> confirmed.\nCrop: ${state.tempData.crop} (${qtl} Q)\nCenter: ${state.tempData.centerName}\nSlot: ${state.tempData.slotTime}\nGate Pass: agriq.gov.in/t/${tokenNumber}\nArrive 15 mins prior.`,
+        `Govt of India / APMC: Token <strong>${tokenNumber}</strong> confirmed.\nCrop: ${state.tempData.crop} (${qtl} Q)\nCenter: ${state.tempData.centerName || 'Nashik APMC'}\nSlot: ${state.tempData.slotTime}\nGate Pass: agriq.gov.in/t/${tokenNumber}\nArrive 15 mins prior.`,
         'alert-confirm'
       );
     }
@@ -993,8 +1104,11 @@
   // --- Officer Checkpoint Transitions ---
 
   // Checkpoint 1: Gate Security Check-In
-  btnSimCheckin.addEventListener('click', () => {
+  btnSimCheckin.addEventListener('click', async () => {
     if (!state.activeToken) return;
+    if (window.agriqBackend) {
+      await window.agriqBackend.transitionStatus(state.tempData.bookingId, 'CHECKED_IN');
+    }
     updateLifecycleStepper('CHECKED_IN');
     updateQueueItemStatus(state.activeToken, 'CHECKED_IN');
 
@@ -1007,10 +1121,14 @@
   });
 
   // Checkpoint 2: Weighbridge Scale
-  btnSimWeigh.addEventListener('click', () => {
+  btnSimWeigh.addEventListener('click', async () => {
     if (!state.activeToken) return;
     const { net, quintals } = updateCalculatedWeights();
     state.tempData.quantityKg = net;
+
+    if (window.agriqBackend) {
+      await window.agriqBackend.transitionStatus(state.tempData.bookingId, 'WEIGHED');
+    }
     updateLifecycleStepper('WEIGHED');
     updateQueueItemStatus(state.activeToken, 'WEIGHED', net);
 
@@ -1022,11 +1140,15 @@
   });
 
   // Checkpoint 3: Quality Assayer
-  btnSimQuality.addEventListener('click', () => {
+  btnSimQuality.addEventListener('click', async () => {
     if (!state.activeToken) return;
     const grade = selectQualityGrade.value;
     const moisture = inputMoisture.value;
     state.tempData.grade = grade;
+
+    if (window.agriqBackend) {
+      await window.agriqBackend.transitionStatus(state.tempData.bookingId, 'QUALITY_CHECKED');
+    }
     updateLifecycleStepper('QUALITY_CHECKED');
     updateQueueItemStatus(state.activeToken, 'QUALITY_CHECKED', null, grade);
 
@@ -1038,24 +1160,33 @@
   });
 
   // Checkpoint 4: PFMS Direct Benefit Transfer
-  btnSimPayment.addEventListener('click', () => {
+  btnSimPayment.addEventListener('click', async () => {
     if (!state.activeToken) return;
     const { totalAmt, quintals } = updateCalculatedWeights();
+
+    if (window.agriqBackend) {
+      await window.agriqBackend.transitionStatus(state.tempData.bookingId, 'PAYMENT_PROCESSED');
+    }
     updateLifecycleStepper('PAYMENT_PROCESSED');
     updateQueueItemStatus(state.activeToken, 'PAYMENT_PROCESSED');
 
     const refId = 'PFMS' + Math.floor(10000000 + Math.random() * 90000000);
+    const phone = state.tempData.phone || '9876543210';
 
     sendFarmerSms(
       'PFMS DBT Credit Alert',
-      `PFMS Direct Benefit Transfer Alert:\n<strong>₹${parseFloat(totalAmt).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong> credited to Aadhaar-linked Bank A/C ending in <strong>4019</strong> for ${quintals} Q ${state.tempData.crop}.\nRef No: <strong>${refId}</strong> under PM-AASHA / MSP.`,
+      `PFMS Direct Benefit Transfer Alert:\n<strong>₹${parseFloat(totalAmt).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong> credited to Aadhaar-linked Bank A/C ending in <strong>${phone.slice(-4)}</strong> for ${quintals} Q ${state.tempData.crop}.\nRef No: <strong>${refId}</strong> under PM-AASHA / MSP.`,
       'alert-payment'
     );
   });
 
   // Checkpoint 5: Procurement Closeout & Exit Pass
-  btnSimComplete.addEventListener('click', () => {
+  btnSimComplete.addEventListener('click', async () => {
     if (!state.activeToken) return;
+
+    if (window.agriqBackend) {
+      await window.agriqBackend.transitionStatus(state.tempData.bookingId, 'COMPLETED');
+    }
     updateLifecycleStepper('COMPLETED');
     updateQueueItemStatus(state.activeToken, 'COMPLETED');
 
@@ -1115,6 +1246,7 @@
 
   function selectTokenForOperations(item) {
     state.activeToken = item.token;
+    state.tempData.bookingId = item.bookingId || ('bk_' + item.token);
     state.tempData.phone = item.phone;
     state.tempData.crop = item.crop;
     state.tempData.quantityKg = item.netWeight;
@@ -1126,12 +1258,16 @@
 
     inputGrossWeight.value = item.netWeight + 200;
     inputTareWeight.value = 200;
+    inputMoisture.value = '11.4';
     if (item.grade) selectQualityGrade.value = item.grade;
 
+    validateMoisture();
     updateCalculatedWeights();
     updateLifecycleStepper(item.status);
     renderQueueTable();
     btnViewReceipt.disabled = false;
+
+    dbtBankText.innerHTML = `Beneficiary A/C: <strong>State Bank of India (***${item.phone.slice(-4)})</strong> • Aadhaar Authenticated`;
 
     // Update Gate pass
     receiptTokenVal.textContent = item.token;
@@ -1143,7 +1279,7 @@
 
     const qrPayload = {
       type: 'AGRIQ_TOKEN',
-      booking_id: 'bk_' + item.token,
+      booking_id: state.tempData.bookingId,
       token_number: item.token,
       phone_number: item.phone,
       center_id: 'c1-nsk',
@@ -1237,43 +1373,15 @@
     }
   }
 
-  // --- Hidden Emergency Demo Shortcut (Ctrl + Shift + S) ---
-  // In case of a 30-second judge pitch emergency, this executes silently in background
-  async function runEmergencyDemoCycle() {
-    state.tempData.phone = farmerPhoneInput.value || '9876543210';
-    state.tempData.crop = 'Wheat';
-    state.tempData.quantityKg = 1450;
-    finalizeBookingToken('NSK-4821');
-    await new Promise(r => setTimeout(r, 1200));
-
-    btnSimCheckin.click();
-    await new Promise(r => setTimeout(r, 1200));
-
-    btnSimWeigh.click();
-    await new Promise(r => setTimeout(r, 1200));
-
-    btnSimQuality.click();
-    await new Promise(r => setTimeout(r, 1200));
-
-    btnSimPayment.click();
-    await new Promise(r => setTimeout(r, 1200));
-
-    btnSimComplete.click();
-    await new Promise(r => setTimeout(r, 800));
-
-    receiptModal.classList.remove('hidden');
-  }
-
-  // --- Physical Keyboard Binding with Tactile Visual Feedback ---
+  // --- Physical Keyboard Binding ---
   window.addEventListener('keydown', (e) => {
-    // Hidden shortcut: Ctrl + Shift + S
+    // Hidden shortcut for 30s emergency jury demo: Ctrl + Shift + S
     if (e.ctrlKey && e.shiftKey && (e.key === 'S' || e.key === 's')) {
       e.preventDefault();
       runEmergencyDemoCycle();
       return;
     }
 
-    // Avoid triggering when user is typing into text inputs
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
 
     const key = e.key;
@@ -1303,6 +1411,30 @@
       exitToDialer();
     }
   });
+
+  async function runEmergencyDemoCycle() {
+    state.tempData.crop = 'Wheat';
+    state.tempData.quantityKg = 1450;
+    await finalizeBookingToken();
+    await new Promise(r => setTimeout(r, 1200));
+
+    btnSimCheckin.click();
+    await new Promise(r => setTimeout(r, 1200));
+
+    btnSimWeigh.click();
+    await new Promise(r => setTimeout(r, 1200));
+
+    btnSimQuality.click();
+    await new Promise(r => setTimeout(r, 1200));
+
+    btnSimPayment.click();
+    await new Promise(r => setTimeout(r, 1200));
+
+    btnSimComplete.click();
+    await new Promise(r => setTimeout(r, 800));
+
+    receiptModal.classList.remove('hidden');
+  }
 
   // --- Farmer Mobile Update ---
   updatePhoneBtn.addEventListener('click', () => {
@@ -1348,10 +1480,20 @@
     state.activeToken = null;
     state.tempData.stage = 'IDLE';
     demoTokenDisplay.textContent = 'None Selected';
-    demoCropDisplay.textContent = 'Wheat (Grade-A)';
+    demoCropDisplay.textContent = '--';
     demoStatusDisplay.textContent = 'IDLE';
     demoStatusDisplay.className = 'status-pill status-idle';
     btnViewReceipt.disabled = true;
+
+    inputGrossWeight.value = '';
+    inputTareWeight.value = '';
+    inputMoisture.value = '';
+    calcNetWeight.textContent = '-- kg (-- Q)';
+    dbtRateVal.textContent = '-- / Quintal';
+    dbtAmountVal.textContent = '--';
+    moistureStatus.textContent = 'Enter moisture % to test compliance';
+    moistureStatus.className = 'status-neutral';
+    dbtBankText.textContent = 'Select a token to verify Aadhaar linked account';
 
     // Reset Stepper
     Object.values(stepNodes).forEach(node => {
@@ -1402,22 +1544,12 @@
   });
 
   // --- Initialization ---
-  function init() {
-    updateCalculatedWeights();
-    validateMoisture();
+  async function init() {
+    if (window.agriqBackend) {
+      state.dynamicCenters = await window.agriqBackend.getMandiCenters();
+    }
     renderQueueTable();
-
-    // Set initial QR code
-    generateSvgQrCode({
-      type: 'AGRIQ_TOKEN',
-      booking_id: 'NSK-DEMO',
-      token_number: 'NSK-4821',
-      phone_number: '9876543210',
-      center_id: 'c1-nsk',
-      slot_date: new Date().toISOString().split('T')[0]
-    });
-
-    console.log('[AgriQ] USSD Gateway & Mandi Operations Engine v6.1 initialized.');
+    console.log('[AgriQ] USSD Gateway & Mandi Operations Engine v6.2 (Dynamic) initialized.');
   }
 
   init();
