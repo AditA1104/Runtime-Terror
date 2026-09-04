@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AgriQ — National Mandi Procurement Gateway (DoCA / APMC)</title>
+  <title>AgriQ — Karnataka State APMC Mandi Procurement Gateway (KSAMB / DoCA)</title>
   <link rel="stylesheet" href="style.css" />
   <!-- Google Fonts for retro screen & modern UI -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,8 +18,8 @@
     <header class="main-header">
       <div class="header-branding">
         <div class="emblem-group">
-          <span class="gov-title">MINISTRY OF CONSUMER AFFAIRS, FOOD & PUBLIC DISTRIBUTION • GOVT OF INDIA</span>
-          <h1>🌾 AgriQ <span class="sub">| Digital Mandi Procurement & USSD Gateway (*99# NUUP)</span></h1>
+          <span class="gov-title">GOVERNMENT OF KARNATAKA • DEPT OF AGRICULTURAL MARKETING • KSAMB & APMC</span>
+          <h1>🌾 AgriQ <span class="sub">| Karnataka Mandi Procurement & USSD Gateway (*99# NUUP)</span></h1>
         </div>
       </div>
       <div class="header-controls">
@@ -27,7 +27,7 @@
         <button id="signaling-toggle-btn" class="btn-sm btn-trace" title="View Real-Time GSM SS7/MAP Signaling Trace">📡 SS7 Trace</button>
         <div class="status-bar-top">
           <span class="pulse-indicator" id="pulse-dot"></span>
-          <span id="connection-status">BSNL/MTNL 2G Signaling (Active)</span>
+          <span id="connection-status">BSNL / Airtel Karnataka 2G (Active)</span>
           <button id="toggle-config-btn" class="btn-sm">⚙️ Database</button>
         </div>
       </div>
@@ -54,7 +54,7 @@
     <div class="action-toolbar">
       <div class="toolbar-left">
         <span class="toolbar-label">Mandi Operations:</span>
-        <button class="tool-btn" id="btn-quick-rates" title="View Current MSP Rates & AI Forecast">📈 APMC MSP Rates & AI Forecast</button>
+        <button class="tool-btn" id="btn-quick-rates" title="View Current MSP Rates & AI Forecast">📈 Karnataka APMC MSP Rates & AI Forecast</button>
         <button class="tool-btn btn-receipt" id="btn-view-receipt" disabled title="View Official Mandi Gate Pass">📄 Official Gate Pass</button>
         <button class="tool-btn" id="btn-view-signaling" title="Open Telecom Protocol Monitor">📡 Telecom Signaling Monitor</button>
       </div>
@@ -89,7 +89,7 @@
           <!-- Screen Area -->
           <div class="phone-screen-bezel">
             <div class="screen-header">
-              <span class="network-carrier" id="carrier-indicator">📶 BSNL 2G</span>
+              <span class="network-carrier" id="carrier-indicator">📶 BSNL Karnataka</span>
               <span id="screen-clock" class="clock">10:45</span>
               <span class="screen-timer" id="session-timer-badge">⏱ 60s</span>
             </div>
@@ -170,7 +170,7 @@
           <div class="sms-header">
             <div class="sender-group">
               <span class="sms-dot"></span>
-              <span class="sender-id">VK-AGRIQ (DoCA Mandi Alerts)</span>
+              <span class="sender-id">KA-AGRIQ (KSAMB Mandi Alerts)</span>
               <span class="dlt-badge" title="Telecom Regulatory Authority of India DLT Registered">✔ DLT Verified</span>
             </div>
             <button id="clear-sms-btn" class="btn-text" title="Clear All SMS">Clear</button>
@@ -179,7 +179,7 @@
             <div class="empty-state" id="sms-empty-state">
               <span class="empty-icon">📭</span>
               <p>Inbox is currently empty.</p>
-              <small>Dial <b>*99#</b> on the phone to book a mandi procurement slot and receive official SMS alerts.</small>
+              <small>Dial <b>*99#</b> on the phone to book a Karnataka APMC slot (Bengaluru, Hubballi, Mysuru, Kalaburagi) and receive official SMS alerts.</small>
             </div>
           </div>
         </div>
@@ -191,7 +191,7 @@
             <span class="phone-status-tag">Aadhaar Linked (PM-KISAN)</span>
           </div>
           <div class="phone-input-group">
-            <input type="text" id="farmer-phone-input" value="9876543210" maxlength="10" placeholder="10-digit mobile number" />
+            <input type="text" id="farmer-phone-input" value="9845012345" maxlength="10" placeholder="10-digit mobile number" />
             <button id="update-phone-btn" class="btn-sm">Update Number</button>
           </div>
         </div>
@@ -205,7 +205,7 @@
           <div class="kpi-card">
             <span class="kpi-lbl">Queue Today</span>
             <strong id="kpi-queue-count" class="kpi-val">3 Tokens</strong>
-            <span class="kpi-sub">Nashik APMC Bay</span>
+            <span class="kpi-sub">Bengaluru APMC Bay</span>
           </div>
           <div class="kpi-card">
             <span class="kpi-lbl">Certified Produce</span>
@@ -231,7 +231,7 @@
               <h3>🏢 Mandi Operations (P3 Officer Integration Desk)</h3>
               <span class="tag verified-tag">Schema v2 Event Sync</span>
             </div>
-            <span class="mandi-location-badge" id="mandi-yard-location">Nashik APMC Main Yard</span>
+            <span class="mandi-location-badge" id="mandi-yard-location">Bengaluru APMC (Yeshwanthpur)</span>
           </div>
           
           <!-- Lifecycle Progress Stepper Bar -->
@@ -294,9 +294,9 @@
               </div>
               <div class="cp-inputs">
                 <select id="input-gate-no">
-                  <option value="Gate #1 (North Intake Yard)">Gate #1 (North Intake Yard)</option>
-                  <option value="Gate #2 (East Bulk Weighbridge)">Gate #2 (East Bulk Weighbridge)</option>
-                  <option value="Gate #3 (Heavy Tractor Bay)">Gate #3 (Heavy Tractor Bay)</option>
+                  <option value="Gate #1 (Yeshwanthpur North Intake)">Gate #1 (Yeshwanthpur North Intake)</option>
+                  <option value="Gate #2 (Outer Ring Road Heavy Bay)">Gate #2 (Outer Ring Road Heavy Bay)</option>
+                  <option value="Gate #3 (APMC Electronic Weighbridge Bay)">Gate #3 (APMC Electronic Weighbridge Bay)</option>
                 </select>
                 <button class="btn-step-action" id="btn-sim-checkin" disabled>Confirm Gate Entry</button>
               </div>
@@ -430,9 +430,9 @@
     <div id="receipt-modal" class="modal-backdrop hidden">
       <div class="modal-card print-target">
         <div class="receipt-header">
-          <div class="gov-badge">GOVERNMENT OF INDIA • DEPARTMENT OF CONSUMER AFFAIRS • APMC</div>
-          <h2>OFFICIAL MANDI PROCUREMENT GATE PASS</h2>
-          <span class="receipt-sub">Issued under National Food Security & Mandi Queue Protocol (PM-AASHA)</span>
+          <div class="gov-badge">GOVERNMENT OF KARNATAKA • DEPT OF AGRICULTURAL MARKETING • KSAMB / APMC</div>
+          <h2>KARNATAKA APMC MANDI PROCUREMENT GATE PASS</h2>
+          <span class="receipt-sub">Issued under Karnataka State Agricultural Marketing Board (KSAMB) & PM-AASHA</span>
         </div>
         <div class="receipt-body">
           <div class="token-hero">
@@ -479,7 +479,7 @@
             </div>
             <div class="qr-metadata">
               <div class="stamp-box">
-                <span class="stamp-circle">APMC APPROVED<br>NASHIK DIV</span>
+                <span class="stamp-circle">APMC APPROVED<br>BENGALURU DIV (KSAMB)</span>
               </div>
               <p class="qr-note">Present this Digital Token Pass or SMS at Gate Security Counter #1. Fully valid without internet on feature phone.</p>
               <code id="receipt-payload-preview">--</code>
@@ -518,46 +518,46 @@
             </thead>
             <tbody>
               <tr>
-                <td><strong>🌾 Wheat (गेहूं)</strong></td>
-                <td>₹2,425 / Q</td>
-                <td>₹2,440 / Q</td>
-                <td><span class="trend-up">▲ +2.4%</span> (Bullish)</td>
-                <td><span class="badge-hold">Hold / Procure at Mandi</span></td>
+                <td><strong>🌾 Ragi (ರಾಗಿ / Finger Millet)</strong></td>
+                <td>₹4,290 / Q</td>
+                <td>₹4,350 / Q</td>
+                <td><span class="trend-up">▲ +3.8%</span> (Bullish)</td>
+                <td><span class="badge-hold">Hold / Procure at Bengaluru/Mysuru APMC</span></td>
               </tr>
               <tr>
-                <td><strong>🧅 Onion (प्याज)</strong></td>
+                <td><strong>🥣 Tur / Red Gram (ತೊಗರಿ / ತೊಗರಿ ಬೇಳೆ)</strong></td>
+                <td>₹7,550 / Q</td>
+                <td>₹7,700 / Q</td>
+                <td><span class="trend-up">▲ +4.5%</span> (GI Dal Spike)</td>
+                <td><span class="badge-hold">Kalaburagi APMC High Demand</span></td>
+              </tr>
+              <tr>
+                <td><strong>🌾 Paddy / Rice (ಭತ್ತ)</strong></td>
+                <td>₹2,300 / Q</td>
+                <td>₹2,320 / Q</td>
+                <td><span class="trend-stable">▶ +0.5%</span> (Stable)</td>
+                <td><span class="badge-hold">Gangavathi / Raichur Intake Slot</span></td>
+              </tr>
+              <tr>
+                <td><strong>🧅 Onion (ಈರುಳ್ಳಿ)</strong></td>
                 <td>₹1,850 / Q</td>
                 <td>₹1,780 / Q</td>
-                <td><span class="trend-down">▼ -4.1%</span> (Oversupply)</td>
-                <td><span class="badge-sell">Sell Now / Avoid Storage Loss</span></td>
+                <td><span class="trend-down">▼ -3.2%</span> (Arrival Spike)</td>
+                <td><span class="badge-sell">Sell Now / Hubballi APMC Slot</span></td>
               </tr>
               <tr>
-                <td><strong>🌾 Paddy (धान)</strong></td>
-                <td>₹2,300 / Q</td>
-                <td>₹2,310 / Q</td>
-                <td><span class="trend-stable">▶ +0.3%</span> (Stable)</td>
-                <td><span class="badge-hold">Optimal Queue Slot</span></td>
-              </tr>
-              <tr>
-                <td><strong>🌱 Cotton (कपास)</strong></td>
+                <td><strong>🌱 Cotton (ಹತ್ತಿ)</strong></td>
                 <td>₹7,120 / Q</td>
-                <td>₹7,250 / Q</td>
-                <td><span class="trend-up">▲ +5.2%</span> (Export Spike)</td>
-                <td><span class="badge-hold">High Demand Center</span></td>
+                <td>₹7,280 / Q</td>
+                <td><span class="trend-up">▲ +5.1%</span> (Mill Demand)</td>
+                <td><span class="badge-hold">Raichur & Haveri APMC Demand</span></td>
               </tr>
               <tr>
-                <td><strong>🟡 Mustard (सरसों)</strong></td>
-                <td>₹5,650 / Q</td>
-                <td>₹5,680 / Q</td>
-                <td><span class="trend-stable">▶ +0.8%</span> (Steady)</td>
-                <td><span class="badge-hold">Normal Intake</span></td>
-              </tr>
-              <tr>
-                <td><strong>🌱 Soybean (सोयाबीन)</strong></td>
-                <td>₹4,892 / Q</td>
-                <td>₹4,790 / Q</td>
-                <td><span class="trend-down">▼ -2.2%</span> (Correction)</td>
-                <td><span class="badge-sell">Early Slot Recommended</span></td>
+                <td><strong>🌽 Maize (ಮೆಕ್ಕೆಜೋಳ)</strong></td>
+                <td>₹2,225 / Q</td>
+                <td>₹2,240 / Q</td>
+                <td><span class="trend-stable">▶ +1.0%</span> (Steady)</td>
+                <td><span class="badge-hold">Davanagere APMC Intake</span></td>
               </tr>
             </tbody>
           </table>
@@ -572,7 +572,7 @@
     <div id="signaling-modal" class="modal-backdrop hidden">
       <div class="modal-card terminal-modal">
         <div class="receipt-header terminal-header">
-          <div class="gov-badge">DEPARTMENT OF TELECOMMUNICATIONS (DoT) • GSM 03.90 SPEC</div>
+          <div class="gov-badge">DEPARTMENT OF TELECOMMUNICATIONS (DoT) • KARNATAKA CIRCLE (LSA-10)</div>
           <h2>SS7 / MAP TELECOM PROTOCOL PACKET TRACE</h2>
           <span class="receipt-sub">Real-Time Unstructured Supplementary Service Data (USSD) Signaling Log</span>
         </div>
@@ -589,7 +589,7 @@
     <!-- Official Government Footer -->
     <footer class="main-footer">
       <span>AgriQ © 2026 — Team Runtime-Terror • SIH 2026 PS 26032</span>
-      <span>Compliant with National Unified USSD Platform (*99# NUUP) • PostgreSQL / PostgREST Architecture</span>
+      <span>Karnataka State Agricultural Marketing Board (KSAMB) • Compliant with National Unified USSD (*99# NUUP)</span>
     </footer>
   </div>
 

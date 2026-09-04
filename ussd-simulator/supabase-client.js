@@ -59,9 +59,10 @@ class AgriQBackend {
       if (!error && data && data.length) return data;
     }
     return [
-      { center_id: 'c1-nsk', center_name: 'Nashik APMC Main', crop_type: 'Onion', location: 'Nashik' },
-      { center_id: 'c2-pun', center_name: 'Pune Central Mandi', crop_type: 'Wheat', location: 'Pune' },
-      { center_id: 'c3-nag', center_name: 'Nagpur Cotton Yard', crop_type: 'Cotton', location: 'Nagpur' }
+      { center_id: 'c1-blr', center_name: 'Bengaluru APMC (Yeshwanthpur Main Yard)', crop_type: 'Ragi', location: 'Bengaluru' },
+      { center_id: 'c2-hub', center_name: 'Hubballi APMC (Amaragol Market Yard)', crop_type: 'Onion', location: 'Hubballi' },
+      { center_id: 'c3-mys', center_name: 'Mysuru APMC (Bandipalya Yard)', crop_type: 'Paddy', location: 'Mysuru' },
+      { center_id: 'c4-klb', center_name: 'Kalaburagi APMC (Nehru Gunj Yard)', crop_type: 'Tur', location: 'Kalaburagi' }
     ];
   }
 
@@ -73,7 +74,7 @@ class AgriQBackend {
         .eq('center_id', centerId);
       if (!error && data && data.length) return data;
     }
-    const key = centerId || 'c1-nsk';
+    const key = centerId || 'c1-blr';
     if (!this.mockSlots[key]) {
       const today = new Date().toISOString().split('T')[0];
       const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
@@ -87,7 +88,7 @@ class AgriQBackend {
   }
 
   async createBooking({ phone, centerId, slotId, cropQuantityKg }) {
-    const tokenPrefix = centerId ? centerId.replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase() || 'NSK' : 'NSK';
+    const tokenPrefix = centerId ? centerId.replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase() || 'BLR' : 'BLR';
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const tokenNumber = `${tokenPrefix}-${randomNum}`;
 
@@ -115,7 +116,7 @@ class AgriQBackend {
       booking_id: 'bk_' + Math.random().toString(36).substr(2, 9),
       token_number: tokenNumber,
       phone_number: phone,
-      center_id: centerId || 'c1-nsk',
+      center_id: centerId || 'c1-blr',
       slot_id: slotId || 's2',
       crop_quantity_kg: cropQuantityKg || 1400,
       status: 'BOOKED',
@@ -126,7 +127,7 @@ class AgriQBackend {
     };
 
     // Decrement slot remaining count dynamically
-    const cKey = centerId || 'c1-nsk';
+    const cKey = centerId || 'c1-blr';
     if (this.mockSlots && this.mockSlots[cKey]) {
       const target = this.mockSlots[cKey].find(s => s.slot_id === slotId);
       if (target && target.remaining > 0) {
@@ -184,14 +185,17 @@ class AgriQBackend {
     }
 
     const rates = {
-      wheat: { rate: '₹2,425/Q (MSP)', forecast: 'Rising (+3%)', bestDay: 'Thursday', reason: 'High demand, low expected crowd' },
-      onion: { rate: '₹1,850/Q', forecast: 'Stable', bestDay: 'Wednesday', reason: 'Favorable dispatch score' },
-      paddy: { rate: '₹2,300/Q (MSP)', forecast: 'High Demand', bestDay: 'Friday', reason: 'Optimal intake' },
-      cotton: { rate: '₹7,120/Q', forecast: 'Rising (+5%)', bestDay: 'Tomorrow', reason: 'Top mill buyers active' }
+      ragi: { rate: '₹4,290/Q (Karnataka MSP)', forecast: 'Rising (+3.8%)', bestDay: 'Thursday', reason: 'High demand in Bengaluru/Mysuru Mandis' },
+      tur: { rate: '₹7,550/Q (GI Tagged MSP)', forecast: 'Rising (+4.5%)', bestDay: 'Wednesday', reason: 'Kalaburagi GI Tur Dal mill processing spike' },
+      paddy: { rate: '₹2,300/Q (MSP)', forecast: 'Stable (+0.5%)', bestDay: 'Friday', reason: 'Gangavathi/Sindhanur steady intake' },
+      onion: { rate: '₹1,850/Q', forecast: 'Correction (-3.2%)', bestDay: 'Tomorrow', reason: 'Hubballi/Gadag high arrival volume' },
+      cotton: { rate: '₹7,120/Q', forecast: 'Rising (+5.1%)', bestDay: 'Monday', reason: 'Raichur & Haveri textile mill demand' },
+      maize: { rate: '₹2,225/Q', forecast: 'Steady (+1.0%)', bestDay: 'Tuesday', reason: 'Davanagere poultry feed demand' },
+      wheat: { rate: '₹2,425/Q (MSP)', forecast: 'Rising (+2.4%)', bestDay: 'Thursday', reason: 'North Karnataka steady intake' }
     };
 
-    const key = (cropName || 'wheat').toLowerCase();
-    return rates[key] || rates.wheat;
+    const key = (cropName || 'ragi').toLowerCase();
+    return rates[key] || rates.ragi;
   }
 
   async transitionStatus(bookingId, newStatus, changedBy = 'officer_desk') {

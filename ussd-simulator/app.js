@@ -263,12 +263,13 @@
 
   // --- Real Government MSP Rates (per Quintal / 100 kg) ---
   const MSP_RATES = {
-    'Wheat': 2425,
+    'Ragi': 4290,
+    'Tur': 7550,
     'Paddy': 2300,
     'Onion': 1850,
     'Cotton': 7120,
-    'Mustard': 5650,
-    'Soybean': 4892
+    'Maize': 2225,
+    'Wheat': 2425
   };
 
   const GRADE_MULTIPLIERS = {
@@ -289,8 +290,8 @@
     timerInterval: null,
     sessionId: 'sess_' + Math.random().toString(36).substr(2, 8),
     tempData: {
-      phone: '9876543210',
-      crop: 'Wheat',
+      phone: '9845012345',
+      crop: 'Ragi',
       centerId: null,
       centerName: '',
       slotId: null,
@@ -301,9 +302,10 @@
       grade: 'GRADE-A'
     },
     dynamicCenters: [
-      { center_id: 'c1-nsk', center_name: 'Nashik APMC Main Yard' },
-      { center_id: 'c2-nsk', center_name: 'Lasalgaon Onion Sub-Yard' },
-      { center_id: 'c3-nsk', center_name: 'Pimpalgaon APMC Yard' }
+      { center_id: 'c1-blr', center_name: 'Bengaluru APMC (Yeshwanthpur Main Yard)' },
+      { center_id: 'c2-hub', center_name: 'Hubballi APMC (Amaragol Market Yard)' },
+      { center_id: 'c3-mys', center_name: 'Mysuru APMC (Bandipalya Yard)' },
+      { center_id: 'c4-klb', center_name: 'Kalaburagi APMC (Nehru Gunj Yard)' }
     ],
     dynamicSlots: [
       { slot_id: 's1', slot_date: new Date().toISOString().split('T')[0], slot_start_time: '08:00 AM', slot_end_time: '10:00 AM', remaining: 12 },
@@ -314,9 +316,9 @@
     activeBooking: null,
     smsCount: 0,
     queueList: [
-      { token: 'NSK-0198', phone: '9822019283', crop: 'Wheat', slot: '08:00 AM', netWeight: 1850, status: 'WEIGHED', grade: 'GRADE-A', bookingId: 'bk_0198' },
-      { token: 'NSK-0215', phone: '9765432190', crop: 'Onion', slot: '08:30 AM', netWeight: 2200, status: 'CHECKED_IN', grade: 'GRADE-B', bookingId: 'bk_0215' },
-      { token: 'NSK-0220', phone: '9921873461', crop: 'Wheat', slot: '09:00 AM', netWeight: 1400, status: 'BOOKED', grade: null, bookingId: 'bk_0220' }
+      { token: 'BLR-0198', phone: '9845019283', crop: 'Ragi', slot: '08:00 AM', netWeight: 1850, status: 'WEIGHED', grade: 'GRADE-A', bookingId: 'bk_0198' },
+      { token: 'HUB-0215', phone: '9740432190', crop: 'Onion', slot: '08:30 AM', netWeight: 2200, status: 'CHECKED_IN', grade: 'GRADE-B', bookingId: 'bk_0215' },
+      { token: 'KLB-0220', phone: '9980873461', crop: 'Tur', slot: '09:00 AM', netWeight: 1400, status: 'BOOKED', grade: null, bookingId: 'bk_0220' }
     ]
   };
 
@@ -340,7 +342,7 @@
 
   function initSignalingTraces() {
     signalingLog.innerHTML = '';
-    logSignaling('GSM 04.08', 'MS ➔ BTS', 'Radio Resource Established (ARFCN: 68, RSSI: -68 dBm, Carrier: BSNL 2G)');
+    logSignaling('GSM 04.08', 'MS ➔ BTS', 'Radio Resource Established (ARFCN: 68, RSSI: -65 dBm, Carrier: BSNL Karnataka 2G, Circle: KA-LSA-10)');
     logSignaling('GSM MAP', 'VLR ➔ HLR', 'MAP_SEND_AUTHENTICATION_INFO (IMSI: 404-66-8912049102)');
     logSignaling('GSM MAP', 'HLR ➔ MSC', 'MAP_FORWARD_CHECK_SS_INDICATION (NUUP Service *99# Enabled)', true);
     logSignaling('HTTP/2', 'GW ➔ Supabase', 'PostgREST Schema v2 Engine Synced (Health 200 OK)', true);
@@ -371,11 +373,11 @@
   // --- Multilingual Dictionaries ---
   const I18N = {
     en: {
-      rootTitle: 'AgriQ Mandi Seva (*99#)',
+      rootTitle: 'AgriQ Karnataka Mandi (*99#)',
       rootBody: '1. Book Mandi Slot\n2. Check Token Status\n3. Mandi Rates & Forecast\n4. Change Language / ಭಾಷೆ',
-      selectCropTitle: 'Select Commodity:',
-      selectCrop: '1. Wheat (गेहूं)\n2. Onion (प्याज)\n3. Paddy (धान)\n4. Cotton (कपास)\n0. Back',
-      selectCenterTitle: 'Select Mandi Center:',
+      selectCropTitle: 'Select Commodity / ಬೆಳೆ:',
+      selectCrop: '1. Ragi (ರಾಗಿ / Finger Millet)\n2. Tur / Red Gram (ತೊಗರಿ)\n3. Paddy (ಭತ್ತ / Rice)\n4. Onion (ಈರುಳ್ಳಿ)\n0. Back',
+      selectCenterTitle: 'Select Karnataka APMC Yard:',
       selectSlotTitle: 'Available Slots:',
       enterQtyTitle: 'Approx Quantity (kg):',
       enterQty: 'Enter declared weight in kg\n(e.g. type 1450 for 14.5 Q)\n\n0. Back',
@@ -383,11 +385,11 @@
       confirmPrompt: '1. Confirm Booking\n2. Cancel',
       successTitle: '✅ Token Confirmed!',
       statusPromptTitle: 'Check Token Status:',
-      statusPromptBody: 'Enter Token # or Mobile:\n(e.g. NSK-0198 or 9822019283)\n\n0. Back',
+      statusPromptBody: 'Enter Token # or Mobile:\n(e.g. BLR-0198 or 9845012345)\n\n0. Back',
       ratesMenuTitle: 'Select Crop for Forecast:',
-      ratesMenu: '1. Wheat (गेहूं)\n2. Onion (प्याज)\n3. Paddy (धान)\n4. Cotton (कपास)\n0. Back',
-      langTitle: 'Select Language / भाषा:',
-      langBody: '1. English\n2. हिंदी (Hindi)\n3. मराठी (Marathi)\n4. ಕನ್ನಡ (Kannada)\n0. Back',
+      ratesMenu: '1. Ragi (ರಾಗಿ)\n2. Tur / Red Gram (ತೊಗರಿ)\n3. Paddy (ಭತ್ತ)\n4. Onion (ಈರುಳ್ಳಿ)\n0. Back',
+      langTitle: 'Select Language / ಭಾಷೆ:',
+      langBody: '1. English\n2. ಕನ್ನಡ (Kannada)\n3. हिंदी (Hindi)\n4. मराठी (Marathi)\n0. Back',
       labelToday: 'Today',
       labelTomorrow: 'Tomorrow',
       labelLeft: 'left',
@@ -398,12 +400,40 @@
       labelSmsSent: 'SMS sent to',
       labelMainMenu: 'Main Menu'
     },
+    kn: {
+      rootTitle: 'ಅಗ್ರಿ-ಕ್ಯೂ ಕರ್ನಾಟಕ ಮಂಡಿ ಸೇವೆ (*99#)',
+      rootBody: '1. ಮಂಡಿ ಸ್ಲಾಟ್ ಬುಕ್ ಮಾಡಿ\n2. ಟೋಕನ್ ಸ್ಥಿತಿ ಪರಿಶೀಲಿಸಿ\n3. ಮಂಡಿ ದರಗಳು ಮತ್ತು ಮುನ್ಸೂಚನೆ\n4. ಭಾಷೆ ಬದಲಾಯಿಸಿ (Language)',
+      selectCropTitle: 'ಬೆಳೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ:',
+      selectCrop: '1. ರಾಗಿ (Ragi / Finger Millet)\n2. ತೊಗರಿ (Tur / Red Gram)\n3. ಭತ್ತ (Paddy / Rice)\n4. ಈರುಳ್ಳಿ (Onion)\n0. ಹಿಂದೆ',
+      selectCenterTitle: 'ಕರ್ನಾಟಕ ಎಪಿಎಂಸಿ ಮಾರುಕಟ್ಟೆ ಆರಿಸಿ:',
+      selectSlotTitle: 'ಲಭ್ಯವಿರುವ ಸಮಯ:',
+      enterQtyTitle: 'ಅಂದಾಜು ಪ್ರಮಾಣ (ಕಿಲೋಗ್ರಾಂ):',
+      enterQty: 'ತೂಕ ನಮೂದಿಸಿ (ಉದಾ. 1450)\n\n0. ಹಿಂದೆ',
+      confirmTitle: 'ಸ್ಲಾಟ್ ದೃಢೀಕರಣ:',
+      confirmPrompt: '1. ಬುಕಿಂಗ್ ದೃಢೀಕರಿಸಿ\n2. ರದ್ದುಮಾಡಿ',
+      successTitle: '✅ ಟೋಕನ್ ಬುಕ್ ಆಗಿದೆ!',
+      statusPromptTitle: 'ಟೋಕನ್ ಸ್ಥಿತಿ ಪರಿಶೀಲಿಸಿ:',
+      statusPromptBody: 'ಟೋಕನ್ ಸಂಖ್ಯೆ ಅಥವಾ ಮೊಬೈಲ್ ನಮೂದಿಸಿ:\n(ಉದಾ. BLR-0198)\n\n0. ಹಿಂದೆ',
+      ratesMenuTitle: 'ದರ ಪರಿಶೀಲನೆಗಾಗಿ ಬೆಳೆ ಆಯ್ಕೆಮಾಡಿ:',
+      ratesMenu: '1. ರಾಗಿ (Ragi)\n2. ತೊಗರಿ (Tur / Red Gram)\n3. ಭತ್ತ (Paddy)\n4. ಈರುಳ್ಳಿ (Onion)\n0. ಹಿಂದೆ',
+      langTitle: 'ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ / Select Language:',
+      langBody: '1. English\n2. ಕನ್ನಡ (Kannada)\n3. हिंदी (Hindi)\n4. मराठी (Marathi)\n0. ಹಿಂದೆ',
+      labelToday: 'ಇಂದು (Today)',
+      labelTomorrow: 'ನಾಳೆ (Tomorrow)',
+      labelLeft: 'ಉಳಿದಿದೆ',
+      labelBack: 'ಹಿಂದೆ',
+      labelMandi: 'ಮಂಡಿ',
+      labelSlot: 'ಸಮಯ',
+      labelToken: 'ಟೋಕನ್',
+      labelSmsSent: 'ಗೆ SMS ಕಳುಹಿಸಲಾಗಿದೆ',
+      labelMainMenu: 'ಮುಖ್ಯ ಮೆನು'
+    },
     hi: {
-      rootTitle: 'एग्री-क्यू मंडी सेवा (*99#)',
+      rootTitle: 'एग्री-क्यू कर्नाटक मंडी सेवा (*99#)',
       rootBody: '1. स्लॉट/टोकन बुक करें\n2. टोकन स्थिति जांचें\n3. सरकारी MSP भाव व सलाह\n4. भाषा बदलें (Language)',
       selectCropTitle: 'फसल चुनें:',
-      selectCrop: '1. गेहूं (Wheat)\n2. प्याज (Onion)\n3. धान (Paddy)\n4. कपास (Cotton)\n0. वापस',
-      selectCenterTitle: 'मंडी केंद्र चुनें:',
+      selectCrop: '1. रागी / मड़ुआ (Ragi)\n2. तुअर / अरहर (Tur)\n3. धान (Paddy)\n4. प्याज (Onion)\n0. वापस',
+      selectCenterTitle: 'कर्नाटक मंडी केंद्र चुनें:',
       selectSlotTitle: 'उपलब्ध समय:',
       enterQtyTitle: 'अनुमानित वजन (किलो):',
       enterQty: 'वजन दर्ज करें (उदा. 1450)\n\n0. वापस',
@@ -411,11 +441,11 @@
       confirmPrompt: '1. स्लॉट पक्का करें\n2. रद्द करें',
       successTitle: '✅ टोकन बुक हो गया!',
       statusPromptTitle: 'टोकन स्थिति जांचें:',
-      statusPromptBody: 'टोकन नंबर या मोबाइल दर्ज करें:\n(उदा. NSK-0198)\n\n0. वापस',
+      statusPromptBody: 'टोकन नंबर या मोबाइल दर्ज करें:\n(उदा. BLR-0198)\n\n0. वापस',
       ratesMenuTitle: 'भाव व सलाह हेतु फसल चुनें:',
-      ratesMenu: '1. गेहूं (Wheat)\n2. प्याज (Onion)\n3. धान (Paddy)\n4. कपास (Cotton)\n0. वापस',
+      ratesMenu: '1. रागी (Ragi)\n2. तुअर (Tur)\n3. धान (Paddy)\n4. प्याज (Onion)\n0. वापस',
       langTitle: 'भाषा चुनें / Select Language:',
-      langBody: '1. English\n2. हिंदी (Hindi)\n3. मराठी (Marathi)\n4. ಕನ್ನಡ (Kannada)\n0. वापस',
+      langBody: '1. English\n2. ಕನ್ನಡ (Kannada)\n3. हिंदी (Hindi)\n4. मराठी (Marathi)\n0. वापस',
       labelToday: 'आज (Today)',
       labelTomorrow: 'कल (Tomorrow)',
       labelLeft: 'शेष',
@@ -427,11 +457,11 @@
       labelMainMenu: 'मुख्य मेनू'
     },
     mr: {
-      rootTitle: 'अ‍ॅग्री-क्यू कृषी बाजार (*99#)',
+      rootTitle: 'अ‍ॅग्री-क्यू कर्नाटक कृषी बाजार (*99#)',
       rootBody: '1. स्लॉट बुक करा\n2. टोकन स्थिती तपासा\n3. हमीभाव (MSP) व अंदाज\n4. भाषा बदला',
       selectCropTitle: 'पीक निवडा:',
-      selectCrop: '1. गहू (Wheat)\n2. कांदा (Onion)\n3. भात (Paddy)\n4. कापूस (Cotton)\n0. मागे',
-      selectCenterTitle: 'बाजार समिती निवडा:',
+      selectCrop: '1. नाचणी / रागी (Ragi)\n2. तूर (Tur)\n3. भात (Paddy)\n4. कांदा (Onion)\n0. मागे',
+      selectCenterTitle: 'कर्नाटक बाजार समिती निवडा:',
       selectSlotTitle: 'उपलब्ध वेळ:',
       enterQtyTitle: 'अंदाजे वजन (किलो):',
       enterQty: 'वजन टाका (उदा. 1450)\n\n0. मागे',
@@ -439,11 +469,11 @@
       confirmPrompt: '1. स्लॉट निश्चित करा\n2. रद्द करा',
       successTitle: '✅ टोकन बुक झाले!',
       statusPromptTitle: 'टोकन स्थिती तपासा:',
-      statusPromptBody: 'टोकन क्रमांक किंवा मोबाईल टाका:\n(उदा. NSK-0198)\n\n0. मागे',
+      statusPromptBody: 'टोकन क्रमांक किंवा मोबाईल टाका:\n(उदा. BLR-0198)\n\n0. मागे',
       ratesMenuTitle: 'भावासाठी पीक निवडा:',
-      ratesMenu: '1. गहू (Wheat)\n2. कांदा (Onion)\n3. भात (Paddy)\n4. कापूस (Cotton)\n0. मागे',
+      ratesMenu: '1. नाचणी / रागी (Ragi)\n2. तूर (Tur)\n3. भात (Paddy)\n4. कांदा (Onion)\n0. मागे',
       langTitle: 'भाषा निवडा / Select Language:',
-      langBody: '1. English\n2. हिंदी (Hindi)\n3. मराठी (Marathi)\n4. ಕನ್ನಡ (Kannada)\n0. मागे',
+      langBody: '1. English\n2. ಕನ್ನಡ (Kannada)\n3. हिंदी (Hindi)\n4. मराठी (Marathi)\n0. मागे',
       labelToday: 'आज (Today)',
       labelTomorrow: 'उद्या (Tomorrow)',
       labelLeft: 'शिल्लक',
@@ -453,34 +483,6 @@
       labelToken: 'टोकन',
       labelSmsSent: 'SMS पाठवला',
       labelMainMenu: 'मुख्य मेनू'
-    },
-    kn: {
-      rootTitle: 'ಅಗ್ರಿ-ಕ್ಯೂ ಮಂಡಿ ಸೇವೆ (*99#)',
-      rootBody: '1. ಮಂಡಿ ಸ್ಲಾಟ್ ಬುಕ್ ಮಾಡಿ\n2. ಟೋಕನ್ ಸ್ಥಿತಿ ಪರಿಶೀಲಿಸಿ\n3. ಮಂಡಿ ದರಗಳು ಮತ್ತು ಮುನ್ಸೂಚನೆ\n4. ಭಾಷೆ ಬದಲಾಯಿಸಿ (Language)',
-      selectCropTitle: 'ಬೆಳೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ:',
-      selectCrop: '1. ಗೋಧಿ (Wheat)\n2. ಈರುಳ್ಳಿ (Onion)\n3. ಭತ್ತ (Paddy)\n4. ಹತ್ತಿ (Cotton)\n0. ಹಿಂದೆ',
-      selectCenterTitle: 'ಮಂಡಿ ಕೇಂದ್ರವನ್ನು ಆರಿಸಿ:',
-      selectSlotTitle: 'ಲಭ್ಯವಿರುವ ಸಮಯ:',
-      enterQtyTitle: 'ಅಂದಾಜು ಪ್ರಮಾಣ (ಕಿಲೋಗ್ರಾಂ):',
-      enterQty: 'ತೂಕ ನಮೂದಿಸಿ (ಉದಾ. 1450)\n\n0. ಹಿಂದೆ',
-      confirmTitle: 'ಸ್ಲಾಟ್ ದೃಢೀಕರಣ:',
-      confirmPrompt: '1. ಬುಕಿಂಗ್ ದೃಢೀಕರಿಸಿ\n2. ರದ್ದುಮಾಡಿ',
-      successTitle: '✅ ಟೋಕನ್ ಬುಕ್ ಆಗಿದೆ!',
-      statusPromptTitle: 'ಟೋಕನ್ ಸ್ಥಿತಿ ಪರಿಶೀಲಿಸಿ:',
-      statusPromptBody: 'ಟೋಕನ್ ಸಂಖ್ಯೆ ಅಥವಾ ಮೊಬೈಲ್ ನಮೂದಿಸಿ:\n(ಉದಾ. NSK-0198)\n\n0. ಹಿಂದೆ',
-      ratesMenuTitle: 'ದರ ಪರಿಶೀಲನೆಗಾಗಿ ಬೆಳೆ ಆಯ್ಕೆಮಾಡಿ:',
-      ratesMenu: '1. ಗೋಧಿ (Wheat)\n2. ಈರುಳ್ಳಿ (Onion)\n3. ಭತ್ತ (Paddy)\n4. ಹತ್ತಿ (Cotton)\n0. ಹಿಂದೆ',
-      langTitle: 'ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ / Select Language:',
-      langBody: '1. English\n2. हिंदी (Hindi)\n3. मराठी (Marathi)\n4. ಕನ್ನಡ (Kannada)\n0. ಹಿಂದೆ',
-      labelToday: 'ಇಂದು (Today)',
-      labelTomorrow: 'ನಾಳೆ (Tomorrow)',
-      labelLeft: 'ಉಳಿದಿದೆ',
-      labelBack: 'ಹಿಂದೆ',
-      labelMandi: 'ಮಂಡಿ',
-      labelSlot: 'ಸಮಯ',
-      labelToken: 'ಟೋಕನ್',
-      labelSmsSent: 'ಗೆ SMS ಕಳುಹಿಸಲಾಗಿದೆ',
-      labelMainMenu: 'ಮುಖ್ಯ ಮೆನು'
     }
   };
 
@@ -610,7 +612,7 @@
     const mult = GRADE_MULTIPLIERS[grade] || 1.0;
 
     // Recalculate DBT Amount using selected token's crop
-    const activeCrop = state.tempData.crop || 'Wheat';
+    const activeCrop = state.tempData.crop || 'Ragi';
     const baseRate = MSP_RATES[activeCrop] || 2425;
     const effectiveRate = Math.round(baseRate * mult);
     dbtRateVal.textContent = `₹${effectiveRate.toLocaleString()} / Quintal (${grade})`;
@@ -800,7 +802,7 @@
 
     bubble.innerHTML = `
       <div class="sms-bubble-top">
-        <span class="sms-sender-tag">VK-AGRIQ • ${title}</span>
+        <span class="sms-sender-tag">KA-AGRIQ • ${title}</span>
         <span class="sms-time">${timeStr}</span>
       </div>
       <div class="sms-body-text">${messageText}</div>
@@ -853,7 +855,7 @@
 
     smsMessages.prepend(bubble);
     playSmsChime();
-    logSignaling('SMPP 3.4', 'AgriQ ➔ TRAI-SMSC', `SUBMIT_SM (Dest: +91-${state.tempData.phone}, Sender: VK-AGRIQ, Status: DELIVRD)`, true);
+    logSignaling('SMPP 3.4', 'AgriQ ➔ TRAI-SMSC', `SUBMIT_SM (Dest: +91-${state.tempData.phone}, Sender: KA-AGRIQ, Status: DELIVRD)`, true);
   }
 
   clearSmsBtn.addEventListener('click', () => {
@@ -926,23 +928,26 @@
   }
 
 
-  function getLocalizedCenterName(name, lang) {
+    function getLocalizedCenterName(name, lang) {
     if (!name) return name;
     const map = {
       kn: {
-        'Nashik APMC Main': 'ನಾಸಿಕ್ ಎಪಿಎಂಸಿ ಮುಖ್ಯ (Nashik APMC)',
-        'Pune Central Mandi': 'ಪುಣೆ ಕೇಂದ್ರೀಯ ಮಂಡಿ (Pune Mandi)',
-        'Nagpur Cotton Yard': 'ನಾಗಪುರ ಹತ್ತಿ ಮಂಡಿ (Nagpur Cotton)'
+        'Bengaluru APMC (Yeshwanthpur Main Yard)': 'ಬೆಂಗಳೂರು ಯಶವಂತಪುರ ಎಪಿಎಂಸಿ (Bengaluru APMC)',
+        'Hubballi APMC (Amaragol Market Yard)': 'ಹುಬ್ಬಳ್ಳಿ ಅಮರಗೋಳ ಎಪಿಎಂಸಿ (Hubballi APMC)',
+        'Mysuru APMC (Bandipalya Yard)': 'ಮೈಸೂರು ಬಂಡಿಪಾಳ್ಯ ಎಪಿಎಂಸಿ (Mysuru APMC)',
+        'Kalaburagi APMC (Nehru Gunj Yard)': 'ಕಲಬುರಗಿ ನೆಹರು ಗಂಜ್ ಎಪಿಎಂಸಿ (Kalaburagi APMC)'
       },
       hi: {
-        'Nashik APMC Main': 'नासिक एपीएमसी मुख्य (Nashik APMC)',
-        'Pune Central Mandi': 'पुणे सेंट्रल मंडी (Pune Mandi)',
-        'Nagpur Cotton Yard': 'नागपुर कॉटन यार्ड (Nagpur Cotton)'
+        'Bengaluru APMC (Yeshwanthpur Main Yard)': 'बेंगलुरु यशवंतपुर एपीएमसी (Bengaluru APMC)',
+        'Hubballi APMC (Amaragol Market Yard)': 'हुबली अमरागोळ एपीएमसी (Hubballi APMC)',
+        'Mysuru APMC (Bandipalya Yard)': 'मैसूरु बांदीपाळ्य एपीएमसी (Mysuru APMC)',
+        'Kalaburagi APMC (Nehru Gunj Yard)': 'कलबुर्गी नेहरू गंज एपीएमसी (Kalaburagi APMC)'
       },
       mr: {
-        'Nashik APMC Main': 'नाशिक एपीएमसी मुख्य',
-        'Pune Central Mandi': 'पुणे मध्यवर्ती बाजार समिती',
-        'Nagpur Cotton Yard': 'नागपूर कापूस बाजार'
+        'Bengaluru APMC (Yeshwanthpur Main Yard)': 'बंगळुरू यशवंतपूर एपीएमसी (Bengaluru APMC)',
+        'Hubballi APMC (Amaragol Market Yard)': 'हुबळी अमरगोळ एपीएमसी (Hubballi APMC)',
+        'Mysuru APMC (Bandipalya Yard)': 'म्हैसूर बांदीपाळ्या एपीएमसी (Mysuru APMC)',
+        'Kalaburagi APMC (Nehru Gunj Yard)': 'कलबुर्गी नेहरू गंज एपीएमसी (Kalaburagi APMC)'
       }
     };
     return (map[lang] && map[lang][name]) || name;
@@ -951,9 +956,33 @@
   function getLocalizedCropName(crop, lang) {
     if (!crop) return crop;
     const map = {
-      kn: { 'Wheat': 'ಗೋಧಿ (Wheat)', 'Onion': 'ಈರುಳ್ಳಿ (Onion)', 'Paddy': 'ಭತ್ತ (Paddy)', 'Cotton': 'ಹತ್ತಿ (Cotton)' },
-      hi: { 'Wheat': 'गेहूं (Wheat)', 'Onion': 'प्याज (Onion)', 'Paddy': 'धान (Paddy)', 'Cotton': 'कपास (Cotton)' },
-      mr: { 'Wheat': 'गहू (Wheat)', 'Onion': 'कांदा (Onion)', 'Paddy': 'भात (Paddy)', 'Cotton': 'कापूस (Cotton)' }
+      kn: {
+        'Ragi': 'ರಾಗಿ (Ragi / Finger Millet)',
+        'Tur': 'ತೊಗರಿ (Tur / Red Gram)',
+        'Paddy': 'ಭತ್ತ (Paddy / Rice)',
+        'Onion': 'ಈರುಳ್ಳಿ (Onion)',
+        'Cotton': 'ಹತ್ತಿ (Cotton)',
+        'Maize': 'ಮೆಕ್ಕೆಜೋಳ (Maize)',
+        'Wheat': 'ಗೋಧಿ (Wheat)'
+      },
+      hi: {
+        'Ragi': 'रागी / मड़ुआ (Ragi)',
+        'Tur': 'तुअर / अरहर (Tur)',
+        'Paddy': 'धान (Paddy)',
+        'Onion': 'प्याज (Onion)',
+        'Cotton': 'कपास (Cotton)',
+        'Maize': 'मक्का (Maize)',
+        'Wheat': 'गेहूं (Wheat)'
+      },
+      mr: {
+        'Ragi': 'नाचणी / रागी (Ragi)',
+        'Tur': 'तूर (Tur)',
+        'Paddy': 'भात (Paddy)',
+        'Onion': 'कांदा (Onion)',
+        'Cotton': 'कापूस (Cotton)',
+        'Maize': 'मका (Maize)',
+        'Wheat': 'गहू (Wheat)'
+      }
     };
     return (map[lang] && map[lang][crop]) || crop;
   }
@@ -1093,7 +1122,7 @@
         break;
 
       case 'BOOK_CROP':
-        const crops = { '1': 'Wheat', '2': 'Onion', '3': 'Paddy', '4': 'Cotton' };
+        const crops = { '1': 'Ragi', '2': 'Tur', '3': 'Paddy', '4': 'Onion' };
         if (crops[input]) {
           state.tempData.crop = crops[input];
           await showLoading('Fetching APMC Centers...');
@@ -1187,7 +1216,7 @@
               match = {
                 token: state.activeToken,
                 status: state.tempData.stage || 'BOOKED',
-                crop: state.tempData.crop || 'Wheat',
+                crop: state.tempData.crop || 'Ragi',
                 slot: state.tempData.slotTime || 'Today 10:00 - 12:00',
                 netWeight: state.tempData.quantityKg || 1400
               };
@@ -1200,7 +1229,7 @@
               match = {
                 token: backendMatch.token_number || input,
                 status: backendMatch.status || 'BOOKED',
-                crop: backendMatch.crop || state.tempData.crop || 'Wheat',
+                crop: backendMatch.crop || state.tempData.crop || 'Ragi',
                 slot: backendMatch.slot_time || state.tempData.slotTime || 'Today 10:00 - 12:00',
                 netWeight: backendMatch.crop_quantity_kg || state.tempData.quantityKg || 1400
               };
@@ -1228,7 +1257,7 @@
         break;
 
       case 'RATES_MENU':
-        const rateCrops = { '1': 'Wheat', '2': 'Onion', '3': 'Paddy', '4': 'Cotton' };
+        const rateCrops = { '1': 'Ragi', '2': 'Tur', '3': 'Paddy', '4': 'Onion' };
         if (rateCrops[input]) {
           const cropName = rateCrops[input];
           await showLoading(`Fetching ${cropName} Rates & AI Forecast...`);
@@ -1258,9 +1287,9 @@
 
       case 'LANG_MENU':
         if (input === '1') setLanguage('en');
-        else if (input === '2') setLanguage('hi');
-        else if (input === '3') setLanguage('mr');
-        else if (input === '4') setLanguage('kn');
+        else if (input === '2') setLanguage('kn');
+        else if (input === '3') setLanguage('hi');
+        else if (input === '4') setLanguage('mr');
         else {
           flashScreenError();
           return;
@@ -1281,7 +1310,7 @@
     const callerPhone = farmerPhoneInput.value.trim() || '9876543210';
     state.tempData.phone = callerPhone;
 
-    logSignaling('PostgREST', 'AgriQ ➔ Edge Function', `INVOKE create-booking (Phone: ${callerPhone}, Center: ${state.tempData.centerId || 'c1-nsk'}, Qty: ${state.tempData.quantityKg}kg)`);
+    logSignaling('PostgREST', 'AgriQ ➔ Edge Function', `INVOKE create-booking (Phone: ${callerPhone}, Center: ${state.tempData.centerId || 'c1-blr'}, Qty: ${state.tempData.quantityKg}kg)`);
 
     let backendResult = null;
     if (window.agriqBackend) {
@@ -1293,7 +1322,8 @@
       });
     }
 
-    const tokenNumber = customToken || (backendResult ? backendResult.token_number : `NSK-${Math.floor(1000 + Math.random() * 9000)}`);
+    const prefix = state.tempData.centerId ? state.tempData.centerId.replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase() || 'BLR' : 'BLR';
+    const tokenNumber = customToken || (backendResult ? backendResult.token_number : `${prefix}-${Math.floor(1000 + Math.random() * 9000)}`);
     const bookingId = backendResult ? backendResult.booking_id : ('bk_' + Math.random().toString(36).substr(2, 9));
 
     state.activeToken = tokenNumber;
@@ -1312,7 +1342,7 @@
 
     demoTokenDisplay.textContent = tokenNumber;
     demoCropDisplay.textContent = `${state.tempData.crop} (${state.tempData.quantityKg} kg)`;
-    mandiYardLocation.textContent = state.tempData.centerName || 'Nashik APMC Main Yard';
+    mandiYardLocation.textContent = state.tempData.centerName || 'Bengaluru APMC (Yeshwanthpur Main Yard)';
     updateLifecycleStepper('BOOKED');
     btnViewReceipt.disabled = false;
 
@@ -1323,7 +1353,7 @@
     validateMoisture();
     updateCalculatedWeights();
 
-    dbtBankText.innerHTML = `Beneficiary A/C: <strong>State Bank of India (***${callerPhone.slice(-4)})</strong> • Aadhaar Authenticated`;
+    dbtBankText.innerHTML = `Beneficiary A/C: <strong>Canara Bank / Karnataka Bank (***${callerPhone.slice(-4)})</strong> • Aadhaar Authenticated (Raitha Siri DBT)`;
 
     // Add to Mandi Queue table
     state.queueList.unshift({
@@ -1342,7 +1372,7 @@
     // Prepare Gate Pass details
     receiptTokenVal.textContent = tokenNumber;
     receiptPhone.textContent = `+91-${callerPhone}`;
-    receiptCenter.textContent = state.tempData.centerName || 'Nashik APMC Main Yard';
+    receiptCenter.textContent = state.tempData.centerName || 'Bengaluru APMC (Yeshwanthpur Main Yard)';
     receiptCrop.textContent = `${state.tempData.crop} (Grade-A)`;
     receiptSlot.textContent = state.tempData.slotTime;
     const qtl = (state.tempData.quantityKg / 100).toFixed(2);
@@ -1355,34 +1385,34 @@
       booking_id: bookingId,
       token_number: tokenNumber,
       phone_number: callerPhone,
-      center_id: state.tempData.centerId || 'c1-nsk',
+      center_id: state.tempData.centerId || 'c1-blr',
       slot_date: new Date().toISOString().split('T')[0]
     };
     generateSvgQrCode(qrPayload);
 
-    // Send Confirmation SMS in chosen language
-    if (state.lang === 'hi') {
+    // Send Confirmation SMS in chosen language (Karnataka KSAMB APMC)
+    if (state.lang === 'kn') {
+      sendFarmerSms(
+        'ಟೋಕನ್ ದೃಢೀಕರಣ',
+        `ಕರ್ನಾಟಕ ಸರ್ಕಾರ / KSAMB APMC: ಟೋಕನ್ <strong>${tokenNumber}</strong> ದೃಢಪಟ್ಟಿದೆ.\nಬೆಳೆ: ${state.tempData.crop} (${qtl} ಕ್ವಿಂಟಾಲ್)\nಕೇಂದ್ರ: ${state.tempData.centerName || 'ಬೆಂಗಳೂರು ಯಶವಂತಪುರ ಎಪಿಎಂಸಿ'}\nಸಮಯ: ${state.tempData.slotTime}\nಗೇಟ್ ಪಾಸ್: agriq.karnataka.gov.in/t/${tokenNumber}\nಸಮಯಕ್ಕಿಂತ 15 ನಿಮಿಷ ಮುಂಚಿತವಾಗಿ ಬನ್ನಿ. ಜೈ ಕಿಸಾನ್!`,
+        'alert-confirm'
+      );
+    } else if (state.lang === 'hi') {
       sendFarmerSms(
         'टोकन पुष्टि',
-        `भारत सरकार / APMC: टोकन <strong>${tokenNumber}</strong> पक्का हुआ।\nफसल: ${state.tempData.crop} (${qtl} क्विंटल)\nकेंद्र: ${state.tempData.centerName || 'नासिक एपीएमसी'}\nसमय: ${state.tempData.slotTime}\nगेट पास: agriq.gov.in/t/${tokenNumber}\nसमय से 15 मिनट पहले पहुंचें।`,
+        `कर्नाटक सरकार / KSAMB APMC: टोकन <strong>${tokenNumber}</strong> पक्का हुआ।\nफसल: ${state.tempData.crop} (${qtl} क्विंटल)\nकेंद्र: ${state.tempData.centerName || 'बेंगलुरु यशवंतपुर एपीएमसी'}\nसमय: ${state.tempData.slotTime}\nगेट पास: agriq.karnataka.gov.in/t/${tokenNumber}\nसमय से 15 मिनट पहले पहुंचें। जय किसान!`,
         'alert-confirm'
       );
     } else if (state.lang === 'mr') {
       sendFarmerSms(
         'टोकन खात्री',
-        `APMC बाजार: टोकन <strong>${tokenNumber}</strong> निश्चित झाले.\nपीक: ${state.tempData.crop} (${qtl} क्विंटल)\nबाजार: ${state.tempData.centerName || 'नाशिक एपीएमसी'}\nवेळ: ${state.tempData.slotTime}\nगेट पास: agriq.gov.in/t/${tokenNumber}`,
-        'alert-confirm'
-      );
-    } else if (state.lang === 'kn') {
-      sendFarmerSms(
-        'ಟೋಕನ್ ದೃಢೀಕರಣ',
-        `APMC ಮಂಡಿ: ಟೋಕನ್ <strong>${tokenNumber}</strong> ದೃಢಪಟ್ಟಿದೆ.\nಬೆಳೆ: ${state.tempData.crop} (${qtl} ಕ್ವಿಂಟಾಲ್)\nಕೇಂದ್ರ: ${state.tempData.centerName || 'ನಾಸಿಕ್ ಎಪಿಎಂಸಿ'}\nಸಮಯ: ${state.tempData.slotTime}\nಗೇಟ್ ಪಾಸ್: agriq.gov.in/t/${tokenNumber}`,
+        `कर्नाटक सरकार / KSAMB APMC: टोकन <strong>${tokenNumber}</strong> निश्चित झाले.\nपीक: ${state.tempData.crop} (${qtl} क्विंटल)\nबाजार: ${state.tempData.centerName || 'बंगळुरू यशवंतपूर एपीएमसी'}\nवेळ: ${state.tempData.slotTime}\nगेट पास: agriq.karnataka.gov.in/t/${tokenNumber}\nजय किसान!`,
         'alert-confirm'
       );
     } else {
       sendFarmerSms(
         'Token Confirmed',
-        `Govt of India / APMC: Token <strong>${tokenNumber}</strong> confirmed.\nCrop: ${state.tempData.crop} (${qtl} Q)\nCenter: ${state.tempData.centerName || 'Nashik APMC'}\nSlot: ${state.tempData.slotTime}\nGate Pass: agriq.gov.in/t/${tokenNumber}\nArrive 15 mins prior.`,
+        `Govt of Karnataka / KSAMB APMC: Token <strong>${tokenNumber}</strong> confirmed.\nCrop: ${state.tempData.crop} (${qtl} Q)\nCenter: ${state.tempData.centerName || 'Bengaluru APMC (Yeshwanthpur)'}\nSlot: ${state.tempData.slotTime}\nGate Pass: agriq.karnataka.gov.in/t/${tokenNumber}\nArrive 15 mins prior. Jai Kisan! (ಜೈ ರೈತ)`,
         'alert-confirm'
       );
     }
@@ -1422,7 +1452,7 @@
     const gate = inputGateNo.value;
     sendFarmerSms(
       'Gate Security Check-In',
-      `APMC Gate Security: Token <strong>${state.activeToken}</strong> verified at <strong>${gate}</strong>.\nSecurity clearance granted. Proceed immediately to Weighbridge Bay #2.`,
+      `KSAMB APMC Gate Security: Token <strong>${state.activeToken}</strong> verified at <strong>${gate}</strong>.\nSecurity clearance granted. Proceed immediately to Weighbridge Bay #2.`,
       'alert-status'
     );
   });
@@ -1446,7 +1476,7 @@
 
     sendFarmerSms(
       'Weighbridge Scale Certified',
-      `APMC Digital Scale #3: Weight logged for <strong>${state.activeToken}</strong>.\nGross: ${inputGrossWeight.value} kg | Tare: ${inputTareWeight.value} kg\n<strong>Certified Net Produce: ${net.toLocaleString()} kg (${quintals} Q)</strong>.\nProceed to Quality Assayer Desk.`,
+      `KSAMB APMC Digital Scale #3: Weight logged for <strong>${state.activeToken}</strong>.\nGross: ${inputGrossWeight.value} kg | Tare: ${inputTareWeight.value} kg\n<strong>Certified Net Produce: ${net.toLocaleString()} kg (${quintals} Q)</strong>.\nProceed to Quality Assayer Desk.`,
       'alert-weighed'
     );
   });
@@ -1467,7 +1497,7 @@
 
     sendFarmerSms(
       'Agmarknet Quality Assayed',
-      `Government Lab Desk: Sample for <strong>${state.activeToken}</strong> certified as <strong>${grade}</strong>.\nMoisture content: ${moisture}%. Certified compliant with Central Pool Procurement standards. Direct Benefit Transfer unlocked.`,
+      `Government Lab Desk: Sample for <strong>${state.activeToken}</strong> certified as <strong>${grade}</strong>.\nMoisture content: ${moisture}%. Certified compliant with KSAMB & Central Pool Procurement standards. Direct Benefit Transfer unlocked.`,
       'alert-quality'
     );
   });
@@ -1489,7 +1519,7 @@
 
     sendFarmerSms(
       'PFMS DBT Credit Alert',
-      `PFMS Direct Benefit Transfer Alert:\n<strong>₹${parseFloat(totalAmt).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong> credited to Aadhaar-linked Bank A/C ending in <strong>${phone.slice(-4)}</strong> for ${quintals} Q ${state.tempData.crop}.\nRef No: <strong>${refId}</strong> under PM-AASHA / MSP.`,
+      `PFMS Direct Benefit Transfer Alert:\n<strong>₹${parseFloat(totalAmt).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong> credited to Aadhaar-linked Bank A/C ending in <strong>${phone.slice(-4)}</strong> for ${quintals} Q ${state.tempData.crop}.\nRef No: <strong>${refId}</strong> under PM-AASHA & KSAMB MSP Scheme.`,
       'alert-payment'
     );
   });
@@ -1507,7 +1537,7 @@
 
     sendFarmerSms(
       'Mandi Exit Pass Issued',
-      `APMC Exit Clearance: Procurement cycle closed for <strong>${state.activeToken}</strong>.\nTurnaround time: <strong>38 mins</strong>.\nDownload digital voucher: agriq.gov.in/v/${state.activeToken}.\nGate Exit Barrier Cleared. Jai Kisan!`,
+      `KSAMB APMC Exit Clearance: Procurement cycle closed for <strong>${state.activeToken}</strong>.\nTurnaround time: <strong>38 mins</strong>.\nDownload digital voucher: agriq.karnataka.gov.in/v/${state.activeToken}.\nGate Exit Barrier Cleared. Jai Kisan! (ಜೈ ರೈತ)`,
       'alert-complete'
     );
   });
@@ -1582,7 +1612,7 @@
     renderQueueTable();
     btnViewReceipt.disabled = false;
 
-    dbtBankText.innerHTML = `Beneficiary A/C: <strong>State Bank of India (***${item.phone.slice(-4)})</strong> • Aadhaar Authenticated`;
+    dbtBankText.innerHTML = `Beneficiary A/C: <strong>Canara Bank / Karnataka Bank (***${item.phone.slice(-4)})</strong> • Aadhaar Authenticated (Raitha Siri DBT)`;
 
     // Update Gate pass
     receiptTokenVal.textContent = item.token;
@@ -1597,7 +1627,7 @@
       booking_id: state.tempData.bookingId,
       token_number: item.token,
       phone_number: item.phone,
-      center_id: 'c1-nsk',
+      center_id: 'c1-blr',
       slot_date: new Date().toISOString().split('T')[0]
     };
     generateSvgQrCode(qrPayload);

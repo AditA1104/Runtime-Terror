@@ -1,5 +1,5 @@
 ﻿# 📱 AgriQ — P4: USSD Gateway & Feature-Phone SMS Simulator
-**SIH 2026 | Problem Statement 26032 | Team: Runtime-Terror**
+**SIH 2026 | Problem Statement 26032 | Team: Runtime-Terror | Karnataka State APMC Edition**
 
 ---
 
@@ -39,9 +39,9 @@ Simply open `index.html` in any web browser:
 
 2. **The Booking Flow (25s):**
    - Click **CALL** on `*99#` → Press `1` (Book Slot)
-   - Press `1` (Wheat) → Press `1` (Nashik APMC) → Press `1` (Tomorrow 08:00 AM)
+   - Press `1` (Ragi) → Press `1` (Bengaluru APMC (Yeshwanthpur)) → Press `1` (Tomorrow 08:00 AM)
    - Enter `1500` kg → Press `1` (Confirm)
-   - Point out: **Token `NSK-XXXX` is allocated, and an SMS confirmation immediately appears in the SMS feed on the right.**
+   - Point out: **Token `BLR-XXXX` is allocated, and an SMS confirmation immediately appears in the SMS feed on the right.**
 
 3. **The Live Mandi Flow (20s):**
    - Click the checkpoint buttons in the **Officer Checkpoint Simulator** card:
