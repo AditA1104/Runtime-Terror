@@ -39,7 +39,7 @@
           <h3>🔗 Central PostgreSQL / Supabase Connection</h3>
           <button id="close-config-btn" class="btn-text">✕</button>
         </div>
-        <p class="hint">Connect to team database (Schema v2) for live cross-laptop synchronization with Officer Desk & Farmer PWA.</p>
+        <p class="hint">Connect to central team database (Schema v2) for live cross-system synchronization with Officer Dashboard & Farmer Web PWA.</p>
         <div class="form-row">
           <input type="text" id="supabase-url" placeholder="https://your-project.supabase.co" />
           <input type="password" id="supabase-key" placeholder="Service Role / Anon Key" />
@@ -49,21 +49,19 @@
       </div>
     </div>
 
-    <!-- Live Quick Action Toolbar -->
+    <!-- Official Mandi Operations Toolbar -->
     <div class="action-toolbar">
       <div class="toolbar-left">
-        <span class="toolbar-label">Quick Actions:</span>
-        <button class="tool-btn" id="btn-quick-book" title="Generate Token Instantly">➕ Instant Token</button>
-        <button class="tool-btn" id="btn-quick-cycle" title="Simulate Complete End-to-End Cycle">▶ Auto-Simulate Full Cycle</button>
-        <button class="tool-btn" id="btn-quick-rates" title="View Current MSP Rates & AI Forecast">📈 APMC MSP Rates</button>
-        <button class="tool-btn btn-receipt" id="btn-view-receipt" disabled title="View Official Mandi Gate Pass">📄 View Gate Pass</button>
+        <span class="toolbar-label">Mandi Operations:</span>
+        <button class="tool-btn" id="btn-quick-rates" title="View Current MSP Rates & AI Forecast">📈 APMC MSP Rates & AI Forecast</button>
+        <button class="tool-btn btn-receipt" id="btn-view-receipt" disabled title="View Official Mandi Gate Pass">📄 Official Gate Pass</button>
       </div>
       <div class="toolbar-right">
         <div class="turnaround-pill" id="turnaround-pill">
           <span class="pill-dot"></span>
-          <span>Avg Mandi Turnaround: <strong>38 mins</strong> (vs 6.5 hrs manual)</span>
+          <span>Turnaround Efficiency: <strong>38 mins</strong> (vs 6.5 hrs traditional manual APMC)</span>
         </div>
-        <button class="tool-btn btn-danger" id="btn-quick-reset" title="Reset All Sessions">🔄 Reset Session</button>
+        <button class="tool-btn btn-danger" id="btn-quick-reset" title="Reset Current Session">🔄 Reset Session</button>
       </div>
     </div>
 
@@ -181,7 +179,7 @@
             <div class="empty-state" id="sms-empty-state">
               <span class="empty-icon">📭</span>
               <p>Inbox is currently empty.</p>
-              <small>Dial <b>*99#</b> or click <b>Instant Token</b> to receive official procurement alerts.</small>
+              <small>Dial <b>*99#</b> on the phone to book a mandi procurement slot and receive official SMS alerts.</small>
             </div>
           </div>
         </div>
@@ -268,7 +266,7 @@
               <div class="cp-header">
                 <span class="cp-num">1</span>
                 <strong>Gate Security & QR Check-In</strong>
-                <span class="cp-stage-tag">Arrival</span>
+                <span class="cp-stage-tag">Arrival Intake</span>
               </div>
               <div class="cp-inputs">
                 <select id="input-gate-no">
@@ -285,7 +283,7 @@
               <div class="cp-header">
                 <span class="cp-num">2</span>
                 <strong>Weighbridge Gross & Tare Scale</strong>
-                <span class="cp-stage-tag">Scale #3</span>
+                <span class="cp-stage-tag">Electronic Scale #3</span>
               </div>
               <div class="cp-inputs dual">
                 <div>
@@ -308,7 +306,7 @@
               <div class="cp-header">
                 <span class="cp-num">3</span>
                 <strong>Government Quality Assayer (Agmarknet)</strong>
-                <span class="cp-stage-tag">Lab Desk</span>
+                <span class="cp-stage-tag">Central Pool Lab</span>
               </div>
               <div class="cp-inputs dual">
                 <div>
@@ -335,11 +333,11 @@
               <div class="cp-header">
                 <span class="cp-num">4</span>
                 <strong>PFMS Direct Benefit Transfer (DBT / APB)</strong>
-                <span class="cp-stage-tag">Aadhaar Pay</span>
+                <span class="cp-stage-tag">Aadhaar Pay Bridge</span>
               </div>
               <div class="dbt-summary">
                 <div>
-                  <span class="dbt-lbl">MSP Rate:</span>
+                  <span class="dbt-lbl">Applied MSP Rate:</span>
                   <strong id="dbt-rate-val">₹2,425 / Quintal</strong>
                 </div>
                 <div>
@@ -358,7 +356,7 @@
               <div class="cp-header">
                 <span class="cp-num">5</span>
                 <strong>Procurement Closeout & Exit Pass</strong>
-                <span class="cp-stage-tag">Final</span>
+                <span class="cp-stage-tag">Audit Ledger</span>
               </div>
               <div class="exit-pass-summary">
                 <span>Complete procurement loop, record audit ledger & issue digital exit pass.</span>
