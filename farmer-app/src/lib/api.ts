@@ -75,9 +75,35 @@ export async function getSlotsAvailable(centerId: string): Promise<SlotAvailable
   return generateAvailableSlots(centerId, 7);
 }
 
-// 3. Daily Rates Cache (reads from daily_rates_cache for fast predictions)
+// 3. Daily Rates Cache & Predictive Engine (Calls P5 RPC get_best_selling_days with fallback)
 export async function getDailyRatesCache(cropType: string, centerId: string): Promise<DailyRatesCache[]> {
   if (isSupabaseLive && supabase) {
+    // Priority 1: Call P5 official smart dispatch RPC function
+    try {
+      const { data, error } = await supabase.rpc('get_best_selling_days', {
+        p_crop_type: cropType,
+        p_center_id: centerId || null,
+        p_days_ahead: 7,
+      });
+      if (!error && data && data.length > 0) {
+        return data.map((d: any, idx: number) => ({
+          cache_id: d.cache_id || `rpc-${idx}-${d.forecast_date}`,
+          crop_type: d.crop_type || cropType,
+          center_id: d.center_id || centerId,
+          forecast_date: d.forecast_date,
+          price_trend_score: Number(d.price_trend_score) || 0,
+          best_day_score: Number(d.best_day_score) || 0,
+          reason_text: d.reason_text || 'Optimal dispatch slot',
+          traffic_light: d.traffic_light,
+          is_best_day: d.is_best_day,
+          load_ratio: d.load_ratio,
+        })) as DailyRatesCache[];
+      }
+    } catch (e) {
+      console.warn('Supabase RPC get_best_selling_days fallback:', e);
+    }
+
+    // Priority 2: Direct query on daily_rates_cache table
     try {
       const { data, error } = await supabase
         .from('daily_rates_cache')
