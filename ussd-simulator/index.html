@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AgriQ — USSD Gateway & Feature Phone Simulator (P4)</title>
+  <title>AgriQ â€” National Mandi Procurement Gateway (DoCA / APMC)</title>
   <link rel="stylesheet" href="style.css" />
   <!-- Google Fonts for retro screen & modern UI -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,86 +14,53 @@
 </head>
 <body>
   <div class="app-container">
-    <!-- Header -->
+    <!-- Official Enterprise Header -->
     <header class="main-header">
-      <div class="logo-group">
-        <span class="badge">SIH 2026 • PS 26032</span>
-        <h1>🌾 AgriQ <span class="sub">| USSD Gateway & SMS Simulator (P4 Lead)</span></h1>
+      <div class="header-branding">
+        <div class="emblem-group">
+          <span class="gov-title">MINISTRY OF CONSUMER AFFAIRS, FOOD & PUBLIC DISTRIBUTION</span>
+          <h1>ðŸŒ¾ AgriQ <span class="sub">| Digital Mandi Procurement & USSD Gateway (*99#)</span></h1>
+        </div>
       </div>
       <div class="header-controls">
-        <button id="guide-toggle-btn" class="btn-guide active" title="Toggle Mentor Demo Script">📖 Mentor Demo Script</button>
-        <button id="sound-toggle-btn" class="btn-sm" title="Toggle Nokia Keypad Sounds">🔊 Sound: ON</button>
+        <button id="sound-toggle-btn" class="btn-sm" title="Toggle Audio Feedback">ðŸ”Š Audio: ON</button>
         <div class="status-bar-top">
           <span class="pulse-indicator" id="pulse-dot"></span>
-          <span id="connection-status">Mode: Standalone / Demo Safe</span>
-          <button id="toggle-config-btn" class="btn-sm">⚙️ Supabase Config</button>
+          <span id="connection-status">Channel: BSNL / MTNL 2G Signaling (Active)</span>
+          <button id="toggle-config-btn" class="btn-sm">âš™ï¸ Database</button>
         </div>
       </div>
     </header>
-
-    <!-- Mentor Presentation Coach Panel (Collapsible) -->
-    <div id="demo-guide-panel" class="demo-guide-panel">
-      <div class="guide-header">
-        <div class="guide-title">
-          <span class="guide-icon">🎯</span>
-          <strong>Mentor Demo Cheat-Sheet (Your Step-by-Step Flow)</strong>
-        </div>
-        <span class="guide-subtext">Follow these 5 steps in front of your mentor to demonstrate the entire system seamlessly:</span>
-      </div>
-      <div class="guide-steps-grid">
-        <div class="guide-step-card" id="step-card-1">
-          <span class="step-num">Step 1</span>
-          <strong>The Rural Hook & Booking</strong>
-          <p>Tell mentor: <em>"Over 50% of farmers don't have 4G/smartphones. They dial *99# on any ₹500 phone."</em> Dial *99# ➔ Press 1 (Book) ➔ Pick Wheat ➔ Confirm.</p>
-        </div>
-        <div class="guide-step-card" id="step-card-2">
-          <span class="step-num">Step 2</span>
-          <strong>Proactive SMS Alerts</strong>
-          <p>Point to center panel: <em>"Within 2 seconds, an arrival window SMS lands on their phone with Token ID and slot."</em></p>
-        </div>
-        <div class="guide-step-card" id="step-card-3">
-          <span class="step-num">Step 3</span>
-          <strong>Officer Checkpoints</strong>
-          <p>Point to Right Column: <em>"As the truck moves through Gate ➔ Weighbridge ➔ Quality ➔ DBT Payment, automated SMS updates fire."</em></p>
-        </div>
-        <div class="guide-step-card" id="step-card-4">
-          <span class="step-num">Step 4</span>
-          <strong>Live Status Query</strong>
-          <p>Dial *99# ➔ Press 2 (Check Status): <em>"The farmer checks their live queue position anytime without internet."</em></p>
-        </div>
-        <div class="guide-step-card" id="step-card-5">
-          <span class="step-num">Step 5</span>
-          <strong>Vernacular Localization</strong>
-          <p>Dial *99# ➔ Press 4 ➔ Select Hindi or Marathi: <em>"100% accessible in regional languages for low-literacy farmers."</em></p>
-        </div>
-      </div>
-    </div>
 
     <!-- Supabase Config Drawer -->
     <div id="config-drawer" class="config-drawer hidden">
       <div class="config-inner">
         <div class="config-header">
-          <h3>🔗 Connect to Live Supabase Project</h3>
-          <button id="close-config-btn" class="btn-text">✕</button>
+          <h3>ðŸ”— Central PostgreSQL / Supabase Connection</h3>
+          <button id="close-config-btn" class="btn-text">âœ•</button>
         </div>
-        <p class="hint">Paste your team's Supabase credentials to sync live with P1's database and P3's officer desk.</p>
+        <p class="hint">Connect to team database (Schema v2) for live cross-laptop synchronization with Officer Desk & Farmer PWA.</p>
         <div class="form-row">
           <input type="text" id="supabase-url" placeholder="https://your-project.supabase.co" />
-          <input type="password" id="supabase-key" placeholder="Anon / Public API Key" />
-          <button id="save-config-btn" class="btn-primary">Connect</button>
-          <button id="reset-config-btn" class="btn-secondary">Use Mock Mode</button>
+          <input type="password" id="supabase-key" placeholder="Service Role / Anon Key" />
+          <button id="save-config-btn" class="btn-primary">Save & Connect</button>
+          <button id="reset-config-btn" class="btn-secondary">Local Isolated Mode</button>
         </div>
       </div>
     </div>
 
-    <!-- Quick Demo Presets Bar -->
-    <div class="demo-presets-bar">
-      <span class="preset-label">⚡ 1-Click Automation:</span>
-      <button class="preset-btn" id="btn-quick-book">1. Quick Book Token</button>
-      <button class="preset-btn" id="btn-quick-cycle">2. Auto-Run Full Mandi Cycle (Check-in ➔ Pay)</button>
-      <button class="preset-btn" id="btn-quick-rates">3. View Onion & Wheat Forecast</button>
-      <button class="preset-btn btn-receipt" id="btn-view-receipt" disabled>📄 View Gate Pass Slip</button>
-      <button class="preset-btn btn-danger" id="btn-quick-reset">🔄 Reset All</button>
+    <!-- Live Quick Action Toolbar -->
+    <div class="action-toolbar">
+      <div class="toolbar-left">
+        <span class="toolbar-label">Quick Actions:</span>
+        <button class="tool-btn" id="btn-quick-book">âž• Instant Token</button>
+        <button class="tool-btn" id="btn-quick-cycle">â–¶ Auto-Simulate Full Cycle</button>
+        <button class="tool-btn" id="btn-quick-rates">ðŸ“ˆ APMC MSP Rates</button>
+        <button class="tool-btn btn-receipt" id="btn-view-receipt" disabled>ðŸ“„ View Gate Pass</button>
+      </div>
+      <div class="toolbar-right">
+        <button class="tool-btn btn-danger" id="btn-quick-reset">ðŸ”„ Reset Session</button>
+      </div>
     </div>
 
     <!-- Main 3-Column Layout -->
@@ -102,8 +69,8 @@
       <!-- COLUMN 1: The Nokia Feature Phone Emulator -->
       <section class="phone-column">
         <div class="section-label">
-          <span>📱 Offline Feature Phone (*99#)</span>
-          <span class="tag-lang" id="current-lang-tag">Language: English</span>
+          <span>ðŸ“± Farmer USSD Interface (*99#)</span>
+          <span class="tag-lang" id="current-lang-tag">EN</span>
         </div>
 
         <div class="phone-chassis">
@@ -113,18 +80,18 @@
           <!-- Screen Area -->
           <div class="phone-screen-bezel">
             <div class="screen-header">
-              <span class="network-carrier">📶 BSNL 2G</span>
+              <span class="network-carrier">ðŸ“¶ BSNL 2G</span>
               <span id="screen-clock" class="clock">10:45</span>
-              <span class="battery">🔋 98%</span>
+              <span class="battery">ðŸ”‹ 98%</span>
             </div>
 
             <!-- LCD Screen -->
             <div class="lcd-screen" id="lcd-screen">
               <!-- Dialing View -->
               <div id="dialing-view" class="screen-view">
-                <div class="dialer-prompt">Enter USSD Shortcode:</div>
+                <div class="dialer-prompt">Dial Mandi Shortcode:</div>
                 <div id="dialed-number" class="dialed-display">*99#</div>
-                <div class="dialer-hint">Dial *99# for AgriQ Mandi Services</div>
+                <div class="dialer-hint">Dial *99# or *123# to initiate</div>
               </div>
 
               <!-- USSD Menu View -->
@@ -146,7 +113,7 @@
               <div id="loading-view" class="screen-view hidden">
                 <div class="ussd-loader">
                   <div class="spinner"></div>
-                  <div id="loading-text">Requesting *99#...</div>
+                  <div id="loading-text">Connecting to Mandi Gateway...</div>
                 </div>
               </div>
             </div>
@@ -159,7 +126,7 @@
 
           <!-- Keypad Navigation Buttons -->
           <div class="nav-keys">
-            <button class="key soft-key" id="btn-soft-left" title="Left Soft Key / Call / Select">CALL</button>
+            <button class="key soft-key" id="btn-soft-left" title="Left Soft Key / Call / Send">CALL</button>
             <div class="dpad">
               <button class="dpad-center" id="btn-ok" title="OK / Enter">OK</button>
             </div>
@@ -179,7 +146,7 @@
             <button class="key num-key" data-key="9"><span class="num">9</span><span class="subtext">WXYZ</span></button>
             <button class="key num-key star-key" data-key="*"><span class="num">*</span><span class="subtext">+</span></button>
             <button class="key num-key" data-key="0"><span class="num">0</span><span class="subtext">Back</span></button>
-            <button class="key num-key hash-key" data-key="#"><span class="num">#</span><span class="subtext">⌕</span></button>
+            <button class="key num-key hash-key" data-key="#"><span class="num">#</span><span class="subtext">âŒ•</span></button>
           </div>
         </div>
       </section>
@@ -187,7 +154,7 @@
       <!-- COLUMN 2: Live SMS Alerts & Push Notifications -->
       <section class="sms-column">
         <div class="section-label">
-          <span>📨 Simulated Farmer SMS Feed</span>
+          <span>ðŸ“¨ Farmer SMS Inbox (Real-time Feed)</span>
           <span class="badge-count" id="sms-count">0 Messages</span>
         </div>
 
@@ -195,44 +162,47 @@
           <div class="sms-header">
             <div class="sender-group">
               <span class="sms-dot"></span>
-              <span class="sender-id">AG-AGRIQ (Mandi Alerts)</span>
+              <span class="sender-id">AG-AGRIQ (DoCA Mandi Alerts)</span>
             </div>
-            <button id="clear-sms-btn" class="btn-text">Clear</button>
+            <button id="clear-sms-btn" class="btn-text">Clear Inbox</button>
           </div>
           <div class="sms-messages" id="sms-messages">
             <div class="empty-state">
-              <span class="empty-icon">📭</span>
-              <p>No SMS alerts yet.</p>
-              <small>Dial <b>*99#</b> or click <b>"Quick Book Token"</b> to trigger real-time notifications.</small>
+              <span class="empty-icon">ðŸ“­</span>
+              <p>Inbox is currently empty.</p>
+              <small>Dial <b>*99#</b> or book a slot to receive official procurement alerts.</small>
             </div>
           </div>
         </div>
 
         <!-- Simulated Farmer Phone Number config -->
         <div class="phone-id-card">
-          <label>Farmer Active Mobile Number (+91):</label>
+          <div class="phone-id-header">
+            <label>Registered Farmer Mobile (+91):</label>
+            <span class="phone-status-tag">Aadhaar Linked</span>
+          </div>
           <div class="phone-input-group">
-            <input type="text" id="farmer-phone-input" value="9876543210" maxlength="10" />
-            <button id="update-phone-btn" class="btn-sm">Set</button>
+            <input type="text" id="farmer-phone-input" value="9876543210" maxlength="10" placeholder="10-digit mobile number" />
+            <button id="update-phone-btn" class="btn-sm">Update Number</button>
           </div>
         </div>
       </section>
 
-      <!-- COLUMN 3: Live Session Inspector & Officer Action Bar -->
+      <!-- COLUMN 3: Mandi Officer Operations Desk -->
       <section class="inspector-column">
         
-        <!-- Live Officer Simulator (Checkpoints) -->
-        <div class="card">
+        <!-- Interactive Checkpoint Controller -->
+        <div class="card checkpoint-card">
           <div class="card-header">
-            <h3>🏢 Mandi Officer Checkpoint Simulator</h3>
-            <span class="tag">Live State Machine</span>
+            <h3>ðŸ¢ Mandi Officer Checkpoint Operations</h3>
+            <span class="tag verified-tag">APMC Desk #1</span>
           </div>
-          <p class="card-desc">Simulate the Mandi Officer progressing your active token through the government procurement checkpoints:</p>
+          <p class="card-desc">Process the selected token through physical procurement checkpoints with live input parameters:</p>
           
           <div class="active-token-banner" id="active-token-banner">
             <div>
-              <span class="lbl">Active Token:</span>
-              <strong id="demo-token-display">None Booked Yet</strong>
+              <span class="lbl">Selected Token:</span>
+              <strong id="demo-token-display">None Selected</strong>
             </div>
             <div>
               <span class="lbl">Current Stage:</span>
@@ -240,68 +210,126 @@
             </div>
           </div>
 
-          <div class="checkpoint-actions">
-            <button class="btn-step" id="btn-sim-checkin" disabled>
-              <span class="icon">🎟️</span> 1. Gate Check-In (QR Scan)
-            </button>
-            <button class="btn-step" id="btn-sim-weigh" disabled>
-              <span class="icon">⚖️</span> 2. Weighbridge (1,450 kg recorded)
-            </button>
-            <button class="btn-step" id="btn-sim-quality" disabled>
-              <span class="icon">🔍</span> 3. Quality Assayed (Grade A passed)
-            </button>
-            <button class="btn-step" id="btn-sim-payment" disabled>
-              <span class="icon">💳</span> 4. DBT Payment Initiated (₹35,160)
-            </button>
-            <button class="btn-step" id="btn-sim-complete" disabled>
-              <span class="icon">✅</span> 5. Procurement Completed
-            </button>
+          <!-- Dynamic Checkpoint Form Panels -->
+          <div class="checkpoint-forms">
+            
+            <!-- Stage 1: Gate Entry -->
+            <div class="checkpoint-box" id="box-checkin">
+              <div class="cp-header">
+                <span class="cp-num">1</span>
+                <strong>Gate Security & QR Check-In</strong>
+              </div>
+              <div class="cp-inputs">
+                <input type="text" id="input-gate-no" value="Gate #1 (North Intake)" placeholder="Gate Entry Point" />
+                <button class="btn-step-action" id="btn-sim-checkin" disabled>Confirm Gate Entry</button>
+              </div>
+            </div>
+
+            <!-- Stage 2: Weighbridge -->
+            <div class="checkpoint-box" id="box-weigh">
+              <div class="cp-header">
+                <span class="cp-num">2</span>
+                <strong>Weighbridge Gross & Tare Scale</strong>
+              </div>
+              <div class="cp-inputs dual">
+                <div>
+                  <label>Gross Weight (kg):</label>
+                  <input type="number" id="input-gross-weight" value="1650" min="100" step="10" />
+                </div>
+                <div>
+                  <label>Tare / Vehicle (kg):</label>
+                  <input type="number" id="input-tare-weight" value="200" min="0" step="10" />
+                </div>
+              </div>
+              <div class="calc-row">
+                <span>Calculated Net Produce: <strong id="calc-net-weight">1,450 kg (14.5 Q)</strong></span>
+                <button class="btn-step-action" id="btn-sim-weigh" disabled>Log Scale Weight</button>
+              </div>
+            </div>
+
+            <!-- Stage 3: Quality Assayer -->
+            <div class="checkpoint-box" id="box-quality">
+              <div class="cp-header">
+                <span class="cp-num">3</span>
+                <strong>Government Quality Assayer (Agmarknet)</strong>
+              </div>
+              <div class="cp-inputs dual">
+                <div>
+                  <label>Quality Grade:</label>
+                  <select id="select-quality-grade">
+                    <option value="GRADE-A">Grade A (MSP Compliant)</option>
+                    <option value="GRADE-B">Grade B (Standard)</option>
+                    <option value="GRADE-C">Grade C (Refair)</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Moisture Content (%):</label>
+                  <input type="number" id="input-moisture" value="11.4" min="5" max="25" step="0.1" />
+                </div>
+              </div>
+              <div class="calc-row">
+                <span id="moisture-status" class="status-ok">âœ” Within Permissible Limit (â‰¤ 12.0%)</span>
+                <button class="btn-step-action" id="btn-sim-quality" disabled>Certify Grade</button>
+              </div>
+            </div>
+
+            <!-- Stage 4: DBT Accounts -->
+            <div class="checkpoint-box" id="box-payment">
+              <div class="cp-header">
+                <span class="cp-num">4</span>
+                <strong>PFMS Direct Benefit Transfer (DBT)</strong>
+              </div>
+              <div class="dbt-summary">
+                <div>
+                  <span class="dbt-lbl">MSP Rate:</span>
+                  <strong id="dbt-rate-val">â‚¹2,425 / Quintal</strong>
+                </div>
+                <div>
+                  <span class="dbt-lbl">Disbursement Amount:</span>
+                  <strong class="dbt-highlight" id="dbt-amount-val">â‚¹35,162.50</strong>
+                </div>
+              </div>
+              <button class="btn-step-action btn-dbt" id="btn-sim-payment" disabled>Initiate Aadhaar DBT Transfer</button>
+            </div>
+
+            <!-- Stage 5: Final Completion -->
+            <div class="checkpoint-box" id="box-complete">
+              <div class="cp-header">
+                <span class="cp-num">5</span>
+                <strong>Procurement Closeout & Exit Pass</strong>
+              </div>
+              <button class="btn-step-action btn-finish" id="btn-sim-complete" disabled>Finalize & Issue Gate Exit Pass</button>
+            </div>
+
           </div>
         </div>
 
-        <!-- Live Mandi Queue Desk (Visual Proof of Sync) -->
+        <!-- Live Mandi Queue Desk Table -->
         <div class="card queue-card">
           <div class="card-header">
-            <h3>📋 Mandi Live Queue Desk</h3>
-            <span class="tag live-tag">● Live Sync</span>
+            <h3>ðŸ“‹ Mandi Queue Operations Desk</h3>
+            <div class="queue-header-tools">
+              <input type="text" id="queue-search-input" placeholder="Search Token / Mobile..." />
+              <span class="tag live-tag">â— Live Queue</span>
+            </div>
           </div>
           <div class="queue-table-wrapper">
             <table class="queue-table">
               <thead>
                 <tr>
-                  <th>Token</th>
-                  <th>Farmer</th>
+                  <th>Token #</th>
+                  <th>Mobile</th>
                   <th>Crop</th>
-                  <th>Slot</th>
+                  <th>Slot Time</th>
+                  <th>Net Weight</th>
                   <th>Status</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody id="mandi-queue-tbody">
                 <!-- Populated dynamically -->
               </tbody>
             </table>
-          </div>
-        </div>
-
-        <!-- USSD State Machine Inspector -->
-        <div class="card">
-          <div class="card-header">
-            <h3>🧠 Session Inspector (`ussd_sessions`)</h3>
-            <span class="tag code">Schema v2</span>
-          </div>
-          <div class="state-inspector">
-            <div class="inspector-row">
-              <span>Session ID:</span>
-              <code id="inspect-session-id">sess_demo_01</code>
-            </div>
-            <div class="inspector-row">
-              <span>Current Menu Level:</span>
-              <code id="inspect-menu-level" class="highlight">ROOT</code>
-            </div>
-            <div class="inspector-row">
-              <span>Session Payload (JSONB):</span>
-            </div>
-            <pre class="json-box" id="inspect-temp-data">{ "phone": "9876543210" }</pre>
           </div>
         </div>
 
@@ -313,13 +341,13 @@
     <div id="receipt-modal" class="modal-backdrop hidden">
       <div class="modal-card print-target">
         <div class="receipt-header">
-          <div class="gov-badge">GOVERNMENT OF MAHARASHTRA • APMC MANDI</div>
-          <h2>DIGITAL MANDI GATE PASS</h2>
-          <span class="receipt-sub">Issued via AgriQ Unified Procurement Protocol</span>
+          <div class="gov-badge">GOVERNMENT OF INDIA â€¢ DEPARTMENT OF CONSUMER AFFAIRS â€¢ APMC</div>
+          <h2>OFFICIAL MANDI PROCUREMENT GATE PASS</h2>
+          <span class="receipt-sub">Issued under National Food Security & Procurement Protocol</span>
         </div>
         <div class="receipt-body">
           <div class="token-hero">
-            <span class="token-lbl">TOKEN NUMBER</span>
+            <span class="token-lbl">OFFICIAL DIGITAL TOKEN NUMBER</span>
             <span class="token-val" id="receipt-token-val">NSK-4821</span>
           </div>
           <div class="receipt-grid">
@@ -328,36 +356,36 @@
               <strong id="receipt-phone">+91-9876543210</strong>
             </div>
             <div>
-              <span class="r-lbl">Mandi Center:</span>
-              <strong id="receipt-center">Nashik APMC Main</strong>
+              <span class="r-lbl">Procurement Center:</span>
+              <strong id="receipt-center">Nashik APMC Main Yard</strong>
             </div>
             <div>
-              <span class="r-lbl">Commodity:</span>
+              <span class="r-lbl">Certified Commodity:</span>
               <strong id="receipt-crop">Wheat (Grade-A)</strong>
             </div>
             <div>
-              <span class="r-lbl">Allocated Slot:</span>
-              <strong id="receipt-slot">Tomorrow 08:00 AM</strong>
+              <span class="r-lbl">Scheduled Arrival Slot:</span>
+              <strong id="receipt-slot">Tomorrow 08:00 AM - 10:00 AM</strong>
             </div>
             <div>
-              <span class="r-lbl">Estimated Qty:</span>
+              <span class="r-lbl">Declared Quantity:</span>
               <strong id="receipt-qty">1,450 kg (14.5 Q)</strong>
             </div>
             <div>
-              <span class="r-lbl">Queue Position:</span>
-              <strong id="receipt-queue">1st in Window</strong>
+              <span class="r-lbl">Queue Priority:</span>
+              <strong id="receipt-queue">Intake Window #1 (Standby 0)</strong>
             </div>
           </div>
           <div class="receipt-qr-area">
             <div class="qr-placeholder">
-              <span class="qr-code-icon">🏁</span>
-              <code>Payload: {"token":"NSK-4821","type":"AGRIQ"}</code>
+              <span class="qr-code-icon">ðŸ</span>
+              <code>Payload: {"token":"NSK-4821","auth":"GOV_APMC_VALIDATED"}</code>
             </div>
-            <p class="qr-note">Scan at Gate Check-In Counter #1 for Instant Physical Entry</p>
+            <p class="qr-note">Present this Digital Token Pass or SMS at Gate Security Counter #1</p>
           </div>
         </div>
         <div class="receipt-footer no-print">
-          <button id="print-receipt-btn" class="btn-secondary" style="margin-right:0.5rem;">🖨️ Print / Save Pass</button>
+          <button id="print-receipt-btn" class="btn-secondary" style="margin-right:0.5rem;">ðŸ–¨ï¸ Print / Save Gate Pass</button>
           <button id="close-receipt-btn" class="btn-primary">Close Receipt</button>
         </div>
       </div>
@@ -365,8 +393,8 @@
 
     <!-- Footer -->
     <footer class="main-footer">
-      <span>AgriQ &copy; 2026 — Team Runtime-Terror • PS 26032</span>
-      <span>Postgres Schema v2 Compliant • USSD Protocol (*99#) • Edge Function State Machine</span>
+      <span>AgriQ &copy; 2026 â€” Team Runtime-Terror â€¢ SIH 2026 PS 26032</span>
+      <span>Compliant with National Unified USSD Platform (*99#) â€¢ PostgreSQL / PostgREST Architecture</span>
     </footer>
   </div>
 
