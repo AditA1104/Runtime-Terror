@@ -372,7 +372,7 @@
   const I18N = {
     en: {
       rootTitle: 'AgriQ Mandi Seva (*99#)',
-      rootBody: '1. Book Mandi Slot\n2. Check Token Status\n3. Mandi Rates & Forecast\n4. Change Language',
+      rootBody: '1. Book Mandi Slot\n2. Check Token Status\n3. Mandi Rates & Forecast\n4. Change Language / ಭಾಷೆ',
       selectCropTitle: 'Select Commodity:',
       selectCrop: '1. Wheat (गेहूं)\n2. Onion (प्याज)\n3. Paddy (धान)\n4. Cotton (कपास)\n0. Back',
       selectCenterTitle: 'Select Mandi Center:',
@@ -387,7 +387,16 @@
       ratesMenuTitle: 'Select Crop for Forecast:',
       ratesMenu: '1. Wheat (गेहूं)\n2. Onion (प्याज)\n3. Paddy (धान)\n4. Cotton (कपास)\n0. Back',
       langTitle: 'Select Language / भाषा:',
-      langBody: '1. English\n2. हिंदी (Hindi)\n3. मराठी (Marathi)\n0. Back'
+      langBody: '1. English\n2. हिंदी (Hindi)\n3. मराठी (Marathi)\n4. ಕನ್ನಡ (Kannada)\n0. Back',
+      labelToday: 'Today',
+      labelTomorrow: 'Tomorrow',
+      labelLeft: 'left',
+      labelBack: 'Back',
+      labelMandi: 'Mandi',
+      labelSlot: 'Slot',
+      labelToken: 'Token',
+      labelSmsSent: 'SMS sent to',
+      labelMainMenu: 'Main Menu'
     },
     hi: {
       rootTitle: 'एग्री-क्यू मंडी सेवा (*99#)',
@@ -406,7 +415,16 @@
       ratesMenuTitle: 'भाव व सलाह हेतु फसल चुनें:',
       ratesMenu: '1. गेहूं (Wheat)\n2. प्याज (Onion)\n3. धान (Paddy)\n4. कपास (Cotton)\n0. वापस',
       langTitle: 'भाषा चुनें / Select Language:',
-      langBody: '1. English\n2. हिंदी (Hindi)\n3. मराठी (Marathi)\n0. वापस'
+      langBody: '1. English\n2. हिंदी (Hindi)\n3. मराठी (Marathi)\n4. ಕನ್ನಡ (Kannada)\n0. वापस',
+      labelToday: 'आज (Today)',
+      labelTomorrow: 'कल (Tomorrow)',
+      labelLeft: 'शेष',
+      labelBack: 'वापस',
+      labelMandi: 'मंडी केंद्र',
+      labelSlot: 'समय',
+      labelToken: 'टोकन',
+      labelSmsSent: 'SMS भेजा गया',
+      labelMainMenu: 'मुख्य मेनू'
     },
     mr: {
       rootTitle: 'अ‍ॅग्री-क्यू कृषी बाजार (*99#)',
@@ -425,7 +443,44 @@
       ratesMenuTitle: 'भावासाठी पीक निवडा:',
       ratesMenu: '1. गहू (Wheat)\n2. कांदा (Onion)\n3. भात (Paddy)\n4. कापूस (Cotton)\n0. मागे',
       langTitle: 'भाषा निवडा / Select Language:',
-      langBody: '1. English\n2. हिंदी (Hindi)\n3. मराठी (Marathi)\n0. मागे'
+      langBody: '1. English\n2. हिंदी (Hindi)\n3. मराठी (Marathi)\n4. ಕನ್ನಡ (Kannada)\n0. मागे',
+      labelToday: 'आज (Today)',
+      labelTomorrow: 'उद्या (Tomorrow)',
+      labelLeft: 'शिल्लक',
+      labelBack: 'मागे',
+      labelMandi: 'बाजार समिती',
+      labelSlot: 'वेळ',
+      labelToken: 'टोकन',
+      labelSmsSent: 'SMS पाठवला',
+      labelMainMenu: 'मुख्य मेनू'
+    },
+    kn: {
+      rootTitle: 'ಅಗ್ರಿ-ಕ್ಯೂ ಮಂಡಿ ಸೇವೆ (*99#)',
+      rootBody: '1. ಮಂಡಿ ಸ್ಲಾಟ್ ಬುಕ್ ಮಾಡಿ\n2. ಟೋಕನ್ ಸ್ಥಿತಿ ಪರಿಶೀಲಿಸಿ\n3. ಮಂಡಿ ದರಗಳು ಮತ್ತು ಮುನ್ಸೂಚನೆ\n4. ಭಾಷೆ ಬದಲಾಯಿಸಿ (Language)',
+      selectCropTitle: 'ಬೆಳೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ:',
+      selectCrop: '1. ಗೋಧಿ (Wheat)\n2. ಈರುಳ್ಳಿ (Onion)\n3. ಭತ್ತ (Paddy)\n4. ಹತ್ತಿ (Cotton)\n0. ಹಿಂದೆ',
+      selectCenterTitle: 'ಮಂಡಿ ಕೇಂದ್ರವನ್ನು ಆರಿಸಿ:',
+      selectSlotTitle: 'ಲಭ್ಯವಿರುವ ಸಮಯ:',
+      enterQtyTitle: 'ಅಂದಾಜು ಪ್ರಮಾಣ (ಕಿಲೋಗ್ರಾಂ):',
+      enterQty: 'ತೂಕ ನಮೂದಿಸಿ (ಉದಾ. 1450)\n\n0. ಹಿಂದೆ',
+      confirmTitle: 'ಸ್ಲಾಟ್ ದೃಢೀಕರಣ:',
+      confirmPrompt: '1. ಬುಕಿಂಗ್ ದೃಢೀಕರಿಸಿ\n2. ರದ್ದುಮಾಡಿ',
+      successTitle: '✅ ಟೋಕನ್ ಬುಕ್ ಆಗಿದೆ!',
+      statusPromptTitle: 'ಟೋಕನ್ ಸ್ಥಿತಿ ಪರಿಶೀಲಿಸಿ:',
+      statusPromptBody: 'ಟೋಕನ್ ಸಂಖ್ಯೆ ಅಥವಾ ಮೊಬೈಲ್ ನಮೂದಿಸಿ:\n(ಉದಾ. NSK-0198)\n\n0. ಹಿಂದೆ',
+      ratesMenuTitle: 'ದರ ಪರಿಶೀಲನೆಗಾಗಿ ಬೆಳೆ ಆಯ್ಕೆಮಾಡಿ:',
+      ratesMenu: '1. ಗೋಧಿ (Wheat)\n2. ಈರುಳ್ಳಿ (Onion)\n3. ಭತ್ತ (Paddy)\n4. ಹತ್ತಿ (Cotton)\n0. ಹಿಂದೆ',
+      langTitle: 'ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ / Select Language:',
+      langBody: '1. English\n2. हिंदी (Hindi)\n3. मराठी (Marathi)\n4. ಕನ್ನಡ (Kannada)\n0. ಹಿಂದೆ',
+      labelToday: 'ಇಂದು (Today)',
+      labelTomorrow: 'ನಾಳೆ (Tomorrow)',
+      labelLeft: 'ಉಳಿದಿದೆ',
+      labelBack: 'ಹಿಂದೆ',
+      labelMandi: 'ಮಂಡಿ',
+      labelSlot: 'ಸಮಯ',
+      labelToken: 'ಟೋಕನ್',
+      labelSmsSent: 'ಗೆ SMS ಕಳುಹಿಸಲಾಗಿದೆ',
+      labelMainMenu: 'ಮುಖ್ಯ ಮೆನು'
     }
   };
 
@@ -762,7 +817,7 @@
         const cleanText = messageText.replace(/<[^>]*>?/gm, '');
         const utter = new SpeechSynthesisUtterance(cleanText);
         utter.rate = 0.95;
-        const targetLang = state.lang === 'hi' ? 'hi-IN' : (state.lang === 'mr' ? 'mr-IN' : 'en-IN');
+        const targetLang = state.lang === 'hi' ? 'hi-IN' : (state.lang === 'mr' ? 'mr-IN' : (state.lang === 'kn' ? 'kn-IN' : 'en-IN'));
         utter.lang = targetLang;
 
         try {
@@ -870,6 +925,39 @@
     if (sessionTimerBadge) sessionTimerBadge.textContent = '⏱ 60s';
   }
 
+
+  function getLocalizedCenterName(name, lang) {
+    if (!name) return name;
+    const map = {
+      kn: {
+        'Nashik APMC Main': 'ನಾಸಿಕ್ ಎಪಿಎಂಸಿ ಮುಖ್ಯ (Nashik APMC)',
+        'Pune Central Mandi': 'ಪುಣೆ ಕೇಂದ್ರೀಯ ಮಂಡಿ (Pune Mandi)',
+        'Nagpur Cotton Yard': 'ನಾಗಪುರ ಹತ್ತಿ ಮಂಡಿ (Nagpur Cotton)'
+      },
+      hi: {
+        'Nashik APMC Main': 'नासिक एपीएमसी मुख्य (Nashik APMC)',
+        'Pune Central Mandi': 'पुणे सेंट्रल मंडी (Pune Mandi)',
+        'Nagpur Cotton Yard': 'नागपुर कॉटन यार्ड (Nagpur Cotton)'
+      },
+      mr: {
+        'Nashik APMC Main': 'नाशिक एपीएमसी मुख्य',
+        'Pune Central Mandi': 'पुणे मध्यवर्ती बाजार समिती',
+        'Nagpur Cotton Yard': 'नागपूर कापूस बाजार'
+      }
+    };
+    return (map[lang] && map[lang][name]) || name;
+  }
+
+  function getLocalizedCropName(crop, lang) {
+    if (!crop) return crop;
+    const map = {
+      kn: { 'Wheat': 'ಗೋಧಿ (Wheat)', 'Onion': 'ಈರುಳ್ಳಿ (Onion)', 'Paddy': 'ಭತ್ತ (Paddy)', 'Cotton': 'ಹತ್ತಿ (Cotton)' },
+      hi: { 'Wheat': 'गेहूं (Wheat)', 'Onion': 'प्याज (Onion)', 'Paddy': 'धान (Paddy)', 'Cotton': 'कपास (Cotton)' },
+      mr: { 'Wheat': 'गहू (Wheat)', 'Onion': 'कांदा (Onion)', 'Paddy': 'भात (Paddy)', 'Cotton': 'कापूस (Cotton)' }
+    };
+    return (map[lang] && map[lang][crop]) || crop;
+  }
+
   function renderCurrentMenu() {
     const dict = I18N[state.lang] || I18N.en;
     leftSoftLabel.textContent = 'Send';
@@ -890,20 +978,25 @@
         ussdTitle.textContent = dict.selectCenterTitle;
         let centerListText = '';
         state.dynamicCenters.forEach((c, idx) => {
-          centerListText += `${idx + 1}. ${c.center_name}\n`;
+          const locName = getLocalizedCenterName(c.center_name, state.lang);
+          centerListText += `${idx + 1}. ${locName}\n`;
         });
-        centerListText += '0. Back';
+        centerListText += `0. ${dict.labelBack || 'Back'}`;
         ussdBody.textContent = centerListText;
         break;
 
       case 'BOOK_SLOT':
         ussdTitle.textContent = dict.selectSlotTitle;
         let slotListText = '';
+        const todayStr = dict.labelToday || 'Today';
+        const tomorrowStr = dict.labelTomorrow || 'Tomorrow';
+        const leftStr = dict.labelLeft || 'left';
+        const backStr = dict.labelBack || 'Back';
         state.dynamicSlots.forEach((s, idx) => {
-          const dateLabel = s.slot_date === new Date().toISOString().split('T')[0] ? 'Today' : 'Tomorrow';
-          slotListText += `${idx + 1}. ${dateLabel} ${s.slot_start_time} (${s.remaining} left)\n`;
+          const dateLabel = s.slot_date === new Date().toISOString().split('T')[0] ? todayStr : tomorrowStr;
+          slotListText += `${idx + 1}. ${dateLabel} ${s.slot_start_time} (${s.remaining} ${leftStr})\n`;
         });
-        slotListText += '0. Back';
+        slotListText += `0. ${backStr}`;
         ussdBody.textContent = slotListText;
         break;
 
@@ -914,18 +1007,19 @@
 
       case 'BOOK_CONFIRM':
         ussdTitle.textContent = dict.confirmTitle;
-        ussdBody.textContent = `${state.tempData.crop} (${state.tempData.quantityKg} kg)\n` +
-          `Mandi: ${state.tempData.centerName}\n` +
-          `Slot: ${state.tempData.slotTime}\n\n` +
+        const locCrop = getLocalizedCropName(state.tempData.crop, state.lang);
+        ussdBody.textContent = `${locCrop} (${state.tempData.quantityKg} kg)\n` +
+          `${dict.labelMandi || 'Mandi'}: ${state.tempData.centerName}\n` +
+          `${dict.labelSlot || 'Slot'}: ${state.tempData.slotTime}\n\n` +
           dict.confirmPrompt;
         break;
 
       case 'BOOK_SUCCESS':
         ussdTitle.textContent = dict.successTitle;
-        ussdBody.textContent = `Token: ${state.activeToken}\n` +
-          `Center: ${state.tempData.centerName}\n` +
-          `Slot: ${state.tempData.slotTime}\n\n` +
-          `SMS sent to ${state.tempData.phone}.\n\n0. Main Menu`;
+        ussdBody.textContent = `${dict.labelToken || 'Token'}: ${state.activeToken}\n` +
+          `${dict.labelMandi || 'Center'}: ${state.tempData.centerName}\n` +
+          `${dict.labelSlot || 'Slot'}: ${state.tempData.slotTime}\n\n` +
+          `${state.tempData.phone} ${dict.labelSmsSent || 'SMS sent to'}.\n\n0. ${dict.labelMainMenu || 'Main Menu'}`;
         break;
 
       case 'STATUS_PROMPT':
@@ -969,6 +1063,15 @@
 
     // Universal Back check
     if (input === '0') {
+      if (state.currentMenu === 'BOOK_SUCCESS') {
+        state.menuHistory = ['ROOT'];
+        state.currentMenu = 'ROOT';
+        state.inputBuffer = '';
+        ussdInputDisplay.textContent = '';
+        resetSessionTimer();
+        renderCurrentMenu();
+        return;
+      }
       goBackMenu();
       return;
     }
@@ -1058,7 +1161,12 @@
         break;
 
       case 'BOOK_SUCCESS':
-        exitToDialer();
+        state.menuHistory = ['ROOT'];
+        state.currentMenu = 'ROOT';
+        state.inputBuffer = '';
+        ussdInputDisplay.textContent = '';
+        resetSessionTimer();
+        renderCurrentMenu();
         break;
 
       case 'STATUS_PROMPT':
@@ -1066,28 +1174,48 @@
           await showLoading('Querying Central Mandi Database...');
           logSignaling('PostgREST', 'AgriQ ➔ DB', `SELECT * FROM bookings WHERE token_number = '${input}'`, true);
 
-          let match = state.queueList.find(q => q.token.toLowerCase() === input.toLowerCase() || q.phone.includes(input));
+          const q = input.toLowerCase().trim();
+          let match = state.queueList.find(item => 
+            item.token.toLowerCase() === q || 
+            item.token.toLowerCase().includes(q) || 
+            q.includes(item.token.toLowerCase()) || 
+            item.phone.includes(q)
+          );
+
+          if (!match && state.activeToken) {
+            if (state.activeToken.toLowerCase().includes(q) || q.includes(state.activeToken.toLowerCase()) || (state.tempData && state.tempData.phone && state.tempData.phone.includes(q))) {
+              match = {
+                token: state.activeToken,
+                status: state.tempData.stage || 'BOOKED',
+                crop: state.tempData.crop || 'Wheat',
+                slot: state.tempData.slotTime || 'Today 10:00 - 12:00',
+                netWeight: state.tempData.quantityKg || 1400
+              };
+            }
+          }
+
           if (!match && window.agriqBackend) {
             const backendMatch = await window.agriqBackend.getBookingStatus(input);
             if (backendMatch) {
               match = {
                 token: backendMatch.token_number || input,
                 status: backendMatch.status || 'BOOKED',
-                crop: backendMatch.crop || 'Wheat',
-                slot: backendMatch.slot_time || '08:00 AM',
-                netWeight: backendMatch.crop_quantity_kg || 1400
+                crop: backendMatch.crop || state.tempData.crop || 'Wheat',
+                slot: backendMatch.slot_time || state.tempData.slotTime || 'Today 10:00 - 12:00',
+                netWeight: backendMatch.crop_quantity_kg || state.tempData.quantityKg || 1400
               };
             }
           }
 
           if (match) {
-            state.statusLookupResult = `Token: ${match.token}\n` +
+            const locCrop = getLocalizedCropName(match.crop, state.lang);
+            state.statusLookupResult = `${dict.labelToken || 'Token'}: ${match.token}\n` +
               `Status: ${match.status}\n` +
-              `Commodity: ${match.crop}\n` +
+              `Commodity: ${locCrop}\n` +
               `Weight: ${match.netWeight.toLocaleString()} kg\n` +
-              `Slot: ${match.slot}\n\n0. Back`;
+              `${dict.labelSlot || 'Slot'}: ${match.slot}\n\n0. ${dict.labelBack || 'Back'}`;
           } else {
-            state.statusLookupResult = `No record found for "${input}".\nCheck number & retry.\n\n0. Back`;
+            state.statusLookupResult = `No record found for "${input}".\nCheck number & retry.\n\n0. ${dict.labelBack || 'Back'}`;
           }
           enterMenu('STATUS_RESULT');
         } else {
@@ -1132,6 +1260,7 @@
         if (input === '1') setLanguage('en');
         else if (input === '2') setLanguage('hi');
         else if (input === '3') setLanguage('mr');
+        else if (input === '4') setLanguage('kn');
         else {
           flashScreenError();
           return;
@@ -1169,6 +1298,14 @@
 
     state.activeToken = tokenNumber;
     state.tempData.bookingId = bookingId;
+
+    // Decrement remaining slot count dynamically in state
+    if (state.dynamicSlots && state.tempData.slotId) {
+      const targetSlot = state.dynamicSlots.find(s => s.slot_id === state.tempData.slotId);
+      if (targetSlot && targetSlot.remaining > 0) {
+        targetSlot.remaining--;
+      }
+    }
     state.tempData.stage = 'BOOKED';
 
     logSignaling('GSM MAP', 'Gateway ➔ HLR', `MAP_UNSTRUCTURED_SS_RESPONSE (Allocated Token: ${tokenNumber})`, true);
@@ -1234,6 +1371,12 @@
       sendFarmerSms(
         'टोकन खात्री',
         `APMC बाजार: टोकन <strong>${tokenNumber}</strong> निश्चित झाले.\nपीक: ${state.tempData.crop} (${qtl} क्विंटल)\nबाजार: ${state.tempData.centerName || 'नाशिक एपीएमसी'}\nवेळ: ${state.tempData.slotTime}\nगेट पास: agriq.gov.in/t/${tokenNumber}`,
+        'alert-confirm'
+      );
+    } else if (state.lang === 'kn') {
+      sendFarmerSms(
+        'ಟೋಕನ್ ದೃಢೀಕರಣ',
+        `APMC ಮಂಡಿ: ಟೋಕನ್ <strong>${tokenNumber}</strong> ದೃಢಪಟ್ಟಿದೆ.\nಬೆಳೆ: ${state.tempData.crop} (${qtl} ಕ್ವಿಂಟಾಲ್)\nಕೇಂದ್ರ: ${state.tempData.centerName || 'ನಾಸಿಕ್ ಎಪಿಎಂಸಿ'}\nಸಮಯ: ${state.tempData.slotTime}\nಗೇಟ್ ಪಾಸ್: agriq.gov.in/t/${tokenNumber}`,
         'alert-confirm'
       );
     } else {
@@ -1546,6 +1689,15 @@
         ussdInputDisplay.textContent = state.inputBuffer;
         playDtmfTone('0');
       } else {
+        if (state.currentMenu === 'BOOK_SUCCESS') {
+          state.menuHistory = ['ROOT'];
+          state.currentMenu = 'ROOT';
+          state.inputBuffer = '';
+          ussdInputDisplay.textContent = '';
+          resetSessionTimer();
+          renderCurrentMenu();
+          return;
+        }
         goBackMenu();
       }
     }

@@ -9,6 +9,7 @@ class AgriQBackend {
     this.isLive = false;
     this.activeBooking = null;
     this.mockBookings = [];
+    this.mockSlots = {};
     this.initFromStorage();
   }
 
@@ -72,17 +73,21 @@ class AgriQBackend {
         .eq('center_id', centerId);
       if (!error && data && data.length) return data;
     }
-    const today = new Date().toISOString().split('T')[0];
-    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-    return [
-      { slot_id: 's1', slot_date: today, slot_start_time: '10:00', slot_end_time: '12:00', remaining: 8 },
-      { slot_id: 's2', slot_date: tomorrow, slot_start_time: '08:00', slot_end_time: '10:00', remaining: 15 },
-      { slot_id: 's3', slot_date: tomorrow, slot_start_time: '11:00', slot_end_time: '13:00', remaining: 12 }
-    ];
+    const key = centerId || 'c1-nsk';
+    if (!this.mockSlots[key]) {
+      const today = new Date().toISOString().split('T')[0];
+      const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+      this.mockSlots[key] = [
+        { slot_id: 's1', slot_date: today, slot_start_time: '10:00', slot_end_time: '12:00', remaining: 8 },
+        { slot_id: 's2', slot_date: tomorrow, slot_start_time: '08:00', slot_end_time: '10:00', remaining: 15 },
+        { slot_id: 's3', slot_date: tomorrow, slot_start_time: '11:00', slot_end_time: '13:00', remaining: 12 }
+      ];
+    }
+    return this.mockSlots[key];
   }
 
   async createBooking({ phone, centerId, slotId, cropQuantityKg }) {
-    const tokenPrefix = centerId ? centerId.slice(0, 3).toUpperCase() : 'NSK';
+    const tokenPrefix = centerId ? centerId.replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase() || 'NSK' : 'NSK';
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const tokenNumber = `${tokenPrefix}-${randomNum}`;
 
@@ -120,6 +125,15 @@ class AgriQBackend {
       created_at: new Date().toISOString()
     };
 
+    // Decrement slot remaining count dynamically
+    const cKey = centerId || 'c1-nsk';
+    if (this.mockSlots && this.mockSlots[cKey]) {
+      const target = this.mockSlots[cKey].find(s => s.slot_id === slotId);
+      if (target && target.remaining > 0) {
+        target.remaining--;
+      }
+    }
+
     this.activeBooking = mockRecord;
     this.mockBookings.push(mockRecord);
     return mockRecord;
@@ -137,17 +151,25 @@ class AgriQBackend {
       if (!error && data) return data;
     }
 
-    if (this.activeBooking && (this.activeBooking.token_number === tokenOrPhone || this.activeBooking.phone_number === tokenOrPhone)) {
-      return this.activeBooking;
+    if (this.activeBooking) {
+      const q = (tokenOrPhone || '').toLowerCase().trim();
+      const tok = (this.activeBooking.token_number || '').toLowerCase();
+      const ph = (this.activeBooking.phone_number || '').toLowerCase();
+      if (tok.includes(q) || ph.includes(q) || q.includes(tok) || q.includes(ph)) {
+        return this.activeBooking;
+      }
     }
 
-    return {
-      token_number: tokenOrPhone.includes('-') ? tokenOrPhone : 'NSK-0231',
-      status: 'CHECKED_IN',
-      queue_position: 2,
-      predicted_wait_mins: 15,
-      center_name: 'Nashik APMC Main'
-    };
+    if (this.mockBookings && this.mockBookings.length > 0) {
+      const q = (tokenOrPhone || '').toLowerCase().trim();
+      const found = this.mockBookings.find(b => 
+        (b.token_number && b.token_number.toLowerCase().includes(q)) ||
+        (b.phone_number && b.phone_number.toLowerCase().includes(q))
+      );
+      if (found) return found;
+    }
+
+    return null;
   }
 
   async getMandiRates(cropName) {
