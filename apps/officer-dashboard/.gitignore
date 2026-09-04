@@ -1,0 +1,9 @@
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# Committed on purpose: no secrets, just blank Supabase vars so the Playwright
+# suite runs against the mock even on a machine that has a real .env.local.
+!.env.test
