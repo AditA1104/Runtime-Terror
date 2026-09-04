@@ -58,6 +58,51 @@ describe("parseScan — the current pass", () => {
   })
 })
 
+/**
+ * Pinned from farmer-app/src/components/token/QRCodeDisplay.tsx on P2's branch
+ * (commit 7020180). They emit both token keys for backward compatibility and
+ * restored slot_date, so this is a superset of every revision so far. If P2
+ * changes the pass again, this test is what notices.
+ */
+describe("parseScan — P2's shipped pass", () => {
+  const SHIPPED = {
+    type: PASS_TYPE,
+    booking_id: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+    token_number: "NSK-0231",
+    token: "NSK-0231", // P2 sends both keys
+    farmer_id: "f8888888-8888-8888-8888-888888888888",
+    center_id: "affc5449-8ea1-4da3-b1f4-0246eee93595",
+    phone_number: "9876543210",
+    slot_date: "2026-09-04",
+  }
+
+  it("reads every field the farmer app sends", () => {
+    expect(parseScan(encode(SHIPPED))).toEqual({
+      bookingId: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+      token: "NSK-0231",
+      farmerId: "f8888888-8888-8888-8888-888888888888",
+      centerId: "affc5449-8ea1-4da3-b1f4-0246eee93595",
+      slotDate: "2026-09-04",
+      phone: "9876543210",
+    })
+  })
+
+  it("carries slot_date, so the wrong-day message works again", () => {
+    expect(parseScan(encode(SHIPPED))?.slotDate).toBe("2026-09-04")
+  })
+
+  it("has a UUID centre id, so the wrong-centre check is meaningful", () => {
+    const id = parseScan(encode(SHIPPED))?.centerId
+    expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
+  })
+
+  it("is unambiguous even though both token keys are present", () => {
+    // Both hold the same value, so preferring `token` cannot pick the wrong one.
+    expect(SHIPPED.token).toBe(SHIPPED.token_number)
+    expect(parseScan(encode(SHIPPED))?.token).toBe("NSK-0231")
+  })
+})
+
 describe("parseScan — P2's earlier revision", () => {
   // Two contracts arrived two days apart and it is not confirmed which build
   // is on farmers' phones, so both token keys are read.

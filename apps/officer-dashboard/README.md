@@ -8,9 +8,10 @@ npm install
 npm run dev      # http://localhost:5174
 ```
 
-With no `.env.local`, the app runs on a **seeded local dataset** — 5 centres,
-~90 bookings spread across every stage. Nothing to install, nothing to connect.
-A "Demo data" badge in the header tells you which mode you're in.
+With no `.env.local`, the app runs on a **seeded local dataset** — the same six
+Karnataka APMC yards P2's farmer app and P4's USSD simulator use, ~90 bookings
+spread across every stage. Nothing to install, nothing to connect. A "Demo data"
+badge in the header tells you which mode you're in.
 
 ## Tests
 
@@ -51,6 +52,18 @@ seeing zero of the first officer's rows is the RLS-scoping proof.
 
 > The Supabase branch of `repository.ts` has **no coverage** — it cannot run
 > until the RLS ask below lands. That is the module's main untested surface.
+
+## Talking to P2's farmer app
+
+The centre ids in `src/data/mock.ts` are **copied from P2's farmer app**, not
+invented here — `c0000000-…-0001` is Bengaluru APMC on both sides. P2's demo
+pass (`BLR-0231`) is seeded as a real booking too, so the two apps demo together
+with no backend: their app renders the QR, this desk scans it, and it resolves
+to a live row offering "Check in" rather than "not on today's list".
+
+`src/data/interop.test.ts` pins that agreement — their payload, their centre
+ids, their demo booking. If either side drifts, a test fails instead of the
+demo.
 
 ## The QR token pass
 

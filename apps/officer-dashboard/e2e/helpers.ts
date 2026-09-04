@@ -1,7 +1,11 @@
 import { expect, type Page } from "@playwright/test"
 
-/** The busiest seeded centre — deterministic 34-booking desk. See src/data/mock.ts. */
-export const BUSY_CENTRE = "Lasalgaon APMC"
+/**
+ * The busiest seeded centre — deterministic 34-booking desk. Its id matches
+ * P2's farmer app exactly, so a pass from their demo mode resolves here.
+ * See src/data/mock.ts.
+ */
+export const BUSY_CENTRE = "Bengaluru APMC"
 
 /**
  * Walk the sign-in card: type an officer name, pick a centre, open the desk.

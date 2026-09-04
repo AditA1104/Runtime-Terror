@@ -28,8 +28,8 @@ test.describe("officer desk — mock mode", () => {
     await expect(rows.first()).toBeVisible()
     expect(await rows.count()).toBeGreaterThan(10)
 
-    // Every seeded token for this centre carries the LSG- prefix.
-    await expect(rows.first().getByText(/LSG-\d{4}/)).toBeVisible()
+    // Every seeded token for this centre carries the BLR- prefix.
+    await expect(rows.first().getByText(/BLR-\d{4}/)).toBeVisible()
   })
 
   test("status filters narrow the list", async ({ page }) => {
@@ -52,7 +52,7 @@ test.describe("officer desk — mock mode", () => {
     await signIn(page)
 
     const search = page.getByPlaceholder(/Search token, name, phone/)
-    await search.fill("LSG-1001")
+    await search.fill("BLR-1001")
     await expect(queueRows(page)).toHaveCount(1)
 
     await search.fill("zzz-no-such-token")
@@ -68,7 +68,7 @@ test.describe("officer desk — mock mode", () => {
 
     await page.getByRole("tab", { name: "Quota" }).click()
     await expect(page.getByRole("heading", { name: "Quota & capacity" })).toBeVisible()
-    await expect(page.getByLabel("Daily capacity (kg)")).toHaveValue("180000")
+    await expect(page.getByLabel("Daily capacity (kg)")).toHaveValue("60000")
   })
 
   test("checking a farmer in advances the row", async ({ page }) => {
@@ -76,7 +76,7 @@ test.describe("officer desk — mock mode", () => {
 
     await page.getByRole("button", { name: /^Expected/ }).click()
     const firstBooked = queueRows(page).first()
-    const token = (await firstBooked.getByText(/LSG-\d{4}/).textContent())!.trim()
+    const token = (await firstBooked.getByText(/BLR-\d{4}/).textContent())!.trim()
 
     await firstBooked.getByRole("button", { name: "Check in" }).click()
 
@@ -104,7 +104,7 @@ test("mock mutations broadcast across tabs without a reload", async ({ context }
 
   await deskA.getByRole("button", { name: /^Expected/ }).click()
   const row = queueRows(deskA).first()
-  const token = (await row.getByText(/LSG-\d{4}/).textContent())!.trim()
+  const token = (await row.getByText(/BLR-\d{4}/).textContent())!.trim()
 
   await row.getByRole("button", { name: "Check in" }).click()
   const dialog = deskA.getByRole("dialog")
