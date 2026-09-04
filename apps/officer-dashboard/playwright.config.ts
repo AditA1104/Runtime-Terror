@@ -23,7 +23,9 @@ export default defineConfig({
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
   ],
   webServer: {
-    command: `npm run dev -- --port ${PORT} --strictPort`,
+    // --mode test loads .env.test, which blanks the Supabase vars so the suite
+    // always runs against the seeded mock even on a machine with .env.local.
+    command: `npm run dev -- --mode test --port ${PORT} --strictPort`,
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

@@ -20,7 +20,7 @@ npx playwright install chromium   # once
 npm run test:e2e                  # end-to-end — or test:e2e:ui to watch
 ```
 
-**Unit (Vitest, 72 tests).** `src/lib/*.test.ts` — the state machine, the
+**Unit (Vitest, 76 tests).** `src/lib/*.test.ts` — the state machine, the
 metric derivations, the formatters, and QR payload parsing. The bottleneck rule
 ("most farmer-minutes, not the longest queue") and the check that BOOKED is
 never blamed both live in `metrics.test.ts`.
@@ -40,16 +40,15 @@ Both run in CI on any PR touching this app —
 
 ## The QR token pass
 
-P2 encodes the farmer's pass as JSON with a `type` discriminator:
+P2's farmer app encodes the pass as JSON with a `type` discriminator:
 
 ```json
 {
   "type": "AGRIQ_TOKEN",
-  "booking_id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
-  "token_number": "NSK-0231",
-  "phone_number": "9876543210",
-  "center_id": "c1-nsk",
-  "slot_date": "2026-09-03"
+  "token": "NSK-0231",
+  "booking_id": "b9999999-9999-9999-9999-999999999999",
+  "farmer_id": "f8888888-8888-8888-8888-888888888888",
+  "center_id": "c1111111-1111-1111-1111-111111111111"
 }
 ```
 
@@ -57,10 +56,26 @@ P2 encodes the farmer's pass as JSON with a `type` discriminator:
 app's QR code, a bare token, a half-decoded pass — so the desk says "not an
 AgriQ token pass" instead of hunting for a token the payload never held.
 
-`booking_id` is what the queue matches on, with `token_number` as the fallback.
-`center_id` and `slot_date` are **never** used to match; they only let the desk
-name what is wrong when a scan finds nothing — "booked for 2026-09-03" or
-"booked at another centre" rather than a bare "not found".
+`booking_id` is what the queue matches on, with the token as the fallback.
+`center_id` is **never** used to match; it only lets the desk say "booked at
+another centre" when a scan finds nothing. Checking it only *after* the lookup
+misses means a bad centre id can never reject a scan that would have worked.
+
+**Two revisions exist.** An earlier pass used `token_number` instead of `token`
+and also carried `phone_number` and `slot_date`. Both token keys are read,
+because it is not confirmed which build is on farmers' phones. Narrow this to
+one key once P2 confirms — `scan.test.ts` covers both, so it is a safe delete.
+
+**Ask for P2:** put `slot_date` back. The desk used it to answer the most
+common gate question — a farmer arriving on the wrong day — with "that pass is
+for 2026-09-03" rather than a bare "not on today's list". The code still reads
+it if present, so restoring it needs no change here.
+
+> P2 suggested scanning should call `transition_booking_status()` straight to
+> `CHECKED_IN`. The desk deliberately does not: it resolves the *next* stage
+> from the booking's current status (`nextCheckpoint()`), so scanning a farmer
+> already past the gate advances them correctly instead of failing, and the
+> officer still confirms in a dialog before anything is written.
 
 ## Going live
 

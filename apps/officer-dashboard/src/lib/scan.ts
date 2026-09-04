@@ -1,16 +1,25 @@
 /**
  * QR payload parsing for the farmer's token pass.
  *
- * Shape confirmed by P2 — a JSON object tagged with a discriminator:
+ * Current shape from P2's farmer app:
  *
  *   {
  *     "type": "AGRIQ_TOKEN",
- *     "booking_id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
- *     "token_number": "NSK-0231",
- *     "phone_number": "9876543210",
- *     "center_id": "c1-nsk",
- *     "slot_date": "2026-09-03"
+ *     "token": "NSK-0231",
+ *     "booking_id": "b9999999-9999-9999-9999-999999999999",
+ *     "farmer_id":  "f8888888-8888-8888-8888-888888888888",
+ *     "center_id":  "c1111111-1111-1111-1111-111111111111"
  *   }
+ *
+ * An earlier revision used `token_number` for the token and also carried
+ * `phone_number` and `slot_date`. Both key names are accepted: two conflicting
+ * contracts arrived from P2 two days apart and it is not confirmed which build
+ * is actually on farmers' phones. This is not open-ended guessing — the `type`
+ * discriminator still gates everything, and a pass without it is rejected.
+ *
+ * `slot_date` stays optional rather than deleted: the desk uses it to say
+ * "that pass is for tomorrow" instead of a bare "not found", and P2 has been
+ * asked to put it back.
  *
  * Lives here rather than in the scanner component so it can be tested without
  * a camera, and because every other pure rule in this module is in lib/.
@@ -20,17 +29,20 @@
 export const PASS_TYPE = "AGRIQ_TOKEN"
 
 export interface ScanResult {
+  /** What the queue matches on. */
   bookingId: string | null
   /** Upper-cased, so a lookup against the queue is case-insensitive. */
   token: string | null
-  phone: string | null
+  farmerId: string | null
   /**
-   * The centre and date the pass was issued for. Not used to match — they are
-   * how the desk explains a miss ("that is tomorrow's slot") instead of a bare
-   * "not found".
+   * The centre and date the pass was issued for. Never used to match — they
+   * are how the desk explains a miss ("that is tomorrow's slot") instead of a
+   * bare "not found". `slotDate` is absent on the current pass.
    */
   centerId: string | null
   slotDate: string | null
+  /** Dropped from the current pass; still read if an older one turns up. */
+  phone: string | null
 }
 
 const str = (v: unknown): string | null =>
@@ -54,7 +66,8 @@ export function parseScan(raw: string): ScanResult | null {
   if (obj.type !== PASS_TYPE) return null
 
   const bookingId = str(obj.booking_id)
-  const token = str(obj.token_number)
+  // `token` is the current key; `token_number` was the earlier one.
+  const token = str(obj.token) ?? str(obj.token_number)
   // With neither identifier there is nothing to look the farmer up by, so this
   // is a malformed pass rather than a miss.
   if (!bookingId && !token) return null
@@ -62,8 +75,9 @@ export function parseScan(raw: string): ScanResult | null {
   return {
     bookingId,
     token: token?.toUpperCase() ?? null,
-    phone: str(obj.phone_number),
+    farmerId: str(obj.farmer_id),
     centerId: str(obj.center_id),
     slotDate: str(obj.slot_date),
+    phone: str(obj.phone_number),
   }
 }
