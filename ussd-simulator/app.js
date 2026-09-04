@@ -300,8 +300,16 @@
       bookingId: null,
       grade: 'GRADE-A'
     },
-    dynamicCenters: [],
-    dynamicSlots: [],
+    dynamicCenters: [
+      { center_id: 'c1-nsk', center_name: 'Nashik APMC Main Yard' },
+      { center_id: 'c2-nsk', center_name: 'Lasalgaon Onion Sub-Yard' },
+      { center_id: 'c3-nsk', center_name: 'Pimpalgaon APMC Yard' }
+    ],
+    dynamicSlots: [
+      { slot_id: 's1', slot_date: new Date().toISOString().split('T')[0], slot_start_time: '08:00 AM', slot_end_time: '10:00 AM', remaining: 12 },
+      { slot_id: 's2', slot_date: new Date().toISOString().split('T')[0], slot_start_time: '10:00 AM', slot_end_time: '12:00 PM', remaining: 8 },
+      { slot_id: 's3', slot_date: new Date().toISOString().split('T')[0], slot_start_time: '02:00 PM', slot_end_time: '04:00 PM', remaining: 15 }
+    ],
     activeToken: null,
     activeBooking: null,
     smsCount: 0,
@@ -458,10 +466,10 @@
 
   function handleSessionTimeout() {
     clearInterval(state.timerInterval);
-    logSignaling('GSM MAP', 'MSC ➔ HLR', 'MAP_USSD_TIMEOUT_INDICATION (30s inactivity expiry)');
+    logSignaling('GSM MAP', 'MSC ➔ HLR', 'MAP_USSD_TIMEOUT_INDICATION (60s inactivity expiry)');
     flashScreenError();
     ussdTitle.textContent = 'Session Timed Out';
-    ussdBody.textContent = '30s inactivity limit reached.\nDial *99# to start again.';
+    ussdBody.textContent = '60s inactivity limit reached.\nDial *99# to start again.';
     setTimeout(() => {
       exitToDialer();
     }, 2200);
@@ -513,6 +521,21 @@
 
     const gross = parseFloat(grossRaw) || 0;
     const tare = parseFloat(tareRaw) || 0;
+
+    if (grossRaw && tareRaw && gross <= tare) {
+      calcNetWeight.textContent = '⚠ Gross must be > Tare';
+      calcNetWeight.style.color = '#ef4444';
+      dbtRateVal.textContent = '-- / Quintal';
+      dbtAmountVal.textContent = '₹0.00 (Weight Invalid)';
+      btnSimWeigh.disabled = true;
+      return { net: 0, quintals: '0', totalAmt: '0', effectiveRate: 0 };
+    } else {
+      calcNetWeight.style.color = '';
+      if (state.tempData.stage === 'CHECKED_IN') {
+        btnSimWeigh.disabled = false;
+      }
+    }
+
     let net = Math.max(0, gross - tare);
 
     // Dynamic Agmarknet moisture deduction logic
@@ -739,9 +762,16 @@
         const cleanText = messageText.replace(/<[^>]*>?/gm, '');
         const utter = new SpeechSynthesisUtterance(cleanText);
         utter.rate = 0.95;
-        if (state.lang === 'hi') utter.lang = 'hi-IN';
-        else if (state.lang === 'mr') utter.lang = 'mr-IN';
-        else utter.lang = 'en-IN';
+        const targetLang = state.lang === 'hi' ? 'hi-IN' : (state.lang === 'mr' ? 'mr-IN' : 'en-IN');
+        utter.lang = targetLang;
+
+        try {
+          const voices = window.speechSynthesis.getVoices();
+          if (voices && voices.length > 0) {
+            const matchingVoice = voices.find(v => v.lang === targetLang || v.lang.startsWith(targetLang.slice(0, 2)));
+            if (matchingVoice) utter.voice = matchingVoice;
+          }
+        } catch (e) {}
 
         // Animated soundwave
         speakBtn.innerHTML = `🔊 Playing <span class="speaking-wave"><span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span></span>`;
@@ -965,7 +995,8 @@
           state.tempData.crop = crops[input];
           await showLoading('Fetching APMC Centers...');
           if (window.agriqBackend) {
-            state.dynamicCenters = await window.agriqBackend.getMandiCenters();
+            const fetched = await window.agriqBackend.getMandiCenters();
+            if (fetched && fetched.length > 0) state.dynamicCenters = fetched;
           }
           logSignaling('PostgREST', 'AgriQ ➔ DB', 'SELECT center_id, center_name FROM mandi_centers', true);
           enterMenu('BOOK_CENTER');
@@ -982,7 +1013,8 @@
           state.tempData.centerName = selected.center_name;
           await showLoading('Checking Slot Capacity...');
           if (window.agriqBackend) {
-            state.dynamicSlots = await window.agriqBackend.getAvailableSlots(selected.center_id);
+            const fetchedSlots = await window.agriqBackend.getAvailableSlots(selected.center_id);
+            if (fetchedSlots && fetchedSlots.length > 0) state.dynamicSlots = fetchedSlots;
           }
           logSignaling('PostgREST', 'AgriQ ➔ DB', `SELECT * FROM slots_available WHERE center_id = '${selected.center_id}'`, true);
           enterMenu('BOOK_SLOT');
@@ -1105,7 +1137,9 @@
           return;
         }
         await showLoading('Applying Language...');
-        enterMenu('ROOT');
+        state.menuHistory = ['ROOT'];
+        state.currentMenu = 'ROOT';
+        renderCurrentMenu();
         break;
 
       default:
@@ -1254,6 +1288,10 @@
   btnSimWeigh.addEventListener('click', async () => {
     if (!state.activeToken) return;
     const { net, quintals } = updateCalculatedWeights();
+    if (net <= 0) {
+      alert('Gross weight must be greater than tare weight to certify produce.');
+      return;
+    }
     state.tempData.quantityKg = net;
 
     if (window.agriqBackend) {
@@ -1460,11 +1498,15 @@
     resetSessionTimer();
 
     if (state.mode === 'DIALING') {
-      state.dialBuffer += key;
-      dialedDisplay.textContent = state.dialBuffer;
+      if (state.dialBuffer.length < 15) {
+        state.dialBuffer += key;
+        dialedDisplay.textContent = state.dialBuffer;
+      }
     } else if (state.mode === 'MENU') {
-      state.inputBuffer += key;
-      ussdInputDisplay.textContent = state.inputBuffer;
+      if (state.inputBuffer.length < 10) {
+        state.inputBuffer += key;
+        ussdInputDisplay.textContent = state.inputBuffer;
+      }
     }
   }
 
@@ -1704,7 +1746,8 @@
   // --- Initialization ---
   async function init() {
     if (window.agriqBackend) {
-      state.dynamicCenters = await window.agriqBackend.getMandiCenters();
+      const centers = await window.agriqBackend.getMandiCenters();
+      if (centers && centers.length > 0) state.dynamicCenters = centers;
     }
     renderQueueTable();
     updateMandiKpis();
