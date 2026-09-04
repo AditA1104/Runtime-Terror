@@ -50,10 +50,10 @@
       </div>
     </div>
 
-    <!-- Official Mandi Operations Toolbar -->
+    <!-- Official Mandi USSD Operations Toolbar -->
     <div class="action-toolbar">
       <div class="toolbar-left">
-        <span class="toolbar-label">Mandi Operations:</span>
+        <span class="toolbar-label">USSD Operations:</span>
         <button class="tool-btn" id="btn-quick-rates" title="View Current MSP Rates & AI Forecast">📈 Karnataka APMC MSP Rates & AI Forecast</button>
         <button class="tool-btn btn-receipt" id="btn-view-receipt" disabled title="View Official Mandi Gate Pass">📄 Official Gate Pass</button>
         <button class="tool-btn" id="btn-view-signaling" title="Open Telecom Protocol Monitor">📡 Telecom Signaling Monitor</button>
@@ -61,13 +61,13 @@
       <div class="toolbar-right">
         <div class="turnaround-pill" id="turnaround-pill">
           <span class="pill-dot"></span>
-          <span>Turnaround Efficiency: <strong>38 mins</strong> (vs 6.5 hrs traditional manual APMC)</span>
+          <span>Gateway Protocol: <strong>*99# NUUP (GSM 2G)</strong></span>
         </div>
         <button class="tool-btn btn-danger" id="btn-quick-reset" title="Reset Current Session">🔄 Reset Session</button>
       </div>
     </div>
 
-    <!-- Main 3-Column Layout -->
+    <!-- Main 2-Column Layout (Phone & SMS Feed) -->
     <main class="main-content">
       
       <!-- COLUMN 1: The Nokia Feature Phone Emulator -->
@@ -195,233 +195,6 @@
             <button id="update-phone-btn" class="btn-sm">Update Number</button>
           </div>
         </div>
-      </section>
-
-      <!-- COLUMN 3: Mandi Officer Operations Desk -->
-      <section class="inspector-column">
-        
-        <!-- Live Mandi KPI Metrics Bar -->
-        <div class="kpi-grid">
-          <div class="kpi-card">
-            <span class="kpi-lbl">Queue Today</span>
-            <strong id="kpi-queue-count" class="kpi-val">3 Tokens</strong>
-            <span class="kpi-sub">Bengaluru APMC Bay</span>
-          </div>
-          <div class="kpi-card">
-            <span class="kpi-lbl">Certified Produce</span>
-            <strong id="kpi-produce-weight" class="kpi-val">54.50 Q</strong>
-            <span class="kpi-sub">Central Pool Stock</span>
-          </div>
-          <div class="kpi-card">
-            <span class="kpi-lbl">PFMS DBT Disbursed</span>
-            <strong id="kpi-dbt-total" class="kpi-val">₹1,32,162.50</strong>
-            <span class="kpi-sub">Direct Aadhaar Pay</span>
-          </div>
-          <div class="kpi-card highlight-card">
-            <span class="kpi-lbl">Avg Turnaround</span>
-            <strong class="kpi-val text-green">38 mins</strong>
-            <span class="kpi-sub">-88% vs Manual Mandi</span>
-          </div>
-        </div>
-
-        <!-- Interactive Checkpoint Controller -->
-        <div class="card checkpoint-card">
-          <div class="card-header">
-            <div class="card-title-group">
-              <h3>🏢 Mandi Operations (P3 Officer Integration Desk)</h3>
-              <span class="tag verified-tag">Schema v2 Event Sync</span>
-            </div>
-            <span class="mandi-location-badge" id="mandi-yard-location">Bengaluru APMC (Yeshwanthpur)</span>
-          </div>
-          
-          <!-- Lifecycle Progress Stepper Bar -->
-          <div class="lifecycle-stepper">
-            <div class="step-node" id="step-node-booked">
-              <div class="node-circle">1</div>
-              <span class="node-label">Booked</span>
-            </div>
-            <div class="step-line" id="step-line-1"></div>
-            <div class="step-node" id="step-node-checkin">
-              <div class="node-circle">2</div>
-              <span class="node-label">Gate In</span>
-            </div>
-            <div class="step-line" id="step-line-2"></div>
-            <div class="step-node" id="step-node-weigh">
-              <div class="node-circle">3</div>
-              <span class="node-label">Weighed</span>
-            </div>
-            <div class="step-line" id="step-line-3"></div>
-            <div class="step-node" id="step-node-quality">
-              <div class="node-circle">4</div>
-              <span class="node-label">Assayed</span>
-            </div>
-            <div class="step-line" id="step-line-4"></div>
-            <div class="step-node" id="step-node-payment">
-              <div class="node-circle">5</div>
-              <span class="node-label">DBT Paid</span>
-            </div>
-            <div class="step-line" id="step-line-5"></div>
-            <div class="step-node" id="step-node-complete">
-              <div class="node-circle">6</div>
-              <span class="node-label">Exit Pass</span>
-            </div>
-          </div>
-
-          <div class="active-token-banner" id="active-token-banner">
-            <div>
-              <span class="lbl">Selected Token:</span>
-              <strong id="demo-token-display">None Selected</strong>
-            </div>
-            <div>
-              <span class="lbl">Commodity:</span>
-              <strong id="demo-crop-display">--</strong>
-            </div>
-            <div>
-              <span class="lbl">Current Stage:</span>
-              <span class="status-pill status-idle" id="demo-status-display">IDLE</span>
-            </div>
-          </div>
-
-          <!-- Dynamic Checkpoint Form Panels -->
-          <div class="checkpoint-forms">
-            
-            <!-- Stage 1: Gate Entry -->
-            <div class="checkpoint-box" id="box-checkin">
-              <div class="cp-header">
-                <span class="cp-num">1</span>
-                <strong>Gate Security & Token Check-In (P3 Event)</strong>
-                <span class="cp-stage-tag">Arrival Intake</span>
-              </div>
-              <div class="cp-inputs">
-                <select id="input-gate-no">
-                  <option value="Gate #1 (Yeshwanthpur North Intake)">Gate #1 (Yeshwanthpur North Intake)</option>
-                  <option value="Gate #2 (Outer Ring Road Heavy Bay)">Gate #2 (Outer Ring Road Heavy Bay)</option>
-                  <option value="Gate #3 (APMC Electronic Weighbridge Bay)">Gate #3 (APMC Electronic Weighbridge Bay)</option>
-                </select>
-                <button class="btn-step-action" id="btn-sim-checkin" disabled>Confirm Gate Entry</button>
-              </div>
-            </div>
-
-            <!-- Stage 2: Weighbridge -->
-            <div class="checkpoint-box" id="box-weigh">
-              <div class="cp-header">
-                <span class="cp-num">2</span>
-                <strong>Weighbridge Gross & Tare Scale</strong>
-                <span class="cp-stage-tag">Electronic Scale #3</span>
-              </div>
-              <div class="cp-inputs dual">
-                <div>
-                  <label>Gross Weight (kg):</label>
-                  <input type="number" id="input-gross-weight" placeholder="Enter Gross (kg)" min="50" step="10" />
-                </div>
-                <div>
-                  <label>Tare / Vehicle (kg):</label>
-                  <input type="number" id="input-tare-weight" placeholder="Enter Tare (kg)" min="0" step="10" />
-                </div>
-              </div>
-              <div class="calc-row">
-                <span>Calculated Net Produce: <strong id="calc-net-weight">-- kg (-- Q)</strong></span>
-                <button class="btn-step-action" id="btn-sim-weigh" disabled>Log Scale Weight</button>
-              </div>
-            </div>
-
-            <!-- Stage 3: Quality Assayer -->
-            <div class="checkpoint-box" id="box-quality">
-              <div class="cp-header">
-                <span class="cp-num">3</span>
-                <strong>Government Quality Assayer (Agmarknet)</strong>
-                <span class="cp-stage-tag">Central Pool Lab</span>
-              </div>
-              <div class="cp-inputs dual">
-                <div>
-                  <label>Quality Grade:</label>
-                  <select id="select-quality-grade">
-                    <option value="GRADE-A">Grade A (100% MSP Compliant)</option>
-                    <option value="GRADE-B">Grade B (Standard - 95% MSP)</option>
-                    <option value="GRADE-C">Grade C (Refair - 85% MSP)</option>
-                  </select>
-                </div>
-                <div>
-                  <label>Moisture Content (%):</label>
-                  <input type="number" id="input-moisture" placeholder="e.g. 11.4" min="5" max="25" step="0.1" />
-                </div>
-              </div>
-              <div class="calc-row">
-                <span id="moisture-status" class="status-neutral">Enter moisture % to test compliance</span>
-                <button class="btn-step-action" id="btn-sim-quality" disabled>Certify Grade</button>
-              </div>
-            </div>
-
-            <!-- Stage 4: DBT Accounts -->
-            <div class="checkpoint-box" id="box-payment">
-              <div class="cp-header">
-                <span class="cp-num">4</span>
-                <strong>PFMS Direct Benefit Transfer (DBT / APB)</strong>
-                <span class="cp-stage-tag">Aadhaar Pay Bridge</span>
-              </div>
-              <div class="dbt-summary">
-                <div>
-                  <span class="dbt-lbl">Applied MSP Rate:</span>
-                  <strong id="dbt-rate-val">-- / Quintal</strong>
-                </div>
-                <div>
-                  <span class="dbt-lbl">Disbursement Amount:</span>
-                  <strong class="dbt-highlight" id="dbt-amount-val">--</strong>
-                </div>
-              </div>
-              <div class="dbt-bank-preview">
-                <span id="dbt-bank-text">Select a token to verify Aadhaar linked account</span>
-              </div>
-              <button class="btn-step-action btn-dbt" id="btn-sim-payment" disabled>Initiate Aadhaar DBT Transfer</button>
-            </div>
-
-            <!-- Stage 5: Final Completion -->
-            <div class="checkpoint-box" id="box-complete">
-              <div class="cp-header">
-                <span class="cp-num">5</span>
-                <strong>Procurement Closeout & Exit Pass</strong>
-                <span class="cp-stage-tag">Audit Ledger</span>
-              </div>
-              <div class="exit-pass-summary">
-                <span>Complete procurement loop, record audit ledger & issue digital exit pass.</span>
-                <button class="btn-step-action btn-finish" id="btn-sim-complete" disabled>Finalize & Issue Gate Exit Pass</button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Live Mandi Queue Desk Table -->
-        <div class="card queue-card">
-          <div class="card-header">
-            <div class="card-title-group">
-              <h3>📋 Mandi Queue Operations Desk</h3>
-              <span class="tag live-tag">● Live Queue (Realtime)</span>
-            </div>
-            <div class="queue-header-tools">
-              <input type="text" id="queue-search-input" placeholder="Search Token / Mobile / Crop..." />
-            </div>
-          </div>
-          <div class="queue-table-wrapper">
-            <table class="queue-table">
-              <thead>
-                <tr>
-                  <th>Token #</th>
-                  <th>Mobile</th>
-                  <th>Crop</th>
-                  <th>Slot Time</th>
-                  <th>Net Weight</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="mandi-queue-tbody">
-                <!-- Populated dynamically -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
       </section>
 
     </main>

@@ -39,61 +39,9 @@
   const farmerPhoneInput = document.getElementById('farmer-phone-input');
   const updatePhoneBtn = document.getElementById('update-phone-btn');
 
-  // Officer Operations Elements
-  const demoTokenDisplay = document.getElementById('demo-token-display');
-  const demoCropDisplay = document.getElementById('demo-crop-display');
-  const demoStatusDisplay = document.getElementById('demo-status-display');
+  // Connection Status
   const connectionStatus = document.getElementById('connection-status');
   const pulseDot = document.getElementById('pulse-dot');
-  const mandiQueueTbody = document.getElementById('mandi-queue-tbody');
-  const queueSearchInput = document.getElementById('queue-search-input');
-  const mandiYardLocation = document.getElementById('mandi-yard-location');
-
-  // KPI Elements
-  const kpiQueueCount = document.getElementById('kpi-queue-count');
-  const kpiProduceWeight = document.getElementById('kpi-produce-weight');
-  const kpiDbtTotal = document.getElementById('kpi-dbt-total');
-
-  // Checkpoint Form Fields
-  const inputGateNo = document.getElementById('input-gate-no');
-  const btnSimCheckin = document.getElementById('btn-sim-checkin');
-  const btnScanQr = document.getElementById('btn-scan-qr');
-  const scannerView = document.getElementById('scanner-view');
-  const scannerStatusText = document.getElementById('scanner-status-text');
-
-  const inputGrossWeight = document.getElementById('input-gross-weight');
-  const inputTareWeight = document.getElementById('input-tare-weight');
-  const calcNetWeight = document.getElementById('calc-net-weight');
-  const btnSimWeigh = document.getElementById('btn-sim-weigh');
-
-  const selectQualityGrade = document.getElementById('select-quality-grade');
-  const inputMoisture = document.getElementById('input-moisture');
-  const moistureStatus = document.getElementById('moisture-status');
-  const btnSimQuality = document.getElementById('btn-sim-quality');
-
-  const dbtRateVal = document.getElementById('dbt-rate-val');
-  const dbtAmountVal = document.getElementById('dbt-amount-val');
-  const dbtBankText = document.getElementById('dbt-bank-text');
-  const btnSimPayment = document.getElementById('btn-sim-payment');
-
-  const btnSimComplete = document.getElementById('btn-sim-complete');
-
-  // Stepper Elements
-  const stepNodes = {
-    booked: document.getElementById('step-node-booked'),
-    checkin: document.getElementById('step-node-checkin'),
-    weigh: document.getElementById('step-node-weigh'),
-    quality: document.getElementById('step-node-quality'),
-    payment: document.getElementById('step-node-payment'),
-    complete: document.getElementById('step-node-complete')
-  };
-  const stepLines = [
-    document.getElementById('step-line-1'),
-    document.getElementById('step-line-2'),
-    document.getElementById('step-line-3'),
-    document.getElementById('step-line-4'),
-    document.getElementById('step-line-5')
-  ];
 
   // Action Buttons
   const btnQuickRates = document.getElementById('btn-quick-rates');
@@ -272,12 +220,6 @@
     'Wheat': 2425
   };
 
-  const GRADE_MULTIPLIERS = {
-    'GRADE-A': 1.0,
-    'GRADE-B': 0.95,
-    'GRADE-C': 0.85
-  };
-
   // --- State ---
   const state = {
     mode: 'DIALING', // DIALING | MENU | LOADING
@@ -315,11 +257,8 @@
     activeToken: null,
     activeBooking: null,
     smsCount: 0,
-    queueList: [
-      { token: 'BLR-0198', phone: '9845019283', crop: 'Ragi', slot: '08:00 AM', netWeight: 1850, status: 'WEIGHED', grade: 'GRADE-A', bookingId: 'bk_0198' },
-      { token: 'HUB-0215', phone: '9740432190', crop: 'Onion', slot: '08:30 AM', netWeight: 2200, status: 'CHECKED_IN', grade: 'GRADE-B', bookingId: 'bk_0215' },
-      { token: 'KLB-0220', phone: '9980873461', crop: 'Tur', slot: '09:00 AM', netWeight: 1400, status: 'BOOKED', grade: null, bookingId: 'bk_0220' }
-    ]
+    statusLookupResult: null,
+    rateLookupResult: null
   };
 
   // --- GSM SS7 / MAP Telecom Protocol Logger ---
@@ -346,28 +285,6 @@
     logSignaling('GSM MAP', 'VLR ➔ HLR', 'MAP_SEND_AUTHENTICATION_INFO (IMSI: 404-66-8912049102)');
     logSignaling('GSM MAP', 'HLR ➔ MSC', 'MAP_FORWARD_CHECK_SS_INDICATION (NUUP Service *99# Enabled)', true);
     logSignaling('HTTP/2', 'GW ➔ Supabase', 'PostgREST Schema v2 Engine Synced (Health 200 OK)', true);
-  }
-
-  // --- Dynamic Mandi KPIs Calculator ---
-  function updateMandiKpis() {
-    // Queue Count
-    const totalQueued = state.queueList.length;
-    kpiQueueCount.textContent = `${totalQueued} Token${totalQueued !== 1 ? 's' : ''}`;
-
-    // Produce Weight (sum of net weights)
-    let totalKg = state.queueList.reduce((acc, cur) => acc + (cur.netWeight || 0), 0);
-    const totalQ = (totalKg / 100).toFixed(2);
-    kpiProduceWeight.textContent = `${totalQ} Q`;
-
-    // DBT Total Disbursed (based on weighed / paid tokens)
-    let totalDbt = 0;
-    state.queueList.forEach(item => {
-      const rate = MSP_RATES[item.crop] || 2425;
-      const mult = GRADE_MULTIPLIERS[item.grade || 'GRADE-A'] || 1.0;
-      totalDbt += (item.netWeight / 100) * (rate * mult);
-    });
-
-    kpiDbtTotal.textContent = `₹${Math.round(totalDbt).toLocaleString('en-IN')}`;
   }
 
   // --- Multilingual Dictionaries ---
@@ -563,167 +480,6 @@
       playDtmfTone('5');
     });
   });
-
-  // --- Dynamic Live Calculations for Officer Operations Desk ---
-  function updateCalculatedWeights() {
-    const grossRaw = inputGrossWeight.value;
-    const tareRaw = inputTareWeight.value;
-
-    if (!grossRaw && !tareRaw) {
-      calcNetWeight.textContent = '-- kg (-- Q)';
-      dbtRateVal.textContent = '-- / Quintal';
-      dbtAmountVal.textContent = '--';
-      return { net: 0, quintals: '0', totalAmt: '0', effectiveRate: 0 };
-    }
-
-    const gross = parseFloat(grossRaw) || 0;
-    const tare = parseFloat(tareRaw) || 0;
-
-    if (grossRaw && tareRaw && gross <= tare) {
-      calcNetWeight.textContent = '⚠ Gross must be > Tare';
-      calcNetWeight.style.color = '#ef4444';
-      dbtRateVal.textContent = '-- / Quintal';
-      dbtAmountVal.textContent = '₹0.00 (Weight Invalid)';
-      btnSimWeigh.disabled = true;
-      return { net: 0, quintals: '0', totalAmt: '0', effectiveRate: 0 };
-    } else {
-      calcNetWeight.style.color = '';
-      if (state.tempData.stage === 'CHECKED_IN') {
-        btnSimWeigh.disabled = false;
-      }
-    }
-
-    let net = Math.max(0, gross - tare);
-
-    // Dynamic Agmarknet moisture deduction logic
-    const moistureVal = parseFloat(inputMoisture.value) || 0;
-    let moistureDeductionKg = 0;
-    if (moistureVal > 12.0 && moistureVal <= 14.0) {
-      const excessPercent = moistureVal - 12.0;
-      moistureDeductionKg = Math.round(net * (excessPercent / 100));
-      net = Math.max(0, net - moistureDeductionKg);
-    }
-
-    const quintals = (net / 100).toFixed(2);
-    calcNetWeight.textContent = `${net.toLocaleString()} kg (${quintals} Q)${moistureDeductionKg > 0 ? ` [Moisture -${moistureDeductionKg}kg]` : ''}`;
-
-    // Quality Grade Multiplier
-    const grade = selectQualityGrade.value;
-    const mult = GRADE_MULTIPLIERS[grade] || 1.0;
-
-    // Recalculate DBT Amount using selected token's crop
-    const activeCrop = state.tempData.crop || 'Ragi';
-    const baseRate = MSP_RATES[activeCrop] || 2425;
-    const effectiveRate = Math.round(baseRate * mult);
-    dbtRateVal.textContent = `₹${effectiveRate.toLocaleString()} / Quintal (${grade})`;
-
-    const totalAmt = ((net / 100) * effectiveRate).toFixed(2);
-    dbtAmountVal.textContent = `₹${parseFloat(totalAmt).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-
-    return { net, quintals, totalAmt, effectiveRate };
-  }
-
-  inputGrossWeight.addEventListener('input', updateCalculatedWeights);
-  inputTareWeight.addEventListener('input', updateCalculatedWeights);
-
-  // Moisture Validation
-  function validateMoisture() {
-    const valStr = inputMoisture.value.trim();
-    if (!valStr) {
-      moistureStatus.textContent = 'Enter moisture % to test compliance';
-      moistureStatus.className = 'status-neutral';
-      btnSimQuality.disabled = true;
-      return;
-    }
-
-    const val = parseFloat(valStr) || 0;
-    if (val <= 12.0) {
-      moistureStatus.textContent = `✔ Within Agmarknet Limit (${val}% ≤ 12.0%)`;
-      moistureStatus.className = 'status-ok';
-      btnSimQuality.disabled = (state.tempData.stage !== 'WEIGHED');
-    } else if (val <= 14.0) {
-      const diff = (val - 12.0).toFixed(1);
-      moistureStatus.textContent = `⚠ Marginal Moisture (${val}%): ${diff}% weight deduction applied`;
-      moistureStatus.className = 'status-warn';
-      btnSimQuality.disabled = (state.tempData.stage !== 'WEIGHED');
-    } else {
-      moistureStatus.textContent = `✖ Moisture Exceeds Mandi Acceptance Limit (${val}% > 14.0% Rejected)`;
-      moistureStatus.className = 'status-err';
-      btnSimQuality.disabled = true;
-    }
-    updateCalculatedWeights();
-  }
-
-  inputMoisture.addEventListener('input', validateMoisture);
-  selectQualityGrade.addEventListener('change', () => {
-    updateCalculatedWeights();
-  });
-
-  // --- Stepper Lifecycle UI Management ---
-  function updateLifecycleStepper(stage) {
-    state.tempData.stage = stage;
-    demoStatusDisplay.textContent = stage;
-    demoStatusDisplay.className = `status-pill status-${stage.toLowerCase().replace('_', '-')}`;
-
-    const stages = ['BOOKED', 'CHECKED_IN', 'WEIGHED', 'QUALITY_CHECKED', 'PAYMENT_PROCESSED', 'COMPLETED'];
-    const currentIndex = stages.indexOf(stage);
-
-    const keys = ['booked', 'checkin', 'weigh', 'quality', 'payment', 'complete'];
-
-    keys.forEach((key, idx) => {
-      const node = stepNodes[key];
-      if (!node) return;
-      node.classList.remove('active', 'completed');
-      if (idx < currentIndex) {
-        node.classList.add('completed');
-      } else if (idx === currentIndex) {
-        node.classList.add('active');
-      }
-    });
-
-    stepLines.forEach((line, idx) => {
-      if (line) {
-        line.classList.toggle('active', idx < currentIndex);
-      }
-    });
-
-    // Checkpoint Box highlight
-    document.querySelectorAll('.checkpoint-box').forEach(box => {
-      box.classList.remove('active-checkpoint', 'completed-checkpoint');
-    });
-
-    // Button states
-    btnSimCheckin.disabled = (stage !== 'BOOKED');
-    if (btnScanQr) btnScanQr.disabled = (stage !== 'BOOKED');
-    btnSimWeigh.disabled = (stage !== 'CHECKED_IN');
-    btnSimQuality.disabled = (stage !== 'WEIGHED' || parseFloat(inputMoisture.value) > 14.0);
-    btnSimPayment.disabled = (stage !== 'QUALITY_CHECKED');
-    btnSimComplete.disabled = (stage !== 'PAYMENT_PROCESSED');
-
-    if (stage === 'BOOKED') {
-      document.getElementById('box-checkin')?.classList.add('active-checkpoint');
-    } else if (stage === 'CHECKED_IN') {
-      document.getElementById('box-checkin')?.classList.add('completed-checkpoint');
-      document.getElementById('box-weigh')?.classList.add('active-checkpoint');
-    } else if (stage === 'WEIGHED') {
-      document.getElementById('box-checkin')?.classList.add('completed-checkpoint');
-      document.getElementById('box-weigh')?.classList.add('completed-checkpoint');
-      document.getElementById('box-quality')?.classList.add('active-checkpoint');
-    } else if (stage === 'QUALITY_CHECKED') {
-      document.getElementById('box-checkin')?.classList.add('completed-checkpoint');
-      document.getElementById('box-weigh')?.classList.add('completed-checkpoint');
-      document.getElementById('box-quality')?.classList.add('completed-checkpoint');
-      document.getElementById('box-payment')?.classList.add('active-checkpoint');
-    } else if (stage === 'PAYMENT_PROCESSED') {
-      document.getElementById('box-checkin')?.classList.add('completed-checkpoint');
-      document.getElementById('box-weigh')?.classList.add('completed-checkpoint');
-      document.getElementById('box-quality')?.classList.add('completed-checkpoint');
-      document.getElementById('box-payment')?.classList.add('completed-checkpoint');
-      document.getElementById('box-complete')?.classList.add('active-checkpoint');
-    } else if (stage === 'COMPLETED') {
-      document.querySelectorAll('.checkpoint-box').forEach(b => b.classList.add('completed-checkpoint'));
-    }
-  }
 
   // --- SVG QR Code Generator (Pure Scalable Vector) ---
   function generateSvgQrCode(dataObj) {
@@ -927,8 +683,7 @@
     if (sessionTimerBadge) sessionTimerBadge.textContent = '⏱ 60s';
   }
 
-
-    function getLocalizedCenterName(name, lang) {
+  function getLocalizedCenterName(name, lang) {
     if (!name) return name;
     const map = {
       kn: {
@@ -979,9 +734,9 @@
         'Tur': 'तूर (Tur)',
         'Paddy': 'भात (Paddy)',
         'Onion': 'कांदा (Onion)',
-        'Cotton': 'कापूस (Cotton)',
-        'Maize': 'मका (Maize)',
-        'Wheat': 'गहू (Wheat)'
+        'Cotton': 'ಕಾಪೂಸ (Cotton)',
+        'Maize': 'ಮಕಾ (Maize)',
+        'Wheat': 'ಗಹೂ (Wheat)'
       }
     };
     return (map[lang] && map[lang][crop]) || crop;
@@ -1160,8 +915,7 @@
         if (state.dynamicSlots && state.dynamicSlots[slotIdx]) {
           const slot = state.dynamicSlots[slotIdx];
           state.tempData.slotId = slot.slot_id;
-          const dateLabel = slot.slot_date === new Date().toISOString().split('T')[0] ? 'Today' : 'Tomorrow';
-          state.tempData.slotTime = `${dateLabel} ${slot.slot_start_time} - ${slot.slot_end_time}`;
+          state.tempData.slotTime = `${slot.slot_date} ${slot.slot_start_time}`;
           enterMenu('BOOK_QTY');
         } else {
           flashScreenError();
@@ -1170,7 +924,7 @@
 
       case 'BOOK_QTY':
         const qty = parseInt(input, 10);
-        if (qty && qty >= 50 && qty <= 50000) {
+        if (!isNaN(qty) && qty > 0) {
           state.tempData.quantityKg = qty;
           enterMenu('BOOK_CONFIRM');
         } else {
@@ -1180,71 +934,41 @@
 
       case 'BOOK_CONFIRM':
         if (input === '1') {
-          await showLoading('Issuing Official APMC Token...', 700);
+          await showLoading('Allocating Token & Registering Slot...');
           await finalizeBookingToken();
         } else if (input === '2') {
-          exitToDialer();
+          goBackMenu();
         } else {
           flashScreenError();
         }
         break;
 
-      case 'BOOK_SUCCESS':
-        state.menuHistory = ['ROOT'];
-        state.currentMenu = 'ROOT';
-        state.inputBuffer = '';
-        ussdInputDisplay.textContent = '';
-        resetSessionTimer();
-        renderCurrentMenu();
-        break;
-
       case 'STATUS_PROMPT':
-        if (input.length >= 3) {
-          await showLoading('Querying Central Mandi Database...');
-          logSignaling('PostgREST', 'AgriQ ➔ DB', `SELECT * FROM bookings WHERE token_number = '${input}'`, true);
-
-          const q = input.toLowerCase().trim();
-          let match = state.queueList.find(item => 
-            item.token.toLowerCase() === q || 
-            item.token.toLowerCase().includes(q) || 
-            q.includes(item.token.toLowerCase()) || 
-            item.phone.includes(q)
-          );
-
-          if (!match && state.activeToken) {
-            if (state.activeToken.toLowerCase().includes(q) || q.includes(state.activeToken.toLowerCase()) || (state.tempData && state.tempData.phone && state.tempData.phone.includes(q))) {
-              match = {
-                token: state.activeToken,
-                status: state.tempData.stage || 'BOOKED',
-                crop: state.tempData.crop || 'Ragi',
-                slot: state.tempData.slotTime || 'Today 10:00 - 12:00',
-                netWeight: state.tempData.quantityKg || 1400
-              };
-            }
+        if (input.length > 0) {
+          await showLoading('Querying Mandi Gate DB...');
+          let statusData = null;
+          if (window.agriqBackend) {
+            statusData = await window.agriqBackend.getBookingStatus(input);
           }
 
-          if (!match && window.agriqBackend) {
-            const backendMatch = await window.agriqBackend.getBookingStatus(input);
-            if (backendMatch) {
-              match = {
-                token: backendMatch.token_number || input,
-                status: backendMatch.status || 'BOOKED',
-                crop: backendMatch.crop || state.tempData.crop || 'Ragi',
-                slot: backendMatch.slot_time || state.tempData.slotTime || 'Today 10:00 - 12:00',
-                netWeight: backendMatch.crop_quantity_kg || state.tempData.quantityKg || 1400
-              };
-            }
-          }
-
-          if (match) {
-            const locCrop = getLocalizedCropName(match.crop, state.lang);
-            state.statusLookupResult = `${dict.labelToken || 'Token'}: ${match.token}\n` +
-              `Status: ${match.status}\n` +
-              `Commodity: ${locCrop}\n` +
-              `Weight: ${match.netWeight.toLocaleString()} kg\n` +
-              `${dict.labelSlot || 'Slot'}: ${match.slot}\n\n0. ${dict.labelBack || 'Back'}`;
+          if (statusData) {
+            const cropName = statusData.crop_type || state.tempData.crop || 'Ragi';
+            const netKg = statusData.crop_quantity_kg || 1400;
+            const qtl = (netKg / 100).toFixed(2);
+            state.statusLookupResult = `Token: ${statusData.token_number || input}\n` +
+              `Status: ${statusData.status || 'BOOKED'}\n` +
+              `Commodity: ${cropName} (${qtl} Q)\n` +
+              `Arrival Bay: Gate Counter #1\n` +
+              `Center: Bengaluru APMC\n\n0. Back`;
+          } else if (state.activeToken && (state.activeToken.toLowerCase().includes(input.toLowerCase()) || input.includes(state.tempData.phone))) {
+            const qtl = (state.tempData.quantityKg / 100).toFixed(2);
+            state.statusLookupResult = `Token: ${state.activeToken}\n` +
+              `Status: BOOKED / ACTIVE\n` +
+              `Commodity: ${state.tempData.crop} (${qtl} Q)\n` +
+              `Slot: ${state.tempData.slotTime}\n` +
+              `Center: ${state.tempData.centerName}\n\n0. Back`;
           } else {
-            state.statusLookupResult = `No record found for "${input}".\nCheck number & retry.\n\n0. ${dict.labelBack || 'Back'}`;
+            state.statusLookupResult = `No active record found for "${input}".\nPlease verify token or mobile.\n\n0. Back`;
           }
           enterMenu('STATUS_RESULT');
         } else {
@@ -1252,28 +976,25 @@
         }
         break;
 
-      case 'STATUS_RESULT':
-        goBackMenu();
-        break;
-
       case 'RATES_MENU':
-        const rateCrops = { '1': 'Ragi', '2': 'Tur', '3': 'Paddy', '4': 'Onion' };
-        if (rateCrops[input]) {
-          const cropName = rateCrops[input];
-          await showLoading(`Fetching ${cropName} Rates & AI Forecast...`);
-          logSignaling('ML Engine', 'P5 ➔ AgriQ', `FETCH_PREDICTIVE_FORECAST (Crop: ${cropName}, Model: scikit-learn RF)`, true);
-          let info = null;
+        const cropMap = { '1': 'ragi', '2': 'tur', '3': 'paddy', '4': 'onion' };
+        if (cropMap[input]) {
+          await showLoading('Fetching CACP & AI Forecast...');
+          const cropKey = cropMap[input];
+          let rateData = null;
           if (window.agriqBackend) {
-            info = await window.agriqBackend.getMandiRates(cropName);
+            rateData = await window.agriqBackend.getMandiRates(cropKey);
           }
-          if (info) {
-            state.rateLookupResult = `${cropName.toUpperCase()}:\n` +
-              `MSP: ${info.rate}\n` +
-              `AI Forecast: ${info.forecast}\n` +
-              `Optimal Sell Day: ${info.bestDay}\n` +
-              `Analysis: ${info.reason}\n\n0. Back`;
+
+          if (rateData) {
+            const cName = cropKey.toUpperCase();
+            state.rateLookupResult = `Crop: ${cName}\n` +
+              `MSP / Spot: ${rateData.rate}\n` +
+              `AI 7-Day Trend: ${rateData.forecast}\n` +
+              `Best Intake: ${rateData.bestDay}\n` +
+              `Note: ${rateData.reason}\n\n0. Back`;
           } else {
-            state.rateLookupResult = `Current MSP for ${cropName}: ₹${MSP_RATES[cropName] || 2425}/Q\n\n0. Back`;
+            state.rateLookupResult = `Rates updated today.\nGovt MSP active for all Karnataka APMCs.\n\n0. Back`;
           }
           enterMenu('RATES_DETAIL');
         } else {
@@ -1281,23 +1002,14 @@
         }
         break;
 
-      case 'RATES_DETAIL':
-        goBackMenu();
-        break;
-
       case 'LANG_MENU':
-        if (input === '1') setLanguage('en');
-        else if (input === '2') setLanguage('kn');
-        else if (input === '3') setLanguage('hi');
-        else if (input === '4') setLanguage('mr');
-        else {
+        const langMap = { '1': 'en', '2': 'kn', '3': 'hi', '4': 'mr' };
+        if (langMap[input]) {
+          setLanguage(langMap[input]);
+          enterMenu('ROOT');
+        } else {
           flashScreenError();
-          return;
         }
-        await showLoading('Applying Language...');
-        state.menuHistory = ['ROOT'];
-        state.currentMenu = 'ROOT';
-        renderCurrentMenu();
         break;
 
       default:
@@ -1307,10 +1019,10 @@
 
   // --- Finalize Token Creation (Dynamic Database Backend) ---
   async function finalizeBookingToken(customToken = null) {
-    const callerPhone = farmerPhoneInput.value.trim() || '9876543210';
+    const callerPhone = farmerPhoneInput.value.trim() || '9845012345';
     state.tempData.phone = callerPhone;
 
-    logSignaling('PostgREST', 'AgriQ ➔ Edge Function', `INVOKE create-booking (Phone: ${callerPhone}, Center: ${state.tempData.centerId || 'c1-blr'}, Qty: ${state.tempData.quantityKg}kg)`);
+    logSignaling('PostgREST', 'AgriQ ➔ Edge Function', `INVOKE create-booking (Phone: ${callerPhone}, Center: ${state.tempData.centerId || 'c0000000-0000-0000-0000-000000000001'}, Qty: ${state.tempData.quantityKg}kg)`);
 
     let backendResult = null;
     if (window.agriqBackend) {
@@ -1324,12 +1036,11 @@
 
     const prefix = state.tempData.centerId ? state.tempData.centerId.replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase() || 'BLR' : 'BLR';
     const tokenNumber = customToken || (backendResult ? backendResult.token_number : `${prefix}-${Math.floor(1000 + Math.random() * 9000)}`);
-    const bookingId = backendResult ? backendResult.booking_id : ('bk_' + Math.random().toString(36).substr(2, 9));
+    const bookingId = backendResult ? backendResult.booking_id : ('b' + Math.floor(1000000 + Math.random() * 9000000) + '-0000-0000-0000-000000000001');
 
     state.activeToken = tokenNumber;
     state.tempData.bookingId = bookingId;
 
-    // Decrement remaining slot count dynamically in state
     if (state.dynamicSlots && state.tempData.slotId) {
       const targetSlot = state.dynamicSlots.find(s => s.slot_id === state.tempData.slotId);
       if (targetSlot && targetSlot.remaining > 0) {
@@ -1340,36 +1051,8 @@
 
     logSignaling('GSM MAP', 'Gateway ➔ HLR', `MAP_UNSTRUCTURED_SS_RESPONSE (Allocated Token: ${tokenNumber})`, true);
 
-    demoTokenDisplay.textContent = tokenNumber;
-    demoCropDisplay.textContent = `${state.tempData.crop} (${state.tempData.quantityKg} kg)`;
-    mandiYardLocation.textContent = state.tempData.centerName || 'Bengaluru APMC (Yeshwanthpur Main Yard)';
-    updateLifecycleStepper('BOOKED');
     btnViewReceipt.disabled = false;
 
-    // Load dynamic values for officer weighbridge
-    inputGrossWeight.value = state.tempData.quantityKg + 200;
-    inputTareWeight.value = 200;
-    inputMoisture.value = '11.4';
-    validateMoisture();
-    updateCalculatedWeights();
-
-    dbtBankText.innerHTML = `Beneficiary A/C: <strong>Canara Bank / Karnataka Bank (***${callerPhone.slice(-4)})</strong> • Aadhaar Authenticated (Raitha Siri DBT)`;
-
-    // Add to Mandi Queue table
-    state.queueList.unshift({
-      token: tokenNumber,
-      phone: callerPhone,
-      crop: state.tempData.crop,
-      slot: state.tempData.slotTime.replace('Tomorrow ', '').replace('Today ', ''),
-      netWeight: state.tempData.quantityKg,
-      status: 'BOOKED',
-      grade: 'GRADE-A',
-      bookingId: bookingId
-    });
-    renderQueueTable();
-    updateMandiKpis();
-
-    // Prepare Gate Pass details
     receiptTokenVal.textContent = tokenNumber;
     receiptPhone.textContent = `+91-${callerPhone}`;
     receiptCenter.textContent = state.tempData.centerName || 'Bengaluru APMC (Yeshwanthpur Main Yard)';
@@ -1379,18 +1062,17 @@
     receiptQty.textContent = `${state.tempData.quantityKg.toLocaleString()} kg (${qtl} Q)`;
     receiptBarcodeText.textContent = `*${tokenNumber}-2026*`;
 
-    // Generate P3 Contract Payload
     const qrPayload = {
       type: 'AGRIQ_TOKEN',
       booking_id: bookingId,
       token_number: tokenNumber,
+      token: tokenNumber,
       phone_number: callerPhone,
-      center_id: state.tempData.centerId || 'c1-blr',
+      center_id: state.tempData.centerId || 'c0000000-0000-0000-0000-000000000001',
       slot_date: new Date().toISOString().split('T')[0]
     };
     generateSvgQrCode(qrPayload);
 
-    // Send Confirmation SMS in chosen language (Karnataka KSAMB APMC)
     if (state.lang === 'kn') {
       sendFarmerSms(
         'ಟೋಕನ್ ದೃಢೀಕರಣ',
@@ -1406,7 +1088,7 @@
     } else if (state.lang === 'mr') {
       sendFarmerSms(
         'टोकन खात्री',
-        `कर्नाटक सरकार / KSAMB APMC: टोकन <strong>${tokenNumber}</strong> निश्चित झाले.\nपीक: ${state.tempData.crop} (${qtl} क्विंटल)\nबाजार: ${state.tempData.centerName || 'बंगळुरू यशवंतपूर एपीएमसी'}\nवेळ: ${state.tempData.slotTime}\nगेट पास: agriq.karnataka.gov.in/t/${tokenNumber}\nजय किसान!`,
+        `ಕರ್ನಾಟಕ ಸರ್ಕಾರ / KSAMB APMC: टोकन <strong>${tokenNumber}</strong> निश्चित झाले.\nपीक: ${state.tempData.crop} (${qtl} क्विंटल)\nबाजार: ${state.tempData.centerName || 'बंगळुरू यशवंतपूर एपीएमसी'}\nवेळ: ${state.tempData.slotTime}\nगेट पास: agriq.karnataka.gov.in/t/${tokenNumber}\nजय किसान!`,
         'alert-confirm'
       );
     } else {
@@ -1419,232 +1101,6 @@
 
     enterMenu('BOOK_SUCCESS');
   }
-
-  // --- Officer Checkpoint Transitions ---
-
-  // Checkpoint 1: Gate Security QR Scanner Simulation (Optional)
-  if (btnScanQr) {
-    btnScanQr.addEventListener('click', () => {
-      if (!state.activeToken) return;
-      if (scannerView) scannerView.classList.remove('hidden');
-      playScannerBeep();
-      if (scannerStatusText) scannerStatusText.textContent = `Scanning Token QR: ${state.activeToken}...`;
-
-      setTimeout(() => {
-        if (scannerStatusText) scannerStatusText.textContent = `✔ Gate Pass Verified: ${state.activeToken} (Valid)`;
-        setTimeout(() => {
-          if (scannerView) scannerView.classList.add('hidden');
-          btnSimCheckin.click();
-        }, 500);
-      }, 700);
-    });
-  }
-
-  // Checkpoint 1: Gate Security Check-In Action
-  btnSimCheckin.addEventListener('click', async () => {
-    if (!state.activeToken) return;
-    if (window.agriqBackend) {
-      await window.agriqBackend.transitionStatus(state.tempData.bookingId, 'CHECKED_IN');
-    }
-    updateLifecycleStepper('CHECKED_IN');
-    updateQueueItemStatus(state.activeToken, 'CHECKED_IN');
-
-    const gate = inputGateNo.value;
-    sendFarmerSms(
-      'Gate Security Check-In',
-      `KSAMB APMC Gate Security: Token <strong>${state.activeToken}</strong> verified at <strong>${gate}</strong>.\nSecurity clearance granted. Proceed immediately to Weighbridge Bay #2.`,
-      'alert-status'
-    );
-  });
-
-  // Checkpoint 2: Weighbridge Scale
-  btnSimWeigh.addEventListener('click', async () => {
-    if (!state.activeToken) return;
-    const { net, quintals } = updateCalculatedWeights();
-    if (net <= 0) {
-      alert('Gross weight must be greater than tare weight to certify produce.');
-      return;
-    }
-    state.tempData.quantityKg = net;
-
-    if (window.agriqBackend) {
-      await window.agriqBackend.transitionStatus(state.tempData.bookingId, 'WEIGHED');
-    }
-    updateLifecycleStepper('WEIGHED');
-    updateQueueItemStatus(state.activeToken, 'WEIGHED', net);
-    updateMandiKpis();
-
-    sendFarmerSms(
-      'Weighbridge Scale Certified',
-      `KSAMB APMC Digital Scale #3: Weight logged for <strong>${state.activeToken}</strong>.\nGross: ${inputGrossWeight.value} kg | Tare: ${inputTareWeight.value} kg\n<strong>Certified Net Produce: ${net.toLocaleString()} kg (${quintals} Q)</strong>.\nProceed to Quality Assayer Desk.`,
-      'alert-weighed'
-    );
-  });
-
-  // Checkpoint 3: Quality Assayer
-  btnSimQuality.addEventListener('click', async () => {
-    if (!state.activeToken) return;
-    const grade = selectQualityGrade.value;
-    const moisture = inputMoisture.value;
-    state.tempData.grade = grade;
-
-    if (window.agriqBackend) {
-      await window.agriqBackend.transitionStatus(state.tempData.bookingId, 'QUALITY_CHECKED');
-    }
-    updateLifecycleStepper('QUALITY_CHECKED');
-    updateQueueItemStatus(state.activeToken, 'QUALITY_CHECKED', null, grade);
-    updateMandiKpis();
-
-    sendFarmerSms(
-      'Agmarknet Quality Assayed',
-      `Government Lab Desk: Sample for <strong>${state.activeToken}</strong> certified as <strong>${grade}</strong>.\nMoisture content: ${moisture}%. Certified compliant with KSAMB & Central Pool Procurement standards. Direct Benefit Transfer unlocked.`,
-      'alert-quality'
-    );
-  });
-
-  // Checkpoint 4: PFMS Direct Benefit Transfer
-  btnSimPayment.addEventListener('click', async () => {
-    if (!state.activeToken) return;
-    const { totalAmt, quintals } = updateCalculatedWeights();
-
-    if (window.agriqBackend) {
-      await window.agriqBackend.transitionStatus(state.tempData.bookingId, 'PAYMENT_PROCESSED');
-    }
-    updateLifecycleStepper('PAYMENT_PROCESSED');
-    updateQueueItemStatus(state.activeToken, 'PAYMENT_PROCESSED');
-    updateMandiKpis();
-
-    const refId = 'PFMS' + Math.floor(10000000 + Math.random() * 90000000);
-    const phone = state.tempData.phone || '9876543210';
-
-    sendFarmerSms(
-      'PFMS DBT Credit Alert',
-      `PFMS Direct Benefit Transfer Alert:\n<strong>₹${parseFloat(totalAmt).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong> credited to Aadhaar-linked Bank A/C ending in <strong>${phone.slice(-4)}</strong> for ${quintals} Q ${state.tempData.crop}.\nRef No: <strong>${refId}</strong> under PM-AASHA & KSAMB MSP Scheme.`,
-      'alert-payment'
-    );
-  });
-
-  // Checkpoint 5: Procurement Closeout & Exit Pass
-  btnSimComplete.addEventListener('click', async () => {
-    if (!state.activeToken) return;
-
-    if (window.agriqBackend) {
-      await window.agriqBackend.transitionStatus(state.tempData.bookingId, 'COMPLETED');
-    }
-    updateLifecycleStepper('COMPLETED');
-    updateQueueItemStatus(state.activeToken, 'COMPLETED');
-    updateMandiKpis();
-
-    sendFarmerSms(
-      'Mandi Exit Pass Issued',
-      `KSAMB APMC Exit Clearance: Procurement cycle closed for <strong>${state.activeToken}</strong>.\nTurnaround time: <strong>38 mins</strong>.\nDownload digital voucher: agriq.karnataka.gov.in/v/${state.activeToken}.\nGate Exit Barrier Cleared. Jai Kisan! (ಜೈ ರೈತ)`,
-      'alert-complete'
-    );
-  });
-
-  // --- Queue Table Management ---
-  function renderQueueTable() {
-    const filter = (queueSearchInput.value || '').toLowerCase().trim();
-    mandiQueueTbody.innerHTML = '';
-
-    const filtered = state.queueList.filter(item => {
-      if (!filter) return true;
-      return item.token.toLowerCase().includes(filter) ||
-        item.phone.includes(filter) ||
-        item.crop.toLowerCase().includes(filter) ||
-        item.status.toLowerCase().includes(filter);
-    });
-
-    if (filtered.length === 0) {
-      mandiQueueTbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#64748b;padding:0.75rem;">No matching tokens found</td></tr>`;
-      return;
-    }
-
-    filtered.forEach(item => {
-      const tr = document.createElement('tr');
-      if (item.token === state.activeToken) tr.className = 'selected-row';
-
-      const qtl = (item.netWeight / 100).toFixed(2);
-      tr.innerHTML = `
-        <td><strong>${item.token}</strong></td>
-        <td>${item.phone}</td>
-        <td>${item.crop}</td>
-        <td>${item.slot}</td>
-        <td>${item.netWeight.toLocaleString()} kg (${qtl} Q)</td>
-        <td><span class="status-pill status-${item.status.toLowerCase().replace('_', '-')}">${item.status}</span></td>
-        <td><button class="btn-sm btn-select-token" data-token="${item.token}">Inspect</button></td>
-      `;
-
-      tr.addEventListener('click', () => {
-        selectTokenForOperations(item);
-      });
-
-      const btnInspect = tr.querySelector('.btn-select-token');
-      btnInspect.addEventListener('click', (e) => {
-        e.stopPropagation();
-        selectTokenForOperations(item);
-      });
-
-      mandiQueueTbody.appendChild(tr);
-    });
-  }
-
-  function selectTokenForOperations(item) {
-    state.activeToken = item.token;
-    state.tempData.bookingId = item.bookingId || ('bk_' + item.token);
-    state.tempData.phone = item.phone;
-    state.tempData.crop = item.crop;
-    state.tempData.quantityKg = item.netWeight;
-    state.tempData.stage = item.status;
-
-    demoTokenDisplay.textContent = item.token;
-    demoCropDisplay.textContent = `${item.crop} (${item.netWeight} kg)`;
-    farmerPhoneInput.value = item.phone;
-
-    inputGrossWeight.value = item.netWeight + 200;
-    inputTareWeight.value = 200;
-    inputMoisture.value = '11.4';
-    if (item.grade) selectQualityGrade.value = item.grade;
-
-    validateMoisture();
-    updateCalculatedWeights();
-    updateLifecycleStepper(item.status);
-    renderQueueTable();
-    btnViewReceipt.disabled = false;
-
-    dbtBankText.innerHTML = `Beneficiary A/C: <strong>Canara Bank / Karnataka Bank (***${item.phone.slice(-4)})</strong> • Aadhaar Authenticated (Raitha Siri DBT)`;
-
-    // Update Gate pass
-    receiptTokenVal.textContent = item.token;
-    receiptPhone.textContent = `+91-${item.phone}`;
-    receiptCrop.textContent = `${item.crop} (${item.grade || 'Standard'})`;
-    const qtl = (item.netWeight / 100).toFixed(2);
-    receiptQty.textContent = `${item.netWeight.toLocaleString()} kg (${qtl} Q)`;
-    receiptBarcodeText.textContent = `*${item.token}-2026*`;
-
-    const qrPayload = {
-      type: 'AGRIQ_TOKEN',
-      booking_id: state.tempData.bookingId,
-      token_number: item.token,
-      phone_number: item.phone,
-      center_id: 'c1-blr',
-      slot_date: new Date().toISOString().split('T')[0]
-    };
-    generateSvgQrCode(qrPayload);
-  }
-
-  function updateQueueItemStatus(token, status, netWeight = null, grade = null) {
-    const item = state.queueList.find(q => q.token === token);
-    if (item) {
-      item.status = status;
-      if (netWeight) item.netWeight = netWeight;
-      if (grade) item.grade = grade;
-      renderQueueTable();
-      updateMandiKpis();
-    }
-  }
-
-  queueSearchInput.addEventListener('input', renderQueueTable);
 
   // --- Keypad Event Listeners ---
   numKeys.forEach(btn => {
@@ -1735,13 +1191,6 @@
 
   // --- Physical Keyboard Binding ---
   window.addEventListener('keydown', (e) => {
-    // Hidden shortcut for 30s emergency jury demo: Ctrl + Shift + S
-    if (e.ctrlKey && e.shiftKey && (e.key === 'S' || e.key === 's')) {
-      e.preventDefault();
-      runEmergencyDemoCycle();
-      return;
-    }
-
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
 
     const key = e.key;
@@ -1771,30 +1220,6 @@
       exitToDialer();
     }
   });
-
-  async function runEmergencyDemoCycle() {
-    state.tempData.crop = 'Wheat';
-    state.tempData.quantityKg = 1450;
-    await finalizeBookingToken();
-    await new Promise(r => setTimeout(r, 1200));
-
-    btnSimCheckin.click();
-    await new Promise(r => setTimeout(r, 1200));
-
-    btnSimWeigh.click();
-    await new Promise(r => setTimeout(r, 1200));
-
-    btnSimQuality.click();
-    await new Promise(r => setTimeout(r, 1200));
-
-    btnSimPayment.click();
-    await new Promise(r => setTimeout(r, 1200));
-
-    btnSimComplete.click();
-    await new Promise(r => setTimeout(r, 800));
-
-    receiptModal.classList.remove('hidden');
-  }
 
   // --- Farmer Mobile Update ---
   updatePhoneBtn.addEventListener('click', () => {
@@ -1856,40 +1281,7 @@
     exitToDialer();
     state.activeToken = null;
     state.tempData.stage = 'IDLE';
-    demoTokenDisplay.textContent = 'None Selected';
-    demoCropDisplay.textContent = '--';
-    demoStatusDisplay.textContent = 'IDLE';
-    demoStatusDisplay.className = 'status-pill status-idle';
     btnViewReceipt.disabled = true;
-
-    inputGrossWeight.value = '';
-    inputTareWeight.value = '';
-    inputMoisture.value = '';
-    calcNetWeight.textContent = '-- kg (-- Q)';
-    dbtRateVal.textContent = '-- / Quintal';
-    dbtAmountVal.textContent = '--';
-    moistureStatus.textContent = 'Enter moisture % to test compliance';
-    moistureStatus.className = 'status-neutral';
-    dbtBankText.textContent = 'Select a token to verify Aadhaar linked account';
-
-    // Reset Stepper
-    Object.values(stepNodes).forEach(node => {
-      node.classList.remove('active', 'completed');
-    });
-    stepLines.forEach(line => line.classList.remove('active'));
-
-    document.querySelectorAll('.checkpoint-box').forEach(b => {
-      b.classList.remove('active-checkpoint', 'completed-checkpoint');
-    });
-
-    btnSimCheckin.disabled = true;
-    btnScanQr.disabled = true;
-    btnSimWeigh.disabled = true;
-    btnSimQuality.disabled = true;
-    btnSimPayment.disabled = true;
-    btnSimComplete.disabled = true;
-
-    updateMandiKpis();
     initSignalingTraces();
   });
 
@@ -1931,8 +1323,6 @@
       const centers = await window.agriqBackend.getMandiCenters();
       if (centers && centers.length > 0) state.dynamicCenters = centers;
     }
-    renderQueueTable();
-    updateMandiKpis();
     initSignalingTraces();
     console.log('[AgriQ] USSD Gateway Trump Card Engine (v7) initialized.');
   }
