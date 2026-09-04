@@ -1,5 +1,5 @@
 ﻿/**
- * AgriQ USSD Application & SMS Simulator Engine (P4 - Mentor Demo Ready v3)
+ * AgriQ USSD Application & SMS Simulator Engine (P4 - Bulletproof v4)
  * Team: Runtime-Terror | SIH 2026 | PS 26032
  */
 
@@ -50,6 +50,7 @@
   // Receipt Modal DOM
   const receiptModal = document.getElementById('receipt-modal');
   const closeReceiptBtn = document.getElementById('close-receipt-btn');
+  const printReceiptBtn = document.getElementById('print-receipt-btn');
   const receiptTokenVal = document.getElementById('receipt-token-val');
   const receiptPhone = document.getElementById('receipt-phone');
   const receiptCenter = document.getElementById('receipt-center');
@@ -58,15 +59,17 @@
   const receiptQty = document.getElementById('receipt-qty');
   const receiptQueue = document.getElementById('receipt-queue');
 
-  // State
+  // Audio Context
   let soundEnabled = true;
   let audioCtx = null;
 
+  // Application State
   const state = {
     mode: 'DIALING', // 'DIALING' | 'MENU' | 'LOADING'
     dialBuffer: '*99#',
     inputBuffer: '',
     currentMenu: 'ROOT',
+    menuHistory: ['ROOT'],
     sessionId: 'sess_' + Math.random().toString(36).substr(2, 8),
     tempData: {
       phone: '9876543210',
@@ -94,31 +97,61 @@
       langName: 'Language: English',
       rootTitle: 'AgriQ Mandi Seva (*99#)',
       rootBody: '1. Book Mandi Slot<br>2. Check Token Status<br>3. Mandi Rates & Forecast<br>4. Change Language',
-      selectCrop: 'Select Commodity:<br>1. Wheat (गेहूं)<br>2. Onion (प्याज)<br>3. Paddy (धान)<br>4. Cotton (कपास)<br>0. Back',
-      selectCenter: 'Select Mandi Center:<br>1. Nashik APMC Main<br>2. Pune Central Mandi<br>3. Nagpur Cotton Yard<br>0. Back',
-      enterQty: 'Approx Quantity (kg):<br>Enter weight in kg<br>(e.g. type 1450 for 14.5 Q)<br><br>0. Back',
+      selectCropTitle: 'Select Commodity:',
+      selectCrop: '1. Wheat (à¤—à¥‡à¤¹à¥‚à¤‚)<br>2. Onion (à¤ªà¥à¤¯à¤¾à¤œ)<br>3. Paddy (à¤§à¤¾à¤¨)<br>4. Cotton (à¤•à¤ªà¤¾à¤¸)<br>0. Back',
+      selectCenterTitle: 'Select Mandi Center:',
+      selectCenter: '1. Nashik APMC Main<br>2. Pune Central Mandi<br>3. Nagpur Cotton Yard<br>0. Back',
+      selectSlotTitle: 'Available Slots: ',
+      selectSlot: '1. Tomorrow 08:00 AM (15 left)<br>2. Tomorrow 11:00 AM (12 left)<br>3. Tomorrow 02:00 PM (8 left)<br>0. Back',
+      enterQtyTitle: 'Approx Quantity (kg):',
+      enterQty: 'Enter weight in kg<br>(e.g. type 1450 for 14.5 Q)<br><br>0. Back',
+      confirmTitle: 'Confirm Mandi Slot:',
       confirmPrompt: '1. Confirm Booking<br>2. Cancel',
-      ratesMenu: 'Mandi Rates & Forecast:<br>1. Wheat<br>2. Onion<br>3. Paddy<br>4. Cotton<br>0. Back'
+      successTitle: 'âœ… Token Booked!',
+      statusPromptTitle: 'Check Token Status:',
+      statusPromptBody: 'Enter Token # or Phone:<br>(e.g. NSK-4821)<br><br>1. Check latest token<br>0. Back',
+      ratesMenuTitle: 'Mandi Rates & Forecast:',
+      ratesMenu: '1. Wheat<br>2. Onion<br>3. Paddy<br>4. Cotton<br>0. Back'
     },
     hi: {
-      langName: 'भाषा: हिंदी',
-      rootTitle: 'एग्री-क्यू मंडी सेवा (*99#)',
-      rootBody: '1. टोकन/स्लॉट बुक करें<br>2. टोकन स्थिति जांचें<br>3. मंडी भाव और पूर्वानुमान<br>4. भाषा बदलें',
-      selectCrop: 'फसल चुनें:<br>1. गेहूं (Wheat)<br>2. प्याज (Onion)<br>3. धान (Paddy)<br>4. कपास (Cotton)<br>0. वापस',
-      selectCenter: 'मंडी केंद्र चुनें:<br>1. नासिक एपीएमसी<br>2. पुणे सेंट्रल मंडी<br>3. नागपुर यार्ड<br>0. वापस',
-      enterQty: 'अनुमानित वजन (किलो):<br>वजन दर्ज करें (उदा. 1450)<br><br>0. वापस',
-      confirmPrompt: '1. स्लॉट पक्का करें<br>2. रद्द करें',
-      ratesMenu: 'मंडी भाव व सलाह:<br>1. गेहूं<br>2. प्याज<br>3. धान<br>4. कपास<br>0. वापस'
+      langName: 'à¤­à¤¾à¤·à¤¾: à¤¹à¤¿à¤‚à¤¦à¥€',
+      rootTitle: 'à¤à¤—à¥à¤°à¥€-à¤•à¥à¤¯à¥‚ à¤®à¤‚à¤¡à¥€ à¤¸à¥‡à¤µà¤¾ (*99#)',
+      rootBody: '1. à¤Ÿà¥‹à¤•à¤¨/à¤¸à¥à¤²à¥‰à¤Ÿ à¤¬à¥à¤• à¤•à¤°à¥‡à¤‚<br>2. à¤Ÿà¥‹à¤•à¤¨ à¤¸à¥à¤¥à¤¿à¤¤à¤¿ à¤œà¤¾à¤‚à¤šà¥‡à¤‚<br>3. à¤®à¤‚à¤¡à¥€ à¤­à¤¾à¤µ à¤”à¤° à¤ªà¥‚à¤°à¥à¤µà¤¾à¤¨à¥à¤®à¤¾à¤¨<br>4. à¤­à¤¾à¤·à¤¾ à¤¬à¤¦à¤²à¥‡à¤‚',
+      selectCropTitle: 'à¤«à¤¸à¤² à¤šà¥à¤¨à¥‡à¤‚:',
+      selectCrop: '1. à¤—à¥‡à¤¹à¥‚à¤‚ (Wheat)<br>2. à¤ªà¥à¤¯à¤¾à¤œ (Onion)<br>3. à¤§à¤¾à¤¨ (Paddy)<br>4. à¤•à¤ªà¤¾à¤¸ (Cotton)<br>0. à¤µà¤¾à¤ªà¤¸',
+      selectCenterTitle: 'à¤®à¤‚à¤¡à¥€ à¤•à¥‡à¤‚à¤¦à¥à¤° à¤šà¥à¤¨à¥‡à¤‚:',
+      selectCenter: '1. à¤¨à¤¾à¤¸à¤¿à¤• à¤à¤ªà¥€à¤à¤®à¤¸à¥€ à¤®à¥à¤–à¥à¤¯<br>2. à¤ªà¥à¤£à¥‡ à¤¸à¥‡à¤‚à¤Ÿà¥à¤°à¤² à¤®à¤‚à¤¡à¥€<br>3. à¤¨à¤¾à¤—à¤ªà¥à¤° à¤¯à¤¾à¤°à¥à¤¡<br>0. à¤µà¤¾à¤ªà¤¸',
+      selectSlotTitle: 'à¤‰à¤ªà¤²à¤¬à¥à¤§ à¤¸à¥à¤²à¥‰à¤Ÿ: ',
+      selectSlot: '1. à¤•à¤² à¤¸à¥à¤¬à¤¹ 08:00 (15 à¤¶à¥‡à¤·)<br>2. à¤•à¤² à¤¸à¥à¤¬à¤¹ 11:00 (12 à¤¶à¥‡à¤·)<br>3. à¤•à¤² à¤¦à¥‹à¤ªà¤¹à¤° 02:00 (8 à¤¶à¥‡à¤·)<br>0. à¤µà¤¾à¤ªà¤¸',
+      enterQtyTitle: 'à¤…à¤¨à¥à¤®à¤¾à¤¨à¤¿à¤¤ à¤µà¤œà¤¨ (à¤•à¤¿à¤²à¥‹):',
+      enterQty: 'à¤µà¤œà¤¨ à¤¦à¤°à¥à¤œ à¤•à¤°à¥‡à¤‚ (à¤‰à¤¦à¤¾. 1450)<br><br>0. à¤µà¤¾à¤ªà¤¸',
+      confirmTitle: 'à¤¸à¥à¤²à¥‰à¤Ÿ à¤ªà¥à¤·à¥à¤Ÿà¤¿:',
+      confirmPrompt: '1. à¤¸à¥à¤²à¥‰à¤Ÿ à¤ªà¤•à¥à¤•à¤¾ à¤•à¤°à¥‡à¤‚<br>2. à¤°à¤¦à¥à¤¦ à¤•à¤°à¥‡à¤‚',
+      successTitle: 'âœ… à¤Ÿà¥‹à¤•à¤¨ à¤¬à¥à¤• à¤¹à¥‹ à¤—à¤¯à¤¾!',
+      statusPromptTitle: 'à¤Ÿà¥‹à¤•à¤¨ à¤¸à¥à¤¥à¤¿à¤¤à¤¿ à¤œà¤¾à¤‚à¤šà¥‡à¤‚:',
+      statusPromptBody: 'à¤Ÿà¥‹à¤•à¤¨ à¤¨à¤‚à¤¬à¤° à¤¦à¤°à¥à¤œ à¤•à¤°à¥‡à¤‚:<br>(à¤‰à¤¦à¤¾. NSK-4821)<br><br>1. à¤¹à¤¾à¤²à¤¿à¤¯à¤¾ à¤Ÿà¥‹à¤•à¤¨ à¤œà¤¾à¤‚à¤šà¥‡à¤‚<br>0. à¤µà¤¾à¤ªà¤¸',
+      ratesMenuTitle: 'à¤®à¤‚à¤¡à¥€ à¤­à¤¾à¤µ à¤µ à¤¸à¤²à¤¾à¤¹:',
+      ratesMenu: '1. à¤—à¥‡à¤¹à¥‚à¤‚ (Wheat)<br>2. à¤ªà¥à¤¯à¤¾à¤œ (Onion)<br>3. à¤§à¤¾à¤¨ (Paddy)<br>4. à¤•à¤ªà¤¾à¤¸ (Cotton)<br>0. à¤µà¤¾à¤ªà¤¸'
     },
     mr: {
-      langName: 'भाषा: मराठी',
-      rootTitle: 'अ‍ॅग्री-क्यू कृषी बाजार (*99#)',
-      rootBody: '1. स्लॉट बुक करा<br>2. टोकन स्थिती तपासा<br>3. बाजार भाव व अंदाज<br>4. भाषा बदला',
-      selectCrop: 'पीक निवडा:<br>1. गहू (Wheat)<br>2. कांदा (Onion)<br>3. भात (Paddy)<br>4. कापूस (Cotton)<br>0. मागे',
-      selectCenter: 'बाजार समिती निवडा:<br>1. नाशिक एपीएमसी<br>2. पुणे मुख्य बाजार<br>3. नागपूर यार्ड<br>0. मागे',
-      enterQty: 'अंदाजे वजन (किलो):<br>वजन टाका (उदा. 1450)<br><br>0. मागे',
-      confirmPrompt: '1. स्लॉट निश्चित करा<br>2. रद्द करा',
-      ratesMenu: 'बाजार भाव व शिफारस:<br>1. गहू<br>2. कांदा<br>3. भात<br>4. कापूस<br>0. मागे'
+      langName: 'à¤­à¤¾à¤·à¤¾: à¤®à¤°à¤¾à¤ à¥€',
+      rootTitle: 'à¤…â€à¥…à¤—à¥à¤°à¥€-à¤•à¥à¤¯à¥‚ à¤•à¥ƒà¤·à¥€ à¤¬à¤¾à¤œà¤¾à¤° (*99#)',
+      rootBody: '1. à¤¸à¥à¤²à¥‰à¤Ÿ à¤¬à¥à¤• à¤•à¤°à¤¾<br>2. à¤Ÿà¥‹à¤•à¤¨ à¤¸à¥à¤¥à¤¿à¤¤à¥€ à¤¤à¤ªà¤¾à¤¸à¤¾<br>3. à¤¬à¤¾à¤œà¤¾à¤° à¤­à¤¾à¤µ à¤µ à¤…à¤‚à¤¦à¤¾à¤œ<br>4. à¤­à¤¾à¤·à¤¾ à¤¬à¤¦à¤²à¤¾',
+      selectCropTitle: 'à¤ªà¥€à¤• à¤¨à¤¿à¤µà¤¡à¤¾:',
+      selectCrop: '1. à¤—à¤¹à¥‚ (Wheat)<br>2. à¤•à¤¾à¤‚à¤¦à¤¾ (Onion)<br>3. à¤­à¤¾à¤¤ (Paddy)<br>4. à¤•à¤¾à¤ªà¥‚à¤¸ (Cotton)<br>0. à¤®à¤¾à¤—à¥‡',
+      selectCenterTitle: 'à¤¬à¤¾à¤œà¤¾à¤° à¤¸à¤®à¤¿à¤¤à¥€ à¤¨à¤¿à¤µà¤¡à¤¾:',
+      selectCenter: '1. à¤¨à¤¾à¤¶à¤¿à¤• à¤à¤ªà¥€à¤à¤®à¤¸à¥€ à¤®à¥à¤–à¥à¤¯<br>2. à¤ªà¥à¤£à¥‡ à¤®à¥à¤–à¥à¤¯ à¤¬à¤¾à¤œà¤¾à¤°<br>3. à¤¨à¤¾à¤—à¤ªà¥‚à¤° à¤¯à¤¾à¤°à¥à¤¡<br>0. à¤®à¤¾à¤—à¥‡',
+      selectSlotTitle: 'à¤‰à¤ªà¤²à¤¬à¥à¤§ à¤µà¥‡à¤³: ',
+      selectSlot: '1. à¤‰à¤¦à¥à¤¯à¤¾ à¤¸à¤•à¤¾à¤³à¥€ 08:00 (15 à¤¶à¤¿à¤²à¥à¤²à¤•)<br>2. à¤‰à¤¦à¥à¤¯à¤¾ à¤¸à¤•à¤¾à¤³à¥€ 11:00 (12 à¤¶à¤¿à¤²à¥à¤²à¤•)<br>3. à¤‰à¤¦à¥à¤¯à¤¾ à¤¦à¥à¤ªà¤¾à¤°à¥€ 02:00 (8 à¤¶à¤¿à¤²à¥à¤²à¤•)<br>0. à¤®à¤¾à¤—à¥‡',
+      enterQtyTitle: 'à¤…à¤‚à¤¦à¤¾à¤œà¥‡ à¤µà¤œà¤¨ (à¤•à¤¿à¤²à¥‹):',
+      enterQty: 'à¤µà¤œà¤¨ à¤Ÿà¤¾à¤•à¤¾ (à¤‰à¤¦à¤¾. 1450)<br><br>0. à¤®à¤¾à¤—à¥‡',
+      confirmTitle: 'à¤¬à¥à¤•à¤¿à¤‚à¤— à¤–à¤¾à¤¤à¥à¤°à¥€:',
+      confirmPrompt: '1. à¤¸à¥à¤²à¥‰à¤Ÿ à¤¨à¤¿à¤¶à¥à¤šà¤¿à¤¤ à¤•à¤°à¤¾<br>2. à¤°à¤¦à¥à¤¦ à¤•à¤°à¤¾',
+      successTitle: 'âœ… à¤Ÿà¥‹à¤•à¤¨ à¤¬à¥à¤• à¤à¤¾à¤²à¥‡!',
+      statusPromptTitle: 'à¤Ÿà¥‹à¤•à¤¨ à¤¸à¥à¤¥à¤¿à¤¤à¥€ à¤¤à¤ªà¤¾à¤¸à¤¾:',
+      statusPromptBody: 'à¤Ÿà¥‹à¤•à¤¨ à¤•à¥à¤°à¤®à¤¾à¤‚à¤• à¤Ÿà¤¾à¤•à¤¾:<br>(à¤‰à¤¦à¤¾. NSK-4821)<br><br>1. à¤šà¤¾à¤²à¥‚ à¤Ÿà¥‹à¤•à¤¨ à¤¤à¤ªà¤¾à¤¸à¤¾<br>0. à¤®à¤¾à¤—à¥‡',
+      ratesMenuTitle: 'à¤¬à¤¾à¤œà¤¾à¤° à¤­à¤¾à¤µ à¤µ à¤¶à¤¿à¤«à¤¾à¤°à¤¸:',
+      ratesMenu: '1. à¤—à¤¹à¥‚ (Wheat)<br>2. à¤•à¤¾à¤‚à¤¦à¤¾ (Onion)<br>3. à¤­à¤¾à¤¤ (Paddy)<br>4. à¤•à¤¾à¤ªà¥‚à¤¸ (Cotton)<br>0. à¤®à¤¾à¤—à¥‡'
     }
   };
 
@@ -131,7 +164,7 @@
   setInterval(updateClock, 1000);
   updateClock();
 
-  // Audio Handler
+  // Audio Engine
   function initAudio() {
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -158,6 +191,12 @@
     } catch (e) {}
   }
 
+  function playErrorTone() {
+    if (!soundEnabled) return;
+    playTone(280, 'sawtooth', 0.08);
+    setTimeout(() => playTone(220, 'sawtooth', 0.1), 90);
+  }
+
   function playSmsChime() {
     if (!soundEnabled) return;
     playTone(880, 'triangle', 0.1);
@@ -166,7 +205,7 @@
 
   soundToggleBtn.addEventListener('click', () => {
     soundEnabled = !soundEnabled;
-    soundToggleBtn.textContent = soundEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+    soundToggleBtn.textContent = soundEnabled ? 'ðŸ”Š Sound: ON' : 'ðŸ”‡ Sound: OFF';
     soundToggleBtn.style.color = soundEnabled ? '#10b981' : '#94a3b8';
   });
 
@@ -175,7 +214,7 @@
     guideToggleBtn.classList.toggle('active');
   });
 
-  // Render Mandi Queue Table
+  // Render Mandi Queue Desk Table
   function renderQueueTable() {
     mandiQueueTbody.innerHTML = state.queueList.map(item => {
       const isCurrent = state.activeToken === item.token;
@@ -207,7 +246,7 @@
     } else if (viewName === 'MENU') {
       menuView.classList.remove('hidden');
       leftSoftLabel.textContent = 'Send';
-      rightSoftLabel.textContent = 'End';
+      rightSoftLabel.textContent = 'Back';
       updateInputDisplay();
     } else if (viewName === 'LOADING') {
       loadingView.classList.remove('hidden');
@@ -233,7 +272,10 @@
   }
 
   // USSD Menu State Machine
-  async function renderMenu(menuKey) {
+  async function renderMenu(menuKey, pushHistory = true) {
+    if (pushHistory && state.currentMenu !== menuKey) {
+      state.menuHistory.push(state.currentMenu);
+    }
     state.currentMenu = menuKey;
     state.inputBuffer = '';
     updateInputDisplay();
@@ -244,44 +286,45 @@
 
     switch (menuKey) {
       case 'ROOT':
+        state.menuHistory = ['ROOT'];
         ussdTitle.textContent = dict.rootTitle;
         ussdBody.innerHTML = dict.rootBody;
         break;
 
       case 'BOOK_CROP':
-        ussdTitle.textContent = lang === 'hi' ? 'फसल चुनें:' : (lang === 'mr' ? 'पीक निवडा:' : 'Select Commodity:');
+        ussdTitle.textContent = dict.selectCropTitle;
         ussdBody.innerHTML = dict.selectCrop;
         break;
 
       case 'BOOK_CENTER':
-        ussdTitle.textContent = lang === 'hi' ? 'मंडी केंद्र चुनें:' : (lang === 'mr' ? 'बाजार समिती:' : 'Select Mandi Center:');
+        ussdTitle.textContent = dict.selectCenterTitle;
         ussdBody.innerHTML = dict.selectCenter;
         break;
 
       case 'BOOK_SLOT':
-        ussdTitle.textContent = `Slots: ${state.tempData.centerName || 'Nashik'}`;
-        ussdBody.innerHTML = `1. Tomorrow 08:00 AM (15 left)<br>2. Tomorrow 11:00 AM (12 left)<br>3. Tomorrow 02:00 PM (8 left)<br>0. Back`;
+        ussdTitle.textContent = dict.selectSlotTitle + (state.tempData.centerName || 'Nashik');
+        ussdBody.innerHTML = dict.selectSlot;
         break;
 
       case 'BOOK_QTY':
-        ussdTitle.textContent = lang === 'hi' ? 'वजन (किलो):' : (lang === 'mr' ? 'वजन (किलो):' : 'Approx Quantity (kg):');
+        ussdTitle.textContent = dict.enterQtyTitle;
         ussdBody.innerHTML = dict.enterQty;
         break;
 
       case 'BOOK_CONFIRM':
-        ussdTitle.textContent = lang === 'hi' ? 'स्लॉट पुष्टि:' : (lang === 'mr' ? 'बुकिंग खात्री:' : 'Confirm Mandi Slot:');
+        ussdTitle.textContent = dict.confirmTitle;
         ussdBody.innerHTML = `Crop: <b>${state.tempData.crop || 'Wheat'}</b><br>Center: ${state.tempData.centerName || 'Nashik APMC'}<br>Slot: ${state.tempData.slotTime || '08:00 AM'}<br>Qty: ${state.tempData.quantityKg} kg<br><br>${dict.confirmPrompt}`;
         break;
 
       case 'BOOK_SUCCESS':
         const tok = state.activeBooking ? state.activeBooking.token_number : 'NSK-0231';
-        ussdTitle.textContent = `✅ Token Booked!`;
+        ussdTitle.textContent = dict.successTitle;
         ussdBody.innerHTML = `Token: <b>${tok}</b><br>Slot: ${state.tempData.slotTime || 'Tomorrow 08:00 AM'}<br>Queue Pos: 1st in Window<br>Est Wait: ~15 mins<br>SMS sent to ${state.tempData.phone}<br><br>0. Main Menu`;
         break;
 
       case 'STATUS_PROMPT':
-        ussdTitle.textContent = lang === 'hi' ? 'टोकन स्थिति:' : (lang === 'mr' ? 'टोकन स्थिती:' : 'Check Token Status:');
-        ussdBody.innerHTML = `Enter Token # or Phone:<br>(e.g. NSK-4821)<br><br>1. Check latest token<br>0. Back`;
+        ussdTitle.textContent = dict.statusPromptTitle;
+        ussdBody.innerHTML = dict.statusPromptBody;
         break;
 
       case 'STATUS_RESULT':
@@ -294,7 +337,7 @@
         break;
 
       case 'RATES_MENU':
-        ussdTitle.textContent = dict.ratesMenu.split('<br>')[0];
+        ussdTitle.textContent = dict.ratesMenuTitle;
         ussdBody.innerHTML = dict.ratesMenu;
         break;
 
@@ -307,8 +350,8 @@
         break;
 
       case 'LANG_MENU':
-        ussdTitle.textContent = 'Change Language / भाषा:';
-        ussdBody.innerHTML = `1. English<br>2. हिंदी (Hindi)<br>3. मराठी (Marathi)<br>0. Back`;
+        ussdTitle.textContent = 'Change Language / à¤­à¤¾à¤·à¤¾:';
+        ussdBody.innerHTML = `1. English<br>2. à¤¹à¤¿à¤‚à¤¦à¥€ (Hindi)<br>3. à¤®à¤°à¤¾à¤ à¥€ (Marathi)<br>0. Back`;
         break;
     }
   }
@@ -321,9 +364,14 @@
 
     const cur = state.currentMenu;
 
-    // 0 = Always Back to ROOT
+    // 0 = Go Back (Hierarchical Navigation)
     if (val === '0') {
-      renderMenu('ROOT');
+      if (state.menuHistory.length > 0) {
+        const prev = state.menuHistory.pop();
+        renderMenu(prev || 'ROOT', false);
+      } else {
+        renderMenu('ROOT', false);
+      }
       return;
     }
 
@@ -333,7 +381,9 @@
       else if (val === '2') renderMenu('STATUS_PROMPT');
       else if (val === '3') renderMenu('RATES_MENU');
       else if (val === '4') renderMenu('LANG_MENU');
-      else renderMenu('ROOT');
+      else {
+        flashError();
+      }
       return;
     }
 
@@ -343,6 +393,8 @@
       if (crops[val]) {
         state.tempData.crop = crops[val];
         renderMenu('BOOK_CENTER');
+      } else {
+        flashError();
       }
       return;
     }
@@ -358,6 +410,8 @@
         state.tempData.centerId = centers[val].id;
         state.tempData.centerName = centers[val].name;
         renderMenu('BOOK_SLOT');
+      } else {
+        flashError();
       }
       return;
     }
@@ -373,6 +427,8 @@
         state.tempData.slotId = slots[val].id;
         state.tempData.slotTime = slots[val].time;
         renderMenu('BOOK_QTY');
+      } else {
+        flashError();
       }
       return;
     }
@@ -383,6 +439,8 @@
       if (!isNaN(qty) && qty > 0) {
         state.tempData.quantityKg = qty;
         renderMenu('BOOK_CONFIRM');
+      } else {
+        flashError();
       }
       return;
     }
@@ -432,6 +490,8 @@
     if (cur === 'STATUS_PROMPT') {
       if (val === '1' || val.length >= 3) {
         renderMenu('STATUS_RESULT');
+      } else {
+        flashError();
       }
       return;
     }
@@ -442,6 +502,8 @@
       if (crops[val]) {
         state.tempData.crop = crops[val];
         renderMenu('RATES_RESULT');
+      } else {
+        flashError();
       }
       return;
     }
@@ -449,10 +511,14 @@
     // LANG MENU
     if (cur === 'LANG_MENU') {
       if (val === '1') state.tempData.language = 'en';
-      if (val === '2') state.tempData.language = 'hi';
-      if (val === '3') state.tempData.language = 'mr';
+      else if (val === '2') state.tempData.language = 'hi';
+      else if (val === '3') state.tempData.language = 'mr';
+      else {
+        flashError();
+        return;
+      }
       
-      const langNames = { en: 'English', hi: 'हिंदी (Hindi)', mr: 'मराठी (Marathi)' };
+      const langNames = { en: 'English', hi: 'à¤¹à¤¿à¤‚à¤¦à¥€ (Hindi)', mr: 'à¤®à¤°à¤¾à¤ à¥€ (Marathi)' };
       sendSimulatedSms({
         title: 'Language Updated',
         message: `AgriQ: Preferred language set to ${langNames[state.tempData.language]}. All future mandi alerts will be delivered in this language.`,
@@ -463,6 +529,15 @@
     }
 
     renderMenu('ROOT');
+  }
+
+  function flashError() {
+    playErrorTone();
+    const oldTitle = ussdTitle.textContent;
+    ussdTitle.textContent = 'âš ï¸ Invalid Key / à¤…à¤®à¤¾à¤¨à¥à¤¯ à¤ªà¤°à¥à¤¯à¤¾à¤¯';
+    setTimeout(() => {
+      ussdTitle.textContent = oldTitle;
+    }, 900);
   }
 
   function showLoading(msg = 'Requesting USSD...') {
@@ -493,13 +568,15 @@
         }
       }
     } else if (state.mode === 'MENU') {
-      if (key === 'CLEAR' || key === 'END') {
+      if (key === 'CLEAR') {
         if (state.inputBuffer.length > 0) {
           state.inputBuffer = state.inputBuffer.slice(0, -1);
           updateInputDisplay();
         } else {
-          showView('DIALING');
+          handleMenuInput('0');
         }
+      } else if (key === 'END') {
+        showView('DIALING');
       } else if (key === 'CALL' || key === 'OK') {
         handleMenuInput(state.inputBuffer);
       } else {
@@ -520,12 +597,13 @@
         renderMenu('ROOT');
       }, 500);
     } else {
-      showLoading('Invalid MMI Code');
+      playErrorTone();
+      showLoading('Invalid MMI Shortcode');
       setTimeout(() => showView('DIALING'), 900);
     }
   }
 
-  // Keypad click listeners
+  // Click Listeners
   document.querySelectorAll('.num-key').forEach(btn => {
     btn.addEventListener('click', () => {
       const key = btn.getAttribute('data-key');
@@ -538,17 +616,20 @@
     else if (state.mode === 'MENU') handleKeyPress('CALL');
   });
 
-  document.getElementById('btn-soft-right').addEventListener('click', () => handleKeyPress('END'));
+  document.getElementById('btn-soft-right').addEventListener('click', () => {
+    if (state.mode === 'DIALING') handleKeyPress('CLEAR');
+    else if (state.mode === 'MENU') handleKeyPress('CLEAR');
+  });
+
   document.getElementById('btn-ok').addEventListener('click', () => {
     if (state.mode === 'DIALING') handleKeyPress('CALL');
     else if (state.mode === 'MENU') handleKeyPress('CALL');
   });
 
-  // Physical computer keyboard support
+  // Physical Keyboard Listener
   window.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT') return;
     
-    // Support standard 0-9 and Numpad0-9
     let k = e.key;
     if (k.startsWith('Numpad')) k = k.replace('Numpad', '');
 
@@ -571,7 +652,7 @@
       title,
       message,
       type,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
     };
 
     state.smsList.unshift(sms);
@@ -583,7 +664,7 @@
     if (state.smsList.length === 0) {
       smsMessages.innerHTML = `
         <div class="empty-state">
-          <span class="empty-icon">📭</span>
+          <span class="empty-icon">ðŸ“­</span>
           <p>No SMS alerts yet.</p>
           <small>Dial <b>*99#</b> or click <b>"Quick Book Token"</b> to trigger real-time notifications.</small>
         </div>`;
@@ -607,7 +688,7 @@
     renderSmsFeed();
   });
 
-  // Phone number updater
+  // Farmer phone updater
   document.getElementById('update-phone-btn').addEventListener('click', () => {
     const val = farmerPhoneInput.value.trim();
     if (val.length === 10) {
@@ -628,14 +709,14 @@
     demoStatusDisplay.textContent = status;
     demoStatusDisplay.className = `status-pill status-${status.toLowerCase()}`;
 
-    // Update queue table item status
+    // Update table
     const item = state.queueList.find(q => q.token === token);
     if (item) {
       item.status = status;
       renderQueueTable();
     }
 
-    // Enable/disable in strict sequential order
+    // Enable / disable
     btnSimCheckin.disabled = (status !== 'BOOKED');
     btnSimWeigh.disabled = (status !== 'CHECKED_IN');
     btnSimQuality.disabled = (status !== 'WEIGHED');
@@ -643,18 +724,19 @@
     btnSimComplete.disabled = (status !== 'PAYMENT_INITIATED');
   }
 
-  btnSimCheckin.addEventListener('click', async () => {
+  // Individual Checkpoint Actions
+  async function performCheckin() {
     if (!state.activeToken) return;
     await window.agriqBackend.transitionStatus(state.activeBooking?.booking_id, 'CHECKED_IN');
     setActiveTokenDisplay(state.activeToken, 'CHECKED_IN');
     sendSimulatedSms({
       title: 'Gate Check-In Approved',
-      message: `AgriQ Alert: Token ${state.activeToken} scanned at Mandi Gate. Gate pass issued. Proceed to Weighbridge Counter #2.`,
+      message: `AgriQ Alert: Token ${state.activeToken} scanned at Mandi Gate. Gate pass verified. Proceed to Weighbridge Counter #2.`,
       type: 'status'
     });
-  });
+  }
 
-  btnSimWeigh.addEventListener('click', async () => {
+  async function performWeigh() {
     if (!state.activeToken) return;
     await window.agriqBackend.transitionStatus(state.activeBooking?.booking_id, 'WEIGHED');
     setActiveTokenDisplay(state.activeToken, 'WEIGHED');
@@ -663,31 +745,31 @@
       message: `AgriQ Alert: Token ${state.activeToken} Gross Weight: 1,450 kg. Tare: 150 kg. Net Crop: 1,300 kg. Proceed to Quality Assayer.`,
       type: 'status'
     });
-  });
+  }
 
-  btnSimQuality.addEventListener('click', async () => {
+  async function performQuality() {
     if (!state.activeToken) return;
     await window.agriqBackend.transitionStatus(state.activeBooking?.booking_id, 'QUALITY_APPROVED');
     setActiveTokenDisplay(state.activeToken, 'QUALITY_APPROVED');
     sendSimulatedSms({
       title: 'Quality Grade Approved',
-      message: `AgriQ Alert: Token ${state.activeToken} Quality Grade: GRADE-A (Moisture 11.2%). Rate approved at ₹2,425/Q MSP.`,
+      message: `AgriQ Alert: Token ${state.activeToken} Quality Grade: GRADE-A (Moisture 11.2%). Rate approved at â‚¹2,425/Q MSP.`,
       type: 'status'
     });
-  });
+  }
 
-  btnSimPayment.addEventListener('click', async () => {
+  async function performPayment() {
     if (!state.activeToken) return;
     await window.agriqBackend.transitionStatus(state.activeBooking?.booking_id, 'PAYMENT_INITIATED');
     setActiveTokenDisplay(state.activeToken, 'PAYMENT_INITIATED');
     sendSimulatedSms({
       title: 'Direct Benefit Transfer (DBT)',
-      message: `AgriQ Alert: DBT Payment of ₹31,525 initiated for Token ${state.activeToken} to Aadhaar-linked Bank A/c ending with 4821. Ref: DBT9948210.`,
+      message: `AgriQ Alert: DBT Payment of â‚¹31,525 initiated for Token ${state.activeToken} to Aadhaar-linked Bank A/c ending with 4821. Ref: DBT9948210.`,
       type: 'payment'
     });
-  });
+  }
 
-  btnSimComplete.addEventListener('click', async () => {
+  async function performComplete() {
     if (!state.activeToken) return;
     await window.agriqBackend.transitionStatus(state.activeBooking?.booking_id, 'COMPLETED');
     setActiveTokenDisplay(state.activeToken, 'COMPLETED');
@@ -696,7 +778,13 @@
       message: `AgriQ: Mandi procurement for Token ${state.activeToken} is COMPLETED. Total turnaround time: 24 mins. Thank you!`,
       type: 'confirm'
     });
-  });
+  }
+
+  btnSimCheckin.addEventListener('click', performCheckin);
+  btnSimWeigh.addEventListener('click', performWeigh);
+  btnSimQuality.addEventListener('click', performQuality);
+  btnSimPayment.addEventListener('click', performPayment);
+  btnSimComplete.addEventListener('click', performComplete);
 
   // Modal: Gate Pass Receipt
   btnViewReceipt.addEventListener('click', () => {
@@ -710,12 +798,11 @@
     receiptModal.classList.remove('hidden');
   });
 
-  closeReceiptBtn.addEventListener('click', () => {
-    receiptModal.classList.add('hidden');
-  });
+  closeReceiptBtn.addEventListener('click', () => receiptModal.classList.add('hidden'));
+  printReceiptBtn.addEventListener('click', () => window.print());
 
   // Quick Presets
-  btnQuickBook.addEventListener('click', async () => {
+  async function performQuickBooking() {
     showLoading('Allocating Quick Demo Token...');
     const booking = await window.agriqBackend.createBooking({
       phone: state.tempData.phone,
@@ -748,17 +835,33 @@
 
     showView('MENU');
     renderMenu('BOOK_SUCCESS');
-  });
+  }
 
+  btnQuickBook.addEventListener('click', performQuickBooking);
+
+  // Race-Condition-Free Auto Cycle
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   btnQuickCycle.addEventListener('click', async () => {
-    if (!state.activeToken) {
-      await btnQuickBook.click();
+    btnQuickCycle.disabled = true;
+    btnQuickCycle.textContent = 'â³ Running Cycle...';
+    try {
+      if (!state.activeToken) {
+        await performQuickBooking();
+      }
+      await sleep(600);
+      await performCheckin();
+      await sleep(1300);
+      await performWeigh();
+      await sleep(1300);
+      await performQuality();
+      await sleep(1300);
+      await performPayment();
+      await sleep(1300);
+      await performComplete();
+    } finally {
+      btnQuickCycle.disabled = false;
+      btnQuickCycle.textContent = '2. Auto-Run Full Mandi Cycle (Check-in âž” Pay)';
     }
-    setTimeout(() => btnSimCheckin.click(), 400);
-    setTimeout(() => btnSimWeigh.click(), 1600);
-    setTimeout(() => btnSimQuality.click(), 2800);
-    setTimeout(() => btnSimPayment.click(), 4000);
-    setTimeout(() => btnSimComplete.click(), 5200);
   });
 
   btnQuickRates.addEventListener('click', () => {
@@ -794,7 +897,7 @@
     renderMenu('ROOT');
   });
 
-  // Supabase Config
+  // Supabase Config Drawer
   const toggleConfigBtn = document.getElementById('toggle-config-btn');
   const closeConfigBtn = document.getElementById('close-config-btn');
   const configDrawer = document.getElementById('config-drawer');
@@ -810,7 +913,7 @@
     const url = supabaseUrlInput.value.trim();
     const key = supabaseKeyInput.value.trim();
     if (window.agriqBackend.setCredentials(url, key)) {
-      connectionStatus.textContent = 'Mode: Supabase Live 🟢';
+      connectionStatus.textContent = 'Mode: Supabase Live ðŸŸ¢';
       pulseDot.style.backgroundColor = '#10b981';
       configDrawer.classList.add('hidden');
       alert('Connected to Supabase project successfully!');

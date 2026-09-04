@@ -1123,3 +1123,37 @@ body {
   from { opacity: 0; transform: translateY(-8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Print Styling for Gate Pass */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .modal-backdrop, .modal-backdrop * {
+    visibility: visible;
+  }
+  .modal-backdrop {
+    position: absolute;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background: none;
+    padding: 0;
+  }
+  .modal-card {
+    border: 2px solid #000 !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .token-hero {
+    background: #f1f5f9 !important;
+    border-color: #000 !important;
+  }
+  .token-val {
+    color: #000 !important;
+  }
+}

@@ -49,7 +49,7 @@
         <div class="guide-step-card" id="step-card-2">
           <span class="step-num">Step 2</span>
           <strong>Proactive SMS Alerts</strong>
-          <p>Point to the center panel: <em>"Within 2 seconds, an arrival window SMS lands on their phone with Token ID and slot."</em></p>
+          <p>Point to center panel: <em>"Within 2 seconds, an arrival window SMS lands on their phone with Token ID and slot."</em></p>
         </div>
         <div class="guide-step-card" id="step-card-3">
           <span class="step-num">Step 3</span>
@@ -131,7 +131,7 @@
               <div id="menu-view" class="screen-view hidden">
                 <div class="ussd-title" id="ussd-title">AgriQ Mandi Seva</div>
                 <div class="ussd-body" id="ussd-body">
-                  1. Book Slot<br>
+                  1. Book Mandi Slot<br>
                   2. Check Token Status<br>
                   3. Mandi Rates & Forecast<br>
                   4. Change Language
@@ -311,7 +311,7 @@
 
     <!-- Modal: Official APMC Gate Pass Receipt -->
     <div id="receipt-modal" class="modal-backdrop hidden">
-      <div class="modal-card">
+      <div class="modal-card print-target">
         <div class="receipt-header">
           <div class="gov-badge">GOVERNMENT OF MAHARASHTRA • APMC MANDI</div>
           <h2>DIGITAL MANDI GATE PASS</h2>
@@ -345,7 +345,7 @@
             </div>
             <div>
               <span class="r-lbl">Queue Position:</span>
-              <strong id="receipt-queue">2nd in Window</strong>
+              <strong id="receipt-queue">1st in Window</strong>
             </div>
           </div>
           <div class="receipt-qr-area">
@@ -356,7 +356,8 @@
             <p class="qr-note">Scan at Gate Check-In Counter #1 for Instant Physical Entry</p>
           </div>
         </div>
-        <div class="receipt-footer">
+        <div class="receipt-footer no-print">
+          <button id="print-receipt-btn" class="btn-secondary" style="margin-right:0.5rem;">🖨️ Print / Save Pass</button>
           <button id="close-receipt-btn" class="btn-primary">Close Receipt</button>
         </div>
       </div>
