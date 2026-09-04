@@ -107,6 +107,7 @@ export async function getDailyRatesCache(cropType: string, centerId: string): Pr
           crop_type: d.crop_type || cropType,
           center_id: d.center_id || centerId,
           forecast_date: d.forecast_date,
+          predicted_price: Number(d.predicted_price) || 0,
           price_trend_score: Number(d.price_trend_score) || 0,
           best_day_score: Number(d.best_day_score) || 0,
           reason_text: d.reason_text || 'Optimal dispatch slot',

@@ -232,7 +232,8 @@ export function generateDailyRatesCache(cropType: string, centerId: string, days
       crop_type: cropType,
       center_id: centerId,
       forecast_date: dateStr,
-      price_trend_score: predictedPrice,
+      predicted_price: predictedPrice,
+      price_trend_score: baseScore, // 0-100 scale, matches real RPC shape
       best_day_score: bestDayScore,
       reason_text: reason,
       updated_at: new Date().toISOString(),
