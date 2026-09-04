@@ -17,6 +17,9 @@ import { fileURLToPath } from "node:url"
 import { createClient } from "@supabase/supabase-js"
 // The real parser the desk ships, not a copy — Node strips the types.
 import { parseScan, PASS_TYPE } from "../src/lib/scan.ts"
+// The desk's own notion of "today" — local, not UTC. Importing it rather than
+// recomputing it means this script cannot drift from what the officer sees.
+import { todayISO } from "../src/lib/format.ts"
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const APP = resolve(HERE, "..")
@@ -129,7 +132,7 @@ try {
 
   // --- test 1: can this officer see their own centre's queue? -----------------
   head("Test 1 — can this officer read bookings at their centre?")
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayISO()
   const { data: rows, error: qErr } = await supabase
     .from("bookings")
     .select("booking_id, token_number, status, center_id, slots!inner(slot_date)")
