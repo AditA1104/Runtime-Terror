@@ -2,6 +2,7 @@ import React from 'react';
 import { NotificationItem } from '../../types/schema';
 import { useTranslation } from '../../hooks/useTranslation';
 import { formatRelativeTime } from '../../lib/utils';
+import { formatNotificationMessage } from '../../lib/notificationFormatter';
 import { MessageSquare, Bell, CheckCircle2, ShieldAlert, Sparkles } from 'lucide-react';
 
 interface NotificationFeedProps {
@@ -13,7 +14,7 @@ export const NotificationFeed: React.FC<NotificationFeedProps> = ({
   notifications,
   onSelectBooking,
 }) => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   return (
     <div className="max-w-md mx-auto space-y-4 animate-in fade-in duration-200 pb-20">
@@ -67,7 +68,7 @@ export const NotificationFeed: React.FC<NotificationFeedProps> = ({
 
                   <div className="flex-1 text-xs">
                     <p className="text-slate-800 font-medium leading-relaxed">
-                      {notif.message}
+                      {formatNotificationMessage(notif, language)}
                     </p>
                     <div className="mt-1 flex items-center justify-between text-[10px] text-slate-400">
                       <span className="font-semibold uppercase tracking-wider">

@@ -103,6 +103,17 @@ export interface NotificationItem {
   channel: 'sms' | 'whatsapp' | 'push';
   message: string;
   sent_at: string;
+  templateType?: 'BOOKED' | 'CHECKED_IN' | 'WEIGHED' | 'QUALITY_APPROVED' | 'PAYMENT_INITIATED' | 'COMPLETED' | 'SHARE_SENT';
+  meta?: {
+    token?: string;
+    crop?: string;
+    center?: string;
+    queuePos?: number;
+    weightKg?: number;
+    amount?: number;
+    recipientPhone?: string;
+    stage?: string;
+  };
 }
 
 export interface CropInfo {

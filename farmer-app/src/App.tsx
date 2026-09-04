@@ -33,7 +33,14 @@ import {
 } from 'lucide-react';
 
 export function App() {
-  const { farmer, loginWithPhone, updateProfile } = useFarmerAuth();
+  const { 
+    farmer, 
+    savedAccounts, 
+    switchAccount, 
+    addNewAccount, 
+    loginWithPhone, 
+    updateProfile 
+  } = useFarmerAuth();
   const { t } = useTranslation();
   const { isOnline, isInstallable, installPwa } = useOfflineCache();
   const { bookings, activeBooking, setActiveBooking, refreshData } = useSupabaseRealtime(farmer?.farmer_id || '');
@@ -385,12 +392,28 @@ export function App() {
         hasActiveToken={!!activeBooking && activeBooking.status !== 'COMPLETED'}
       />
 
-      {/* Phone Login & Profile Modal */}
+      {/* Phone Login, Profile & Multi-Account Switcher Modal */}
       <PhoneLoginModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         farmer={farmer}
-        onLogin={loginWithPhone}
+        savedAccounts={savedAccounts}
+        onSwitchAccount={id => {
+          switchAccount(id);
+          setTimeout(handleManualRefresh, 100);
+        }}
+        onAddNewAccount={profile => {
+          const created = addNewAccount(profile);
+          setTimeout(handleManualRefresh, 100);
+          return created;
+        }}
+        onLogin={async (phone, otp) => {
+          const success = await loginWithPhone(phone, otp);
+          if (success) {
+            setTimeout(handleManualRefresh, 100);
+          }
+          return success;
+        }}
         onUpdateProfile={updateProfile}
       />
     </div>

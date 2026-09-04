@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { SupportedLang, SUPPORTED_LANGUAGES, translations } from '../lib/translations';
 import { updateFarmerProfile } from '../lib/api';
 
+export type { SupportedLang };
+
 const LANG_KEY = 'agriq_farmer_lang';
 
 function getInitialLang(): SupportedLang {
@@ -22,6 +24,13 @@ function notifySubscribers(lang: SupportedLang) {
   subscribers.forEach(cb => cb(lang));
 }
 
+export function setGlobalLanguage(lang: SupportedLang, syncWithDb: boolean = true) {
+  notifySubscribers(lang);
+  if (syncWithDb) {
+    updateFarmerProfile({ preferred_lang: lang }).catch(console.error);
+  }
+}
+
 export function useTranslation() {
   const [currentLang, setCurrentLang] = useState<SupportedLang>(globalLang);
 
@@ -36,10 +45,7 @@ export function useTranslation() {
   }, []);
 
   const setLanguage = useCallback((lang: SupportedLang, syncWithDb: boolean = true) => {
-    notifySubscribers(lang);
-    if (syncWithDb) {
-      updateFarmerProfile({ preferred_lang: lang }).catch(console.error);
-    }
+    setGlobalLanguage(lang, syncWithDb);
   }, []);
 
   const t = useCallback((key: string, fallback?: string): string => {
@@ -55,6 +61,7 @@ export function useTranslation() {
 
   return {
     lang: currentLang,
+    language: currentLang,
     setLanguage,
     t,
     languages: SUPPORTED_LANGUAGES,

@@ -294,6 +294,13 @@ export async function createBooking(params: {
     channel: 'sms',
     message: `AgriQ: Slot confirmed! Token ${newBooking.token_number} generated for ${center.crop_type} at ${center.center_name}. Queue Pos: #${queuePos} at this mandi. Keep QR pass ready.`,
     sent_at: new Date().toISOString(),
+    templateType: 'BOOKED',
+    meta: {
+      token: newBooking.token_number,
+      crop: center.crop_type,
+      center: center.center_name,
+      queuePos: queuePos,
+    },
   };
   localNotifications.unshift(newNotif);
 
@@ -352,7 +359,7 @@ export async function transitionBookingStatus(bookingId: string, newStatus: Book
         });
     }
 
-    // Add status change notification
+    // Add status change notification with template metadata
     let statusMsg = `AgriQ Update: Token ${booking.token_number} status is now ${newStatus.replace('_', ' ')}.`;
     if (newStatus === 'CHECKED_IN') statusMsg = `AgriQ: Checked in at ${booking.mandi_centers?.center_name || 'Mandi Yard'}. Proceed to Weighbridge Lane 2.`;
     if (newStatus === 'WEIGHED') statusMsg = `AgriQ: Weighbridge completed. Gross weight recorded: ${booking.crop_quantity_kg} kg. Proceed to Assayer Booth.`;
@@ -367,6 +374,14 @@ export async function transitionBookingStatus(bookingId: string, newStatus: Book
       channel: 'sms',
       message: statusMsg,
       sent_at: new Date().toISOString(),
+      templateType: newStatus as any,
+      meta: {
+        token: booking.token_number,
+        center: booking.mandi_centers?.center_name,
+        weightKg: booking.crop_quantity_kg,
+        amount: booking.payment_amount,
+        stage: newStatus,
+      },
     });
 
     emitChange();
@@ -381,6 +396,8 @@ export function dispatchShareNotification(params: {
   bookingId: string;
   recipientPhone: string;
   message: string;
+  token?: string;
+  center?: string;
 }) {
   const notif: NotificationItem = {
     notification_id: `notif-share-${Date.now()}`,
@@ -389,6 +406,12 @@ export function dispatchShareNotification(params: {
     channel: 'sms',
     message: `AgriQ SMS Dispatched to +91-${params.recipientPhone}: ${params.message}`,
     sent_at: new Date().toISOString(),
+    templateType: 'SHARE_SENT',
+    meta: {
+      recipientPhone: params.recipientPhone,
+      token: params.token,
+      center: params.center,
+    },
   };
   localNotifications.unshift(notif);
   emitChange();
