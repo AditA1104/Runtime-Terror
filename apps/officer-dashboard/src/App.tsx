@@ -9,6 +9,7 @@ import { QueueDesk } from "@/components/queue/QueueDesk"
 import { MetricsPanel } from "@/components/metrics/MetricsPanel"
 import { CapacityPanel } from "@/components/config/CapacityPanel"
 import { AuthProvider, useAuth } from "@/hooks/useAuth"
+import { ThemeProvider } from "@/hooks/useTheme"
 import { OfficerProvider, useOfficer } from "@/hooks/useOfficer"
 import { useQueue } from "@/hooks/useQueue"
 import { computeMetrics } from "@/lib/metrics"
@@ -74,11 +75,13 @@ function Desk() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <OfficerProvider>
-        <Desk />
-        <Toaster position="bottom-right" richColors closeButton />
-      </OfficerProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <OfficerProvider>
+          <Desk />
+          <Toaster position="bottom-right" richColors closeButton />
+        </OfficerProvider>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }

@@ -11,29 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { useOfficer } from "@/hooks/useOfficer"
 import { repository } from "@/data/repository"
-
-function useTheme() {
-  const [dark, setDark] = React.useState(() => {
-    try {
-      const stored = localStorage.getItem("agriq.theme")
-      if (stored) return stored === "dark"
-    } catch {
-      /* private window — fall through to the OS preference */
-    }
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-  })
-
-  React.useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark)
-    try {
-      localStorage.setItem("agriq.theme", dark ? "dark" : "light")
-    } catch {
-      /* non-fatal */
-    }
-  }, [dark])
-
-  return { dark, toggle: () => setDark((d) => !d) }
-}
+import { useTheme } from "@/hooks/useTheme"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { session, center, centers, setCenter, signOut } = useOfficer()

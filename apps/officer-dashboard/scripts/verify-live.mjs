@@ -15,6 +15,8 @@ import { readFileSync } from "node:fs"
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { createClient } from "@supabase/supabase-js"
+// The real parser the desk ships, not a copy — Node strips the types.
+import { parseScan, PASS_TYPE } from "../src/lib/scan.ts"
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const APP = resolve(HERE, "..")
@@ -181,6 +183,43 @@ try {
       else if (!log?.length) fail("no status_log row was written")
       else if (log[0].changed_by === uid) ok(`status_log.changed_by is the real UID (${uid})`)
       else fail(`status_log.changed_by is "${log[0].changed_by}", expected ${uid}`)
+    }
+  }
+
+  // --- test 4: does a P2 pass resolve against the live queue? ----------------
+  head("Test 4 — does P2's QR pass resolve to a live booking?")
+  const target = (rows ?? [])[0]
+  if (!target) {
+    info("no bookings today to build a pass from — skipped")
+  } else {
+    // Exactly what P2's farmer app encodes, built from a real live booking.
+    const payload = JSON.stringify({
+      type: PASS_TYPE,
+      token: target.token_number,
+      booking_id: target.booking_id,
+      farmer_id: "f8888888-8888-8888-8888-888888888888",
+      center_id: target.center_id,
+    })
+
+    const scan = parseScan(payload)
+    if (!scan) fail("parseScan rejected a well-formed pass")
+    else {
+      ok(`parsed pass for ${scan.token}`)
+
+      // The rule the desk uses: booking_id first, token as the fallback.
+      const match = rows.find(
+        (r) =>
+          (scan.bookingId && r.booking_id === scan.bookingId) ||
+          (scan.token && r.token_number.toUpperCase() === scan.token),
+      )
+      if (!match) fail("a pass built from a live booking did not match the queue")
+      else if (match.booking_id !== target.booking_id) fail("the pass matched the WRONG booking")
+      else ok(`resolves to ${match.token_number} (${match.status})`)
+
+      // A stranger's QR code must be refused outright, not searched for.
+      if (parseScan("https://example.com/promo") !== null) {
+        fail("a non-AgriQ QR code was not rejected")
+      } else ok("a non-AgriQ QR code is rejected rather than searched for")
     }
   }
 
