@@ -64,11 +64,18 @@ class AgriQBackend {
         .order('center_name', { ascending: true });
       if (!error && data && data.length) return data;
     }
+    // The real centres, ids included, copied from mandi_centers. These used to
+    // be four invented mandis (Bengaluru, Hubballi, Mysuru, Kalaburagi) that
+    // exist in no database, so an offline booking named a centre no officer
+    // staffs and could never arrive anywhere. Ordered by name, matching both
+    // the live query above and the farmer app, so option 2 is the same mandi
+    // on the handset and in the app.
     return [
-      { center_id: 'c0000000-0000-0000-0000-000000000001', center_name: 'Bengaluru APMC (Yeshwanthpur Main Yard)', crop_type: 'Ragi', location: 'Bengaluru' },
-      { center_id: 'c0000000-0000-0000-0000-000000000002', center_name: 'Hubballi APMC (Amaragol Market Yard)', crop_type: 'Onion', location: 'Hubballi' },
-      { center_id: 'c0000000-0000-0000-0000-000000000003', center_name: 'Mysuru APMC (Bandipalya Yard)', crop_type: 'Paddy', location: 'Mysuru' },
-      { center_id: 'c0000000-0000-0000-0000-000000000004', center_name: 'Kalaburagi APMC (Nehru Gunj Yard)', crop_type: 'Tur', location: 'Kalaburagi' }
+      { center_id: 'f4d7624e-0bbd-4a66-87d8-f1a29831ba1d', center_name: 'Guntur Cotton Yard', crop_type: 'cotton', location: 'Guntur' },
+      { center_id: 'b6eac27b-642f-4005-a405-b2c2ef8a32fe', center_name: 'Khanna Grain Mandi', crop_type: 'wheat', location: 'Khanna' },
+      { center_id: 'ee50c942-3cd6-4c8c-8db2-ed1aeea527f3', center_name: 'Kota Mandi Samiti', crop_type: 'mustard', location: 'Kota' },
+      { center_id: 'fe047ee9-9522-4c16-814f-f5f388dfc7f5', center_name: 'Nashik Tomato Market', crop_type: 'tomato', location: 'Nashik' },
+      { center_id: 'affc5449-8ea1-4da3-b1f4-0246eee93595', center_name: 'Test Mandi', crop_type: 'onion', location: 'Test Location' }
     ];
   }
 

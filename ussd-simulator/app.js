@@ -244,10 +244,14 @@
       grade: 'GRADE-A'
     },
     dynamicCenters: [
-      { center_id: 'c0000000-0000-0000-0000-000000000001', center_name: 'Bengaluru APMC (Yeshwanthpur Main Yard)' },
-      { center_id: 'c0000000-0000-0000-0000-000000000002', center_name: 'Hubballi APMC (Amaragol Market Yard)' },
-      { center_id: 'c0000000-0000-0000-0000-000000000003', center_name: 'Mysuru APMC (Bandipalya Yard)' },
-      { center_id: 'c0000000-0000-0000-0000-000000000004', center_name: 'Kalaburagi APMC (Nehru Gunj Yard)' }
+      // Real ids from mandi_centers, ordered by name to match the farmer app.
+      // Replaced before the live fetch lands, but a booking made in that window
+      // still has to name a centre that exists.
+      { center_id: 'f4d7624e-0bbd-4a66-87d8-f1a29831ba1d', center_name: 'Guntur Cotton Yard' },
+      { center_id: 'b6eac27b-642f-4005-a405-b2c2ef8a32fe', center_name: 'Khanna Grain Mandi' },
+      { center_id: 'ee50c942-3cd6-4c8c-8db2-ed1aeea527f3', center_name: 'Kota Mandi Samiti' },
+      { center_id: 'fe047ee9-9522-4c16-814f-f5f388dfc7f5', center_name: 'Nashik Tomato Market' },
+      { center_id: 'affc5449-8ea1-4da3-b1f4-0246eee93595', center_name: 'Test Mandi' }
     ],
     dynamicSlots: [
       { slot_id: 's0000000-0000-0000-0000-000000000001', slot_date: new Date().toISOString().split('T')[0], slot_start_time: '08:00 AM', slot_end_time: '10:00 AM', remaining: 12 },
