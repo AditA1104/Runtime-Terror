@@ -10,7 +10,6 @@ import { StatusPipeline } from './components/tracker/StatusPipeline';
 import { BestDayCard } from './components/predictive/BestDayCard';
 import { PriceTrendChart } from './components/predictive/PriceTrendChart';
 import { NotificationFeed } from './components/notifications/NotificationFeed';
-import { DemoController } from './components/demo/DemoController';
 
 import { useFarmerAuth } from './hooks/useFarmerAuth';
 import { useTranslation } from './hooks/useTranslation';
@@ -394,12 +393,6 @@ export function App() {
           />
         )}
       </main>
-
-      {/* Floating Demo Simulation Controller (for live hackathon presentations) */}
-      <DemoController
-        activeBooking={activeBooking}
-        onRefresh={handleManualRefresh}
-      />
 
       {/* Mobile Bottom Navigation */}
       <BottomNav
