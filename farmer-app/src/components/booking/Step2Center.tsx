@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { MandiCenter } from '../../types/schema';
 import { useTranslation } from '../../hooks/useTranslation';
+import { 
+  getLocalizedMandiName, 
+  getLocalizedLocation, 
+  getLocalizedDistrict, 
+  getLocalizedState 
+} from '../../lib/translations';
 import { Building2, MapPin, Clock, Gauge, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { formatNumber } from '../../lib/utils';
 
@@ -19,7 +25,6 @@ export const Step2Center: React.FC<Step2CenterProps> = ({
 }) => {
   const { t, lang } = useTranslation();
 
-  // Determine initial state filter based on language
   const getInitialStateFilter = (currentLang: string): 'all' | 'Karnataka' | 'Maharashtra' => {
     if (currentLang === 'kn') return 'Karnataka';
     if (currentLang === 'mr') return 'Maharashtra';
@@ -30,19 +35,16 @@ export const Step2Center: React.FC<Step2CenterProps> = ({
     getInitialStateFilter(lang)
   );
 
-  // Sync state filter when user changes language
   useEffect(() => {
     setStateFilter(getInitialStateFilter(lang));
   }, [lang]);
 
-  // Filter centers matching selected crop
   const cropMatchingCenters = centers.filter(c => 
     c.crop_type.toLowerCase() === selectedCrop.toLowerCase()
   );
 
   const baseList = cropMatchingCenters.length > 0 ? cropMatchingCenters : centers;
 
-  // Apply state tab filter
   const displayCenters = baseList.filter(c => {
     if (stateFilter === 'all') return true;
     return c.state.toLowerCase() === stateFilter.toLowerCase();
@@ -112,6 +114,11 @@ export const Step2Center: React.FC<Step2CenterProps> = ({
         ) : (
           displayCenters.map((center: MandiCenter) => {
             const isSelected = selectedCenterId === center.center_id;
+            const localizedCenterName = getLocalizedMandiName(center.center_name, lang);
+            const localizedLocation = getLocalizedLocation(center.location, lang);
+            const localizedDistrict = getLocalizedDistrict(center.district, lang);
+            const localizedState = getLocalizedState(center.state, lang);
+
             return (
               <div
                 key={center.center_id}
@@ -130,7 +137,7 @@ export const Step2Center: React.FC<Step2CenterProps> = ({
                     <div>
                       <div className="flex items-center gap-2">
                         <h4 className="font-bold text-slate-900 text-sm md:text-base">
-                          {center.center_name}
+                          {localizedCenterName}
                         </h4>
                         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 flex items-center gap-0.5">
                           <ShieldCheck className="w-3 h-3" /> {t('apmc_verified')}
@@ -138,7 +145,7 @@ export const Step2Center: React.FC<Step2CenterProps> = ({
                       </div>
                       <div className="flex items-center gap-1 text-xs text-slate-500 mt-1">
                         <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span>{center.location}, {center.district}, <strong>{center.state}</strong></span>
+                        <span>{localizedLocation}, {localizedDistrict}, <strong>{localizedState}</strong></span>
                       </div>
                     </div>
                   </div>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { MandiCenter, SlotAvailable, Farmer } from '../../types/schema';
 import { CROPS_DATA } from '../../lib/mockData';
 import { useTranslation } from '../../hooks/useTranslation';
+import { getLocalizedMandiName } from '../../lib/translations';
 import { formatINR, formatTimeSlot, formatDate, quintalToKg } from '../../lib/utils';
 import { Calendar, Clock, MapPin, Scale, IndianRupee, QrCode, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -23,7 +24,7 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
   onConfirmBooking,
   isSubmitting,
 }) => {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [unit, setUnit] = useState<'quintal' | 'kg'>('kg');
   const [quantity, setQuantity] = useState<number>(2500); // Default 2,500 kg (25 quintals)
 
@@ -31,6 +32,7 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
   const quantityKg = unit === 'quintal' ? quintalToKg(quantity) : quantity;
   const quantityQuintals = unit === 'quintal' ? quantity : quantity / 100;
   const estimatedPayout = Math.round(quantityQuintals * crop.mspPrice);
+  const localizedCenterName = getLocalizedMandiName(center.center_name, lang);
 
   const handleUnitToggle = (newUnit: 'quintal' | 'kg') => {
     if (newUnit === unit) return;
@@ -86,7 +88,7 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
               <MapPin className="w-3 h-3 text-green-400" /> {t('apmc_center_label')}
             </span>
             <strong className="text-slate-100 font-semibold block truncate">
-              {center.center_name}
+              {localizedCenterName}
             </strong>
           </div>
 

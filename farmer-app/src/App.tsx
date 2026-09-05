@@ -14,6 +14,7 @@ import { DemoController } from './components/demo/DemoController';
 
 import { useFarmerAuth } from './hooks/useFarmerAuth';
 import { useTranslation } from './hooks/useTranslation';
+import { getLocalizedMandiName } from './lib/translations';
 import { useSupabaseRealtime } from './hooks/useSupabaseRealtime';
 import { useOfflineCache } from './hooks/useOfflineCache';
 import { getMandiCenters, getDailyRatesCache, getFarmerNotifications } from './lib/api';
@@ -306,7 +307,7 @@ export function App() {
                           </span>
                         </div>
                         <span className="text-[11px] text-slate-500 block mt-0.5">
-                          {b.mandi_centers?.center_name || 'APMC Yard'} • {formatDate(b.created_at.split('T')[0])}
+                          {getLocalizedMandiName(b.mandi_centers?.center_name, lang)} • {formatDate(b.created_at.split('T')[0])}
                         </span>
                       </div>
                       <ArrowRight className="w-4 h-4 text-slate-400" />

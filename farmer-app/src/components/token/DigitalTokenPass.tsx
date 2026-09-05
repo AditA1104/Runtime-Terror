@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 import { Booking } from '../../types/schema';
 import { useTranslation } from '../../hooks/useTranslation';
-import { getLocalizedStatus } from '../../lib/translations';
+import { 
+  getLocalizedStatus, 
+  getLocalizedMandiName, 
+  getLocalizedLocation, 
+  getLocalizedDistrict, 
+  getLocalizedState 
+} from '../../lib/translations';
 import { QRCodeDisplay } from './QRCodeDisplay';
 import { TokenShareModal } from './TokenShareModal';
 import { formatTimeSlot, formatDate, formatINR, formatNumber } from '../../lib/utils';
@@ -38,6 +44,11 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
   const center = booking.mandi_centers;
   const slot = booking.slots;
 
+  const localizedCenterName = getLocalizedMandiName(center?.center_name, lang);
+  const localizedLocation = getLocalizedLocation(center?.location, lang);
+  const localizedDistrict = getLocalizedDistrict(center?.district, lang);
+  const localizedState = getLocalizedState(center?.state, lang);
+
   const handleDownloadPass = async () => {
     setIsDownloading(true);
     try {
@@ -73,7 +84,7 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 22px sans-serif';
-      ctx.fillText('OFFICIAL DIGITAL MANDI GATE PASS', 300, 72);
+      ctx.fillText(lang === 'kn' ? 'ಅಧಿಕೃತ ಡಿಜಿಟಲ್ ಮಂಡಿ ಗೇಟ್ ಪಾಸ್' : lang === 'mr' ? 'अधिकृत डिजिटल बाजार समिती गेट पास' : lang === 'hi' ? 'आधिकारिक डिजिटल मंडी गेट पास' : 'OFFICIAL DIGITAL MANDI GATE PASS', 300, 72);
 
       // Big Token Number
       ctx.fillStyle = '#ffffff';
@@ -105,11 +116,11 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
       ctx.fillStyle = '#0f172a';
       ctx.font = 'bold 18px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(center?.center_name || 'APMC Mandi Procurement Yard', 300, 460);
+      ctx.fillText(localizedCenterName, 300, 460);
 
       ctx.fillStyle = '#64748b';
       ctx.font = '13px sans-serif';
-      ctx.fillText(`${center?.location || 'Mandi Yard'}, ${center?.district || ''}, ${center?.state || ''}`, 300, 485);
+      ctx.fillText(`${localizedLocation}, ${localizedDistrict}, ${localizedState}`, 300, 485);
 
       // Metadata Box
       ctx.fillStyle = '#f8fafc';
@@ -266,11 +277,11 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
             <Building2 className="w-4 h-4 text-green-700 shrink-0 mt-0.5" />
             <div>
               <strong className="text-slate-900 font-bold text-sm block">
-                {center?.center_name || 'APMC Yard'}
+                {localizedCenterName}
               </strong>
               <span className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
                 <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                {center?.location || 'Mandi Yard'}, {center?.district || ''}, {center?.state || ''}
+                {localizedLocation}, {localizedDistrict}, {localizedState}
               </span>
             </div>
           </div>

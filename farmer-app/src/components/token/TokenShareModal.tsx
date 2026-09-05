@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Send, Share2, CheckCircle2, MessageCircle, Copy, Check } from 'lucide-react';
 import { Booking } from '../../types/schema';
 import { useTranslation } from '../../hooks/useTranslation';
+import { getLocalizedMandiName, getLocalizedLocation, getLocalizedDistrict } from '../../lib/translations';
 import { dispatchShareNotification } from '../../lib/api';
 
 interface TokenShareModalProps {
@@ -15,7 +16,7 @@ export const TokenShareModal: React.FC<TokenShareModalProps> = ({
   onClose,
   booking,
 }) => {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [recipientPhone, setRecipientPhone] = useState('');
   const [sentSuccess, setSentSuccess] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
@@ -25,10 +26,14 @@ export const TokenShareModal: React.FC<TokenShareModalProps> = ({
   const center = booking.mandi_centers;
   const slot = booking.slots;
 
+  const localizedCenterName = getLocalizedMandiName(center?.center_name, lang);
+  const localizedLocation = getLocalizedLocation(center?.location, lang);
+  const localizedDistrict = getLocalizedDistrict(center?.district, lang);
+
   const shareText = `🌾 *AgriQ Digital Mandi Gate Pass*\n\n` +
     `🎫 *Token Number:* *${booking.token_number}*\n` +
-    `🏢 *Procurement Center:* ${center?.center_name || 'APMC Center'}\n` +
-    `📍 *Location:* ${center?.location || 'Mandi Yard'}, ${center?.district || ''}\n` +
+    `🏢 *Procurement Center:* ${localizedCenterName}\n` +
+    `📍 *Location:* ${localizedLocation}, ${localizedDistrict}\n` +
     `📅 *Arrival Slot:* ${slot?.slot_date || 'Today'} (${slot?.slot_start_time || '08:00 AM'} - ${slot?.slot_end_time || '10:00 AM'})\n` +
     `📦 *Commodity:* ${center?.crop_type || 'Produce'} (${booking.crop_quantity_kg || 2500} kg)\n` +
     `🚦 *Queue Status:* ${booking.status} (Position #${booking.queue_position || 1} at this mandi)\n\n` +
@@ -82,7 +87,7 @@ export const TokenShareModal: React.FC<TokenShareModalProps> = ({
       farmerId: booking.farmer_id,
       bookingId: booking.booking_id,
       recipientPhone: recipientPhone,
-      message: `Gate Pass for Token ${booking.token_number} (${center?.center_name || 'Mandi'}) dispatched with QR verification link: https://agriq.gov.in/t/${booking.token_number}`,
+      message: `Gate Pass for Token ${booking.token_number} (${localizedCenterName}) dispatched with QR verification link: https://agriq.gov.in/t/${booking.token_number}`,
     });
 
     const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);

@@ -1,7 +1,7 @@
 import React from 'react';
 import { DailyRatesCache } from '../../types/schema';
 import { useTranslation } from '../../hooks/useTranslation';
-import { getLocalizedReason } from '../../lib/translations';
+import { getLocalizedReason, getLocalizedMandiName } from '../../lib/translations';
 import { formatDate, formatINR } from '../../lib/utils';
 import { Sparkles, TrendingUp, ShieldCheck, ArrowRight } from 'lucide-react';
 
@@ -28,6 +28,7 @@ export const BestDayCard: React.FC<BestDayCardProps> = ({
 
   const translatedCrop = t('crop_' + cropType.toLowerCase(), cropType);
   const localizedReason = getLocalizedReason(bestDay.reason_text, lang);
+  const localizedCenter = getLocalizedMandiName(centerName, lang);
 
   return (
     <div className="bg-gradient-to-br from-amber-500/10 via-emerald-500/10 to-green-600/10 border-2 border-amber-300/80 rounded-3xl p-5 shadow-sm space-y-4 animate-in fade-in duration-200 relative overflow-hidden">
@@ -42,7 +43,7 @@ export const BestDayCard: React.FC<BestDayCardProps> = ({
                 {t('best_day_badge')}
               </span>
               <span className="text-xs font-bold text-slate-600">
-                {translatedCrop} @ {centerName}
+                {translatedCrop} @ {localizedCenter}
               </span>
             </div>
             <h3 className="text-lg font-black text-slate-900 mt-1">

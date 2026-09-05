@@ -1661,3 +1661,280 @@ export function getLocalizedStatus(status: string | undefined, lang: SupportedLa
     default: return status;
   }
 }
+
+/**
+ * Mandi Center Name localization map
+ */
+export const MANDI_TRANSLATIONS: Record<string, Record<SupportedLang, string>> = {
+  'Bengaluru APMC (Yeshwanthpur Main Yard)': {
+    kn: 'ಬೆಂಗಳೂರು APMC (ಯಶವಂತಪುರ ಮುಖ್ಯ ಮಾರುಕಟ್ಟೆ)',
+    hi: 'बेंगलुरु APMC (यशवंतपुर मुख्य यार्ड)',
+    mr: 'बंगळुरू APMC (यशवंतपूर मुख्य यार्ड)',
+    en: 'Bengaluru APMC (Yeshwanthpur Main Yard)',
+    te: 'బెంగళూరు APMC (యశ్వంత్‌పూర్ ప్రధాన మార్కెట్)',
+    pa: 'ਬੈਂਗਲੁਰੂ APMC (ਯਸ਼ਵੰਤਪੁਰ ਮੁੱਖ ਮੰਡੀ)',
+  },
+  'Hubballi APMC (Amaragol Market Yard)': {
+    kn: 'ಹುಬ್ಬಳ್ಳಿ APMC (ಅಮರಗೋಳ ಮಾರುಕಟ್ಟೆ ಆವರಣ)',
+    hi: 'हुबली APMC (अमरगोल मार्केट यार्ड)',
+    mr: 'हुबळी APMC (अमरगोळ मार्केट यार्ड)',
+    en: 'Hubballi APMC (Amaragol Market Yard)',
+    te: 'హుబ్లీ APMC (అమరగోల్ మార్కెట్ యార్డ్)',
+    pa: 'ਹੁਬਲੀ APMC (ਅਮਰਗੋਲ ਮਾਰਕੀਟ ਯਾਰਡ)',
+  },
+  'Mysuru APMC (Bandipalya Yard)': {
+    kn: 'ಮೈಸೂರು APMC (ಬಂಡೀಪಾಳ್ಯ ಮಾರುಕಟ್ಟೆ)',
+    hi: 'मैसूर APMC (बांदीपाल्या यार्ड)',
+    mr: 'म्हैसूर APMC (बांदीपाळ्य यार्ड)',
+    en: 'Mysuru APMC (Bandipalya Yard)',
+    te: 'మైసూర్ APMC (బండిపాళ్య యార్డ్)',
+    pa: 'ਮੈਸੂਰ APMC (ਬਾਂਦੀਪਾਲਿਆ ਯਾਰਡ)',
+  },
+  'Kalaburagi APMC (Nehru Gunj Hub)': {
+    kn: 'ಕಲಬುರಗಿ APMC (ನೆಹರೂ ಗಂಜ್ ಮಾರುಕಟ್ಟೆ)',
+    hi: 'कलबुर्गी APMC (नेहरू गंज केंद्र)',
+    mr: 'कलबुर्गी APMC (नेहरू गंज केंद्र)',
+    en: 'Kalaburagi APMC (Nehru Gunj Hub)',
+    te: 'కలబురగి APMC (నెహ్రూ గంజ్ హబ్)',
+    pa: 'ਕਲਬੁਰਗੀ APMC (ਨੇਹਰੂ ਗੰਜ ਹੱਬ)',
+  },
+  'Belagavi APMC Central Yard': {
+    kn: 'ಬೆಳಗಾವಿ APMC ಕೇಂದ್ರ ಮಾರುಕಟ್ಟೆ',
+    hi: 'बेलगावी APMC केंद्रीय यार्ड',
+    mr: 'बेळगाव APMC केंद्रीय यार्ड',
+    en: 'Belagavi APMC Central Yard',
+    te: 'బెళగావి APMC సెంట్రల్ యార్డ్',
+    pa: 'ਬੇਲਗਾਵੀ APMC ਸੈਂਟਰਲ ਯਾਰਡ',
+  },
+  'Raichur Cotton & Paddy APMC': {
+    kn: 'ರಾಯಚೂರು ಹತ್ತಿ ಮತ್ತು ಭತ್ತ APMC',
+    hi: 'रायचूर कपास एवं धान APMC',
+    mr: 'रायचूर कापूस व भात APMC',
+    en: 'Raichur Cotton & Paddy APMC',
+    te: 'రాయచూర్ పత్తి & వరి APMC',
+    pa: 'ਰਾਇਚੂਰ ਕਪਾਹ ਅਤੇ ਝੋਨਾ APMC',
+  },
+  'Nashik APMC Main Yard': {
+    kn: 'ನಾಸಿಕ್ APMC ಮುಖ್ಯ ಮಾರುಕಟ್ಟೆ',
+    hi: 'नासिक APMC मुख्य यार्ड',
+    mr: 'नाशिक APMC मुख्य यार्ड',
+    en: 'Nashik APMC Main Yard',
+    te: 'నాసిక్ APMC ప్రధాన యార్డ్',
+    pa: 'ਨਾਸਿਕ APMC ਮੁੱਖ ਮੰਡੀ',
+  },
+  'Lasalgaon Onion & Grain Market Yard': {
+    kn: 'ಲಾಸಲ್‌ಗಾಂವ್ ಈರುಳ್ಳಿ ಮತ್ತು ಧಾನ್ಯ ಮಾರುಕಟ್ಟೆ',
+    hi: 'लासलगांव प्याज एवं अनाज मंडी',
+    mr: 'लासलगाव कांदा व धान्य मार्केट यार्ड',
+    en: 'Lasalgaon Onion & Grain Market Yard',
+    te: 'లాసల్‌గావ్ ఉల్లిపాయ & ధాన్యపు మార్కెట్',
+    pa: 'ਲਾਸਲਗਾਓਂ ਪਿਆਜ਼ ਅਤੇ ਅਨਾਜ ਮੰਡੀ',
+  },
+  'Pune APMC (Gultekdi Market Yard)': {
+    kn: 'ಪುಣೆ APMC (ಗುಲ್ತೇಕ್ಡಿ ಮಾರುಕಟ್ಟೆ)',
+    hi: 'पुणे APMC (गुलटेकड़ी मार्केट यार्ड)',
+    mr: 'पुणे APMC (गुलटेकडी मार्केट यार्ड)',
+    en: 'Pune APMC (Gultekdi Market Yard)',
+    te: 'పుణె APMC (గుల్తేక్డి మార్కెట్ యార్డ్)',
+    pa: 'ਪੁਣੇ APMC (ਗੁਲਟੇਕੜੀ ਮਾਰਕੀਟ ਯਾਰਡ)',
+  },
+  'Nagpur APMC Cotton & Grain Yard': {
+    kn: 'ನಾಗ್ಪುರ APMC ಹತ್ತಿ ಮತ್ತು ಧಾನ್ಯ ಮಾರುಕಟ್ಟೆ',
+    hi: 'नागपुर APMC कपास एवं अनाज यार्ड',
+    mr: 'नागपूर APMC कापूस व धान्य यार्ड',
+    en: 'Nagpur APMC Cotton & Grain Yard',
+    te: 'నాగ్‌పూర్ APMC పత్తి & ధాన్యపు యార్డ్',
+    pa: 'ਨਾਗਪੁਰ APMC ਕਪਾਹ ਅਤੇ ਅਨਾਜ ਯਾਰਡ',
+  },
+  'Ahmednagar APMC Market Yard': {
+    kn: 'ಅಹ್ಮದ್‌ನಗರ APMC ಮಾರುಕಟ್ಟೆ',
+    hi: 'अहमदनगर APMC मार्केट यार्ड',
+    mr: 'अहमदनगर APMC मार्केट यार्ड',
+    en: 'Ahmednagar APMC Market Yard',
+    te: 'అహ్మద్‌నగర్ APMC మార్కెట్ యార్డ్',
+    pa: 'ਅਹਿਮਦਨਗਰ APMC ਮਾਰਕੀਟ ਯਾਰਡ',
+  },
+};
+
+/**
+ * Location translations map
+ */
+export const LOCATION_TRANSLATIONS: Record<string, Record<SupportedLang, string>> = {
+  'APMC Market Yard, Yeshwanthpur': {
+    kn: 'APMC ಮಾರುಕಟ್ಟೆ ಆವರಣ, ಯಶವಂತಪುರ',
+    hi: 'APMC मार्केट यार्ड, यशवंतपुर',
+    mr: 'APMC मार्केट यार्ड, यशवंतपूर',
+    en: 'APMC Market Yard, Yeshwanthpur',
+    te: 'APMC మార్కెట్ యార్డ్, యశ్వంత్‌పూర్',
+    pa: 'APMC ਮਾਰਕੀਟ ਯਾਰਡ, ਯਸ਼ਵੰਤਪੁਰ',
+  },
+  'Amaragol, PB Road': {
+    kn: 'ಅಮರಗೋಳ, ಪಿಬಿ ರಸ್ತೆ',
+    hi: 'अमरगोल, पीबी रोड',
+    mr: 'अमरगोळ, पीबी रोड',
+    en: 'Amaragol, PB Road',
+    te: 'అమరగోల్, PB రోడ్',
+    pa: 'ਅਮਰਗੋਲ, PB ਰੋਡ',
+  },
+  'Bandipalya, Nanjangud Road': {
+    kn: 'ಬಂಡೀಪಾಳ್ಯ, ನಂಜನಗೂಡು ರಸ್ತೆ',
+    hi: 'बांदीपाल्या, नंजनगुड़ रोड',
+    mr: 'बांदीपाळ्य, नंजनगुड रोड',
+    en: 'Bandipalya, Nanjangud Road',
+    te: 'బండిపాళ్య, నంజన్‌గూడు రోడ్',
+    pa: 'ਬਾਂਦੀਪਾਲਿਆ, ਨੰਜਨਗੁੜ ਰੋਡ',
+  },
+  'Nehru Gunj Market': {
+    kn: 'ನೆಹರೂ ಗಂಜ್ ಮಾರುಕಟ್ಟೆ',
+    hi: 'नेहरू गंज मार्केट',
+    mr: 'नेहरू गंज मार्केट',
+    en: 'Nehru Gunj Market',
+    te: 'నెహ్రూ గంజ్ మార్కెట్',
+    pa: 'ਨੇਹਰੂ ਗੰਜ ਮਾਰਕੀਟ',
+  },
+  'RMC Yard, Shivaji Nagar': {
+    kn: 'RMC ಆವರಣ, ಶಿವಾಜಿ ನಗರ',
+    hi: 'RMC यार्ड, शिवाजी नगर',
+    mr: 'RMC यार्ड, शिवाजी नगर',
+    en: 'RMC Yard, Shivaji Nagar',
+    te: 'RMC యార్డ్, శివాజీ నగర్',
+    pa: 'RMC ਯਾਰਡ, ਸ਼ਿਵਾਜੀ ਨਗਰ',
+  },
+  'Gunj Area, Raichur': {
+    kn: 'ಗಂಜ್ ಪ್ರದೇಶ, ರಾಯಚೂರು',
+    hi: 'गंज क्षेत्र, रायचूर',
+    mr: 'गंज परिसर, रायचूर',
+    en: 'Gunj Area, Raichur',
+    te: 'గంజ్ ఏరియా, రాయచూర్',
+    pa: 'ਗੰਜ ਇਲਾਕਾ, ਰਾਇਚੂਰ',
+  },
+  'Dindori Road, Panchavati': {
+    kn: 'ದಿಂಡೋರಿ ರಸ್ತೆ, ಪಂಚವಟಿ',
+    hi: 'डिंडोरी रोड, पंचवटी',
+    mr: 'दिंडोरी रोड, पंचवटी',
+    en: 'Dindori Road, Panchavati',
+    te: 'దిండోరి రోడ్, పంచవటి',
+    pa: 'ਡਿੰਡੋਰੀ ਰੋਡ, ਪੰਚਵਟੀ',
+  },
+  'Station Road, Lasalgaon': {
+    kn: 'ಸ್ಟೇಷನ್ ರಸ್ತೆ, ಲಾಸಲ್‌ಗಾಂವ್',
+    hi: 'स्टेशन रोड, लासलगांव',
+    mr: 'स्टेशन रोड, लासलगाव',
+    en: 'Station Road, Lasalgaon',
+    te: 'స్టేషన్ రోడ్, లాసల్‌గావ్',
+    pa: 'ਸਟੇਸ਼ਨ ਰੋਡ, ਲਾਸਲਗਾਓਂ',
+  },
+  'Gultekdi, Market Yard Road': {
+    kn: 'ಗುಲ್ತೇಕ್ಡಿ, ಮಾರ್ಕೆಟ್ ಯಾರ್ಡ್ ರಸ್ತೆ',
+    hi: 'गुलटेकड़ी, मार्केट यार्ड रोड',
+    mr: 'गुलटेकडी, मार्केट यार्ड रोड',
+    en: 'Gultekdi, Market Yard Road',
+    te: 'గుల్తేక్డి, మార్కెట్ యార్డ్ రోడ్',
+    pa: 'ਗੁਲਟੇਕੜੀ, ਮਾਰਕੀਟ ਯਾਰਡ ਰੋਡ',
+  },
+  'Kalamna Market, Kamptee Road': {
+    kn: 'ಕಲಮ್ನಾ ಮಾರುಕಟ್ಟೆ, ಕಾಮ್ಟಿ ರಸ್ತೆ',
+    hi: 'कलमना मार्केट, कामठी रोड',
+    mr: 'कळमना मार्केट, कामठी रोड',
+    en: 'Kalamna Market, Kamptee Road',
+    te: 'కలంనా మార్కెట్, కాంప్టీ రోడ్',
+    pa: 'ਕਲਮਨਾ ਮਾਰਕੀਟ, ਕਾਮਟੀ ਰੋਡ',
+  },
+  'Station Road, Market Yard': {
+    kn: 'ಸ್ಟೇಷನ್ ರಸ್ತೆ, ಮಾರ್ಕೆಟ್ ಯಾರ್ಡ್',
+    hi: 'स्टेशन रोड, मार्केट यार्ड',
+    mr: 'स्टेशन रोड, मार्केट यार्ड',
+    en: 'Station Road, Market Yard',
+    te: 'స్టేషన్ రోడ్, మార్కెట్ యార్డ్',
+    pa: 'ਸਟੇਸ਼ਨ ਰੋਡ, ਮਾਰਕੀਟ ਯਾਰਡ',
+  },
+};
+
+/**
+ * District translations map
+ */
+export const DISTRICT_TRANSLATIONS: Record<string, Record<SupportedLang, string>> = {
+  'Bengaluru Urban': { kn: 'ಬೆಂಗಳೂರು ನಗರ', hi: 'बेंगलुरु शहरी', mr: 'बंगळुरू शहर', en: 'Bengaluru Urban', te: 'బెంగళూరు అర్బన్', pa: 'ਬੈਂਗਲੁਰੂ ਅਰਬਨ' },
+  'Bengaluru Rural': { kn: 'ಬೆಂಗಳೂರು ಗ್ರಾಮಾಂತರ', hi: 'बेंगलुरु ग्रामीण', mr: 'बंगळुरू ग्रामीण', en: 'Bengaluru Rural', te: 'బెంగళూరు రూరల్', pa: 'ਬੈਂਗਲੁਰੂ ਦਿਹਾਤੀ' },
+  'Dharwad': { kn: 'ಧಾರವಾಡ', hi: 'धारवाड़', mr: 'धारवाड', en: 'Dharwad', te: 'ధార్వాడ్', pa: 'ਧਾਰਵਾੜ' },
+  'Mysuru': { kn: 'ಮೈಸೂರು', hi: 'मैसूर', mr: 'म्हैसूर', en: 'Mysuru', te: 'మైసూర్', pa: 'ਮੈਸੂਰ' },
+  'Kalaburagi': { kn: 'ಕಲಬುರಗಿ', hi: 'कलबुर्गी', mr: 'कलबुर्गी', en: 'Kalaburagi', te: 'కలబురగి', pa: 'ਕਲਬੁਰਗੀ' },
+  'Belagavi': { kn: 'ಬೆಳಗಾವಿ', hi: 'बेलगावी', mr: 'बेळगाव', en: 'Belagavi', te: 'బెళగావి', pa: 'ਬੇਲਗਾਵੀ' },
+  'Raichur': { kn: 'ರಾಯಚೂರು', hi: 'रायचूर', mr: 'रायचूर', en: 'Raichur', te: 'రాయచూర్', pa: 'ਰਾਇਚੂਰ' },
+  'Nashik': { kn: 'ನಾಸಿಕ್', hi: 'नासिक', mr: 'नाशिक', en: 'Nashik', te: 'నాసిక్', pa: 'ਨਾਸਿਕ' },
+  'Pune': { kn: 'ಪುಣೆ', hi: 'पुणे', mr: 'पुणे', en: 'Pune', te: 'పుణె', pa: 'ਪੁਣੇ' },
+  'Nagpur': { kn: 'ನಾಗ್ಪುರ', hi: 'नागपुर', mr: 'नागपूर', en: 'Nagpur', te: 'నాగ్‌పూర్', pa: 'ਨਾਗਪੁਰ' },
+  'Ahmednagar': { kn: 'ಅಹ್ಮದ್‌ನಗರ', hi: 'अहमदनगर', mr: 'अहमदनगर', en: 'Ahmednagar', te: 'అహ్మద్‌నగర్', pa: 'ਅਹਿਮਦਨਗਰ' },
+};
+
+/**
+ * State translations map
+ */
+export const STATE_TRANSLATIONS: Record<string, Record<SupportedLang, string>> = {
+  'Karnataka': { kn: 'ಕರ್ನಾಟಕ', hi: 'कर्नाटक', mr: 'कर्नाटक', en: 'Karnataka', te: 'కర్ణాటక', pa: 'ਕਰਨਾਟਕ' },
+  'Maharashtra': { kn: 'ಮಹಾರಾಷ್ಟ್ರ', hi: 'महाराष्ट्र', mr: 'महाराष्ट्र', en: 'Maharashtra', te: 'మహారాష్ట్ర', pa: 'ਮਹਾਰਾਸ਼ਟਰ' },
+};
+
+/**
+ * Helper to get localized Mandi center name
+ */
+export function getLocalizedMandiName(centerName: string | undefined, lang: SupportedLang): string {
+  if (!centerName) return lang === 'kn' ? 'APMC ಮಂಡಿ' : lang === 'hi' ? 'APMC मंडी' : lang === 'mr' ? 'APMC बाजार समिती' : 'APMC Center';
+  
+  // Exact lookup
+  if (MANDI_TRANSLATIONS[centerName] && MANDI_TRANSLATIONS[centerName][lang]) {
+    return MANDI_TRANSLATIONS[centerName][lang];
+  }
+
+  // Keyword-based lookup
+  const lower = centerName.toLowerCase();
+  for (const [key, map] of Object.entries(MANDI_TRANSLATIONS)) {
+    const keyLower = key.toLowerCase();
+    if (lower.includes('bengaluru') || lower.includes('yeshwanthpur')) return map[lang] || key;
+    if (lower.includes('hubballi') || lower.includes('amaragol')) return map[lang] || key;
+    if (lower.includes('mysuru') || lower.includes('bandipalya')) return map[lang] || key;
+    if (lower.includes('kalaburagi') || lower.includes('nehru gunj')) return map[lang] || key;
+    if (lower.includes('belagavi') || lower.includes('shivaji')) return map[lang] || key;
+    if (lower.includes('raichur')) return map[lang] || key;
+    if (lower.includes('lasalgaon')) return map[lang] || key;
+    if (lower.includes('nashik')) return map[lang] || key;
+    if (lower.includes('pune') || lower.includes('gultekdi')) return map[lang] || key;
+    if (lower.includes('nagpur') || lower.includes('kalamna')) return map[lang] || key;
+    if (lower.includes('ahmednagar')) return map[lang] || key;
+  }
+
+  return centerName;
+}
+
+/**
+ * Helper to get localized Mandi location
+ */
+export function getLocalizedLocation(location: string | undefined, lang: SupportedLang): string {
+  if (!location) return '';
+  if (LOCATION_TRANSLATIONS[location] && LOCATION_TRANSLATIONS[location][lang]) {
+    return LOCATION_TRANSLATIONS[location][lang];
+  }
+  return location;
+}
+
+/**
+ * Helper to get localized District name
+ */
+export function getLocalizedDistrict(district: string | undefined, lang: SupportedLang): string {
+  if (!district) return '';
+  if (DISTRICT_TRANSLATIONS[district] && DISTRICT_TRANSLATIONS[district][lang]) {
+    return DISTRICT_TRANSLATIONS[district][lang];
+  }
+  return district;
+}
+
+/**
+ * Helper to get localized State name
+ */
+export function getLocalizedState(state: string | undefined, lang: SupportedLang): string {
+  if (!state) return '';
+  if (STATE_TRANSLATIONS[state] && STATE_TRANSLATIONS[state][lang]) {
+    return STATE_TRANSLATIONS[state][lang];
+  }
+  return state;
+}
