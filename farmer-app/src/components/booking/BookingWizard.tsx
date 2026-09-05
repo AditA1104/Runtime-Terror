@@ -86,6 +86,8 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
         centerId: selectedCenter.center_id,
         slotId: selectedSlot.slot_id,
         cropQuantityKg: quantityKg,
+        phoneNumber: farmer?.phone_number,
+        fullName: farmer?.full_name,
         selectedSlot,
         mandiCenter: selectedCenter,
       });
