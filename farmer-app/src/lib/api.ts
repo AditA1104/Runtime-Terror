@@ -239,27 +239,35 @@ export async function createBooking(params: {
 
   if (isSupabaseLive && supabase) {
     try {
-      // Calls the REAL deployed create-booking Edge Function (checks slot
-      // capacity, generates token, sets queue position, inserts the row) —
-      // NOT a Postgres RPC named create_ussd_booking, which never existed
-      // and was silently failing every booking to this local mock fallback.
-      const { data: fnData, error: fnError } = await supabase.functions.invoke('create-booking', {
-        body: {
-          farmer_id: params.farmerId,
-          slot_id: params.slotId,
-          center_id: params.centerId,
-          crop_quantity_kg: params.cropQuantityKg,
-          created_via: 'web',
-        },
+      // create_ussd_booking is a SECURITY DEFINER function anon can call. It
+      // validates the centre, the slot, its capacity and duplicates, finds or
+      // creates the farmer by phone, and returns the booking.
+      //
+      // This previously called an Edge Function named create-booking. That
+      // function is not deployed on this project — POST /functions/v1/create-booking
+      // answers 404 NOT_FOUND — so every booking was caught below and quietly
+      // downgraded to browser-only state: a token and a QR pass the farmer can
+      // see, and no row anywhere. The officer's queue stayed empty with nothing
+      // reported. If that Edge Function is ever deployed, moving back is fine;
+      // until then this is the path that reaches the database.
+      const { data: rpcData, error: rpcError } = await supabase.rpc('create_ussd_booking', {
+        p_phone_number: localFarmer?.phone_number || '',
+        p_center_id: params.centerId,
+        p_slot_id: params.slotId,
+        p_crop_quantity_kg: params.cropQuantityKg,
+        p_full_name: localFarmer?.full_name || null,
+        p_created_via: 'web',
       });
 
-      if (fnError) {
-        console.error('create-booking Edge Function failed:', fnError.message);
-      } else if (fnData?.success && fnData?.booking?.booking_id) {
+      if (rpcError) {
+        console.error('create_ussd_booking failed:', rpcError.message);
+      } else if (rpcData?.booking_id) {
+        // Re-fetch with joined relations so the returned shape matches the
+        // Booking type the rest of the app expects.
         const { data: fullBooking, error: fetchError } = await supabase
           .from('bookings')
           .select(`*, mandi_centers (*), slots (*), farmers (*)`)
-          .eq('booking_id', fnData.booking.booking_id)
+          .eq('booking_id', rpcData.booking_id)
           .single();
 
         if (!fetchError && fullBooking) {
@@ -267,7 +275,7 @@ export async function createBooking(params: {
         }
       }
     } catch (e) {
-      console.error('create-booking Edge Function threw:', e);
+      console.error('create_ussd_booking threw:', e);
     }
     // If we reach here on a live Supabase project, the booking was NOT saved.
   }
