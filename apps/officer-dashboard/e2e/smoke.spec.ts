@@ -28,8 +28,9 @@ test.describe("officer desk — mock mode", () => {
     await expect(rows.first()).toBeVisible()
     expect(await rows.count()).toBeGreaterThan(10)
 
-    // Every seeded token for this centre carries the BLR- prefix.
-    await expect(rows.first().getByText(/BLR-\d{4}/)).toBeVisible()
+    // The token column was removed, so a row is identified by its farmer.
+    // The token still exists on the booking and is what search matches on.
+    await expect(rows.first().locator("td").nth(1)).not.toBeEmpty()
   })
 
   test("status filters narrow the list", async ({ page }) => {
@@ -76,12 +77,12 @@ test.describe("officer desk — mock mode", () => {
 
     await page.getByRole("button", { name: /^Expected/ }).click()
     const firstBooked = queueRows(page).first()
-    const token = (await firstBooked.getByText(/BLR-\d{4}/).textContent())!.trim()
 
     await firstBooked.getByRole("button", { name: "Check in" }).click()
 
+    // The dialog still names the token, which is where the officer reads it now.
     const dialog = page.getByRole("dialog")
-    await expect(dialog.getByText(token)).toBeVisible()
+    const token = (await dialog.getByText(/BLR-\d{4}/).textContent())!.trim()
     await dialog.getByRole("button", { name: "Check in" }).click()
 
     await expect(page.getByText(new RegExp(`${token}.*check in done`, "i"))).toBeVisible()
@@ -104,10 +105,10 @@ test("mock mutations broadcast across tabs without a reload", async ({ context }
 
   await deskA.getByRole("button", { name: /^Expected/ }).click()
   const row = queueRows(deskA).first()
-  const token = (await row.getByText(/BLR-\d{4}/).textContent())!.trim()
 
   await row.getByRole("button", { name: "Check in" }).click()
   const dialog = deskA.getByRole("dialog")
+  const token = (await dialog.getByText(/BLR-\d{4}/).textContent())!.trim()
   await dialog.getByRole("button", { name: "Check in" }).click()
   await expect(deskA.getByText(new RegExp(`${token}.*check in done`, "i"))).toBeVisible()
 
