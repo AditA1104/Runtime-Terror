@@ -39,7 +39,57 @@ export const TokenShareModal: React.FC<TokenShareModalProps> = ({
     `🚦 *Queue Status:* ${booking.status} (Position #${booking.queue_position || 1} at this mandi)\n\n` +
     `🔗 *Verify Gate Pass Online:* https://agriq.gov.in/t/${booking.token_number}\n\n` +
     `_Present this message or QR pass at Gate Security Counter #1. Valid for offline entry._`;
+  const getQrImageFile = async (tokenNumber: string): Promise<File | null> => {
+  try {
+    const svgEl = document.querySelector('.agriq-qr-svg') as SVGGraphicsElement | null;
+    if (!svgEl) return null;
+    const xml = new XMLSerializer().serializeToString(svgEl);
+    const svg64 = btoa(unescape(encodeURIComponent(xml)));
+    const image64 = 'data:image/svg+xml;base64,' + svg64;
+    const img = new Image();
+    const blob: Blob | null = await new Promise((resolve) => {
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 300;
+        canvas.height = 300;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(null);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, 300, 300);
+        ctx.drawImage(img, 10, 10, 280, 280);
+        canvas.toBlob((b) => resolve(b), 'image/png');
+      };
+      img.onerror = () => resolve(null);
+      img.src = image64;
+    });
+    if (!blob) return null;
+    return new File([blob], `AgriQ-${tokenNumber}-QR.png`, { type: 'image/png' });
+  } catch (e) {
+    console.warn('QR image conversion failed:', e);
+    return null;
+  }
+};
 
+const handleNativeShare = async () => {
+  const qrFile = await getQrImageFile(booking.token_number);
+  const shareData: ShareData & { files?: File[] } = {
+    title: `AgriQ Mandi Gate Pass - ${booking.token_number}`,
+    text: shareText,
+    url: `https://agriq.gov.in/t/${booking.token_number}`,
+  };
+  if (qrFile && navigator.canShare && navigator.canShare({ files: [qrFile] })) {
+    shareData.files = [qrFile];
+  }
+  if (navigator.share) {
+    try {
+      await navigator.share(shareData);
+    } catch (err) {
+      console.warn('Native share cancelled or failed:', err);
+    }
+  } else {
+    handleShareWhatsApp();
+  }
+};
   const handleCopyPass = async () => {
     try {
       await navigator.clipboard.writeText(shareText);
@@ -55,22 +105,6 @@ export const TokenShareModal: React.FC<TokenShareModalProps> = ({
       ? `https://api.whatsapp.com/send?phone=91${recipientPhone}&text=${encodeURIComponent(shareText)}`
       : `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
     window.open(waUrl, '_blank', 'noopener,noreferrer');
-  };
-
-  const handleNativeShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `AgriQ Mandi Gate Pass - ${booking.token_number}`,
-          text: shareText,
-          url: `https://agriq.gov.in/t/${booking.token_number}`,
-        });
-      } catch (err) {
-        console.warn('Native share cancelled or failed:', err);
-      }
-    } else {
-      handleShareWhatsApp();
-    }
   };
 
   const handleSendSms = async (e: React.FormEvent) => {

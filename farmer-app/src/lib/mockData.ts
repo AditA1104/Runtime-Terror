@@ -159,7 +159,20 @@ export const MOCK_MANDI_CENTERS: MandiCenter[] = [
     avg_processing_min: 15,
     operating_start: '08:00',
     operating_end: '18:00',
-  }
+  },
+  {
+  center_id: 'c9999999-9999-9999-9999-999999999999',
+  center_name: 'Onion Mandi (Demo Yard)',
+  location: 'Demo Grounds',
+  district: 'Test District',
+  state: 'Karnataka',
+  crop_type: 'Onion',
+  daily_capacity_kg: 50000,
+  hourly_intake_limit: 40,
+  avg_processing_min: 10,
+  operating_start: '08:00',
+  operating_end: '18:00',
+},
 ];
 
 export function generateAvailableSlots(centerId: string, daysAhead: number = 7): SlotAvailable[] {
