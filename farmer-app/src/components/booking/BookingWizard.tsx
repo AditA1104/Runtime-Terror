@@ -198,6 +198,16 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
     )}
   </>
 )}
+{currentStep === 4 && selectedCenter && selectedSlot && (
+  <Step4Confirm
+    cropId={selectedCrop}
+    center={selectedCenter}
+    slot={selectedSlot}
+    farmer={farmer}
+    onConfirmBooking={handleFinalSubmit}
+    isSubmitting={isSubmitting}
+  />
+)}
         
       </div>
     </div>
