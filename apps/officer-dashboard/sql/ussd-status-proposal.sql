@@ -69,6 +69,7 @@ BEGIN
     SELECT b.booking_id, b.token_number, b.status, b.queue_position,
            b.predicted_wait_mins, b.crop_quantity_kg, b.quality_grade,
            b.payment_amount, b.created_via, b.checked_in_at, b.completed_at,
+           b.center_id, b.created_at,
            f.full_name, f.phone_number,
            c.center_name, c.crop_type,
            s.slot_date, s.slot_start_time, s.slot_end_time
@@ -111,10 +112,10 @@ BEGIN
             SELECT count(*) + 1
               FROM bookings b2
               JOIN slots s2 ON s2.slot_id = b2.slot_id
-             WHERE b2.center_id = (SELECT center_id FROM bookings WHERE booking_id = v_row.booking_id)
+             WHERE b2.center_id = v_row.center_id
                AND s2.slot_date = v_row.slot_date
                AND b2.status = 'BOOKED'
-               AND b2.created_at < (SELECT created_at FROM bookings WHERE booking_id = v_row.booking_id)
+               AND b2.created_at < v_row.created_at
         )
     );
 END;
@@ -122,3 +123,16 @@ $$;
 
 REVOKE ALL ON FUNCTION get_ussd_booking_status(TEXT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION get_ussd_booking_status(TEXT) TO anon, authenticated;
+
+-- =============================================================================
+-- VERIFIED against the live project, called as anon, which is how a USSD
+-- caller reaches it:
+--
+--   by token   -> TES-0006 · Test Mandi · BOOKED · position 6
+--   by phone   -> TES-0006 · ••••6002
+--   with +91   -> TES-0006
+--   a miss     -> null, no error, so the UI can say "not found" plainly
+--
+-- And the containment held: `bookings` is still closed to anon, and the full
+-- phone number never leaves the database.
+-- =============================================================================
