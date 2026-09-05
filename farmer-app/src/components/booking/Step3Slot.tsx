@@ -53,7 +53,7 @@ export const Step3Slot: React.FC<Step3SlotProps> = ({
                 </strong>
               </div>
               <p className="text-slate-700 mt-1 font-medium leading-relaxed">
-                {bestDayItem.reason_text} • Forecast Rate: <strong>{formatINR(bestDayItem.price_trend_score)}/q</strong>
+                {bestDayItem.reason_text} • Forecast Rate: <strong>{formatINR(bestDayItem.predicted_price)}/q</strong>
               </p>
               {selectedDate !== bestDayItem.forecast_date && (
                 <button

@@ -70,12 +70,14 @@ export async function getMandiCenters(): Promise<MandiCenter[]> {
 
 // 2. Slots Available (reads from VIEW slots_available as requested by P1 schema rule)
 export async function getSlotsAvailable(centerId: string): Promise<SlotAvailable[]> {
+  const todayStr = new Date().toISOString().split('T')[0];
   if (isSupabaseLive && supabase) {
     try {
       const { data, error } = await supabase
         .from('slots_available')
         .select('*')
         .eq('center_id', centerId)
+        .gte('slot_date', todayStr) // never show slots that have already passed
         .order('slot_date', { ascending: true })
         .order('slot_start_time', { ascending: true });
       if (!error && data && data.length > 0) {
@@ -107,6 +109,7 @@ export async function getDailyRatesCache(cropType: string, centerId: string): Pr
           crop_type: d.crop_type || cropType,
           center_id: d.center_id || centerId,
           forecast_date: d.forecast_date,
+          predicted_price: Number(d.predicted_price) || 0,
           price_trend_score: Number(d.price_trend_score) || 0,
           best_day_score: Number(d.best_day_score) || 0,
           reason_text: d.reason_text || 'Optimal dispatch slot',
@@ -205,6 +208,8 @@ export async function createBooking(params: {
   centerId: string;
   slotId: string;
   cropQuantityKg: number;
+  phoneNumber?: string;
+  fullName?: string;
   selectedSlot?: SlotAvailable;
   mandiCenter?: MandiCenter;
 }): Promise<Booking> {
@@ -234,48 +239,37 @@ export async function createBooking(params: {
 
   if (isSupabaseLive && supabase) {
     try {
-      // Try calling Edge Function create-booking if deployed
-      const { data, error } = await supabase.functions.invoke('create-booking', {
-        body: {
-          farmer_id: params.farmerId,
-          center_id: params.centerId,
-          slot_id: params.slotId,
-          crop_quantity_kg: params.cropQuantityKg,
-          created_via: 'web',
-        }
+      const { data: rpcData, error: rpcError } = await supabase.rpc('create_ussd_booking', {
+        p_phone_number: params.phoneNumber || '',
+        p_center_id: params.centerId,
+        p_slot_id: params.slotId,
+        p_crop_quantity_kg: params.cropQuantityKg,
+        p_full_name: params.fullName || null,
+        p_created_via: 'web',
       });
-      if (!error && data?.booking) {
-        return data.booking as Booking;
+
+      if (rpcError) {
+        console.error('create_ussd_booking RPC failed:', rpcError.message);
+      } else if (rpcData?.booking_id) {
+        // Re-fetch with joined relations so the shape matches the Booking type
+        // the rest of the app expects (mandi_centers / slots / farmers nested).
+        const { data: fullBooking, error: fetchError } = await supabase
+          .from('bookings')
+          .select(`*, mandi_centers (*), slots (*), farmers (*)`)
+          .eq('booking_id', rpcData.booking_id)
+          .single();
+
+        if (!fetchError && fullBooking) {
+          return fullBooking as Booking;
+        }
       }
     } catch (e) {
-      console.warn('Edge function fallback to direct booking:', e);
+      console.error('create_ussd_booking RPC threw:', e);
     }
-
-    try {
-      const newBookingRow = {
-        farmer_id: params.farmerId,
-        center_id: params.centerId,
-        slot_id: params.slotId,
-        token_number: tokenNumber,
-        crop_quantity_kg: params.cropQuantityKg,
-        status: 'BOOKED' as BookingStatus,
-        queue_position: queuePos,
-        predicted_wait_mins: waitMins,
-        created_via: 'web' as const,
-      };
-
-      const { data, error } = await supabase
-        .from('bookings')
-        .insert(newBookingRow)
-        .select(`*, mandi_centers (*), slots (*)`)
-        .single();
-      
-      if (!error && data) {
-        return data as Booking;
-      }
-    } catch (e) {
-      console.warn('Direct insert fallback:', e);
-    }
+    // If we reach here on a live Supabase project, the booking was NOT saved.
+    // Falling through to local-only state below means the UI will show a
+    // token that does not exist in the database - only acceptable as an
+    // offline/demo-only last resort, not a silent success path.
   }
 
   // Local state generation

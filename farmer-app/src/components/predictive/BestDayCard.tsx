@@ -52,7 +52,7 @@ export const BestDayCard: React.FC<BestDayCardProps> = ({
             Predicted Rate
           </span>
           <strong className="text-base sm:text-lg font-black text-green-800">
-            {formatINR(bestDay.price_trend_score)} <span className="text-xs font-normal text-slate-500">/q</span>
+            {formatINR(bestDay.predicted_price)} <span className="text-xs font-normal text-slate-500">/q</span>
           </strong>
         </div>
       </div>

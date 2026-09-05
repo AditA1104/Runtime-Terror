@@ -89,9 +89,10 @@ export interface DailyRatesCache {
   cache_id: string;
   crop_type: string;
   center_id: string;
-  forecast_date: string;     // YYYY-MM-DD
-  price_trend_score: number; // e.g. 88 (out of 100) or predicted price ₹/quintal
-  best_day_score: number;    // combined adjusted score
+  forecast_date: string;       // YYYY-MM-DD
+  predicted_price: number;     // actual forecasted ₹/quintal - use this for currency display
+  price_trend_score: number;   // 0-100 abstract score, NOT a rupee amount
+  best_day_score: number;      // combined adjusted score (0-100)
   reason_text: string;       // e.g. "High price, low crowd"
   updated_at?: string;
 }

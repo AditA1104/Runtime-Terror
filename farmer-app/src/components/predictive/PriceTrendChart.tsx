@@ -11,8 +11,8 @@ interface PriceTrendChartProps {
 export const PriceTrendChart: React.FC<PriceTrendChartProps> = ({ rates, onSelectDate }) => {
   if (!rates || rates.length === 0) return null;
 
-  const maxPrice = Math.max(...rates.map(r => r.price_trend_score));
-  const minPrice = Math.min(...rates.map(r => r.price_trend_score));
+  const maxPrice = Math.max(...rates.map(r => r.predicted_price));
+  const minPrice = Math.min(...rates.map(r => r.predicted_price));
   const bestDay = [...rates].sort((a, b) => b.best_day_score - a.best_day_score)[0];
 
   return (
@@ -35,7 +35,7 @@ export const PriceTrendChart: React.FC<PriceTrendChartProps> = ({ rates, onSelec
           {rates.slice(0, 7).map(item => {
             const isBest = item.forecast_date === bestDay.forecast_date;
             const priceRange = maxPrice - minPrice || 1;
-            const heightPercent = Math.max(30, Math.min(100, Math.round(((item.price_trend_score - minPrice) / priceRange) * 70 + 30)));
+            const heightPercent = Math.max(30, Math.min(100, Math.round(((item.predicted_price - minPrice) / priceRange) * 70 + 30)));
             const d = new Date(item.forecast_date + 'T00:00:00');
             const dayName = new Intl.DateTimeFormat('en-IN', { weekday: 'short' }).format(d);
 
@@ -49,7 +49,7 @@ export const PriceTrendChart: React.FC<PriceTrendChartProps> = ({ rates, onSelec
               >
                 {/* Tooltip on Hover */}
                 <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-[10px] py-1 px-2 rounded-md pointer-events-none whitespace-nowrap z-20 shadow-md">
-                  {formatINR(item.price_trend_score)} • Score: {item.best_day_score}/100
+                  {formatINR(item.predicted_price)} • Score: {item.best_day_score}/100
                 </div>
 
                 {isBest && (
@@ -68,7 +68,7 @@ export const PriceTrendChart: React.FC<PriceTrendChartProps> = ({ rates, onSelec
                   style={{ height: `${heightPercent}%` }}
                 >
                   <span className="text-[9px] font-black text-white px-0.5 truncate">
-                    ₹{item.price_trend_score}
+                    ₹{item.predicted_price}
                   </span>
                 </div>
 

@@ -58,8 +58,11 @@ export function App() {
   useEffect(() => {
     getMandiCenters().then(data => {
       setCenters(data);
-      if (data.length > 0) {
-        getDailyRatesCache(selectedCropInsight, data[0].center_id).then(setDailyRates);
+      const matchingCenter = data.find(
+        c => c.crop_type.toLowerCase() === selectedCropInsight.toLowerCase()
+      ) || data[0];
+      if (matchingCenter) {
+        getDailyRatesCache(selectedCropInsight, matchingCenter.center_id).then(setDailyRates);
       }
     });
 
@@ -69,8 +72,11 @@ export function App() {
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
     await refreshData();
-    if (centers.length > 0) {
-      const rates = await getDailyRatesCache(selectedCropInsight, centers[0].center_id);
+    const matchingCenter = centers.find(
+      c => c.crop_type.toLowerCase() === selectedCropInsight.toLowerCase()
+    ) || centers[0];
+    if (matchingCenter) {
+      const rates = await getDailyRatesCache(selectedCropInsight, matchingCenter.center_id);
       setDailyRates(rates);
     }
     const notifs = await getFarmerNotifications(farmer?.farmer_id || '');
