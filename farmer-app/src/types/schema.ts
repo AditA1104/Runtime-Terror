@@ -69,6 +69,7 @@ export interface Booking {
   checked_in_at?: string;
   completed_at?: string;
   created_at: string;
+  is_mock?: boolean;  // true if this only exists in browser state, NOT saved to Supabase
   
   // Joined fields for display convenience
   mandi_centers?: Partial<MandiCenter>;
@@ -95,6 +96,9 @@ export interface DailyRatesCache {
   best_day_score: number;      // combined adjusted score (0-100)
   reason_text: string;       // e.g. "High price, low crowd"
   updated_at?: string;
+  is_mock?: boolean;         // true if this is fabricated fallback data, not
+                              // real predictive engine output — UI must show
+                              // this visibly, never silently present as real
 }
 
 export interface NotificationItem {
