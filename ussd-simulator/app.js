@@ -1041,6 +1041,19 @@
       });
     }
 
+    // On a live project a refused booking used to fall through and still print
+    // "Token Confirmed" with a locally generated number - a token the farmer
+    // would read out at the gate that exists in no database. Say so instead,
+    // reusing the STATUS_RESULT screen, which renders whatever text it is given.
+    if (window.agriqBackend && window.agriqBackend.isLive && !backendResult) {
+      state.statusLookupResult =
+        'Booking could not be completed.\n\n' +
+        'That slot may be full or no longer\navailable.\n\n' +
+        'Please choose another slot.\n\n0. Back';
+      enterMenu('STATUS_RESULT');
+      return;
+    }
+
     const prefix = state.tempData.centerId ? state.tempData.centerId.replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase() || 'BLR' : 'BLR';
     const tokenNumber = customToken || (backendResult ? backendResult.token_number : `${prefix}-${Math.floor(1000 + Math.random() * 9000)}`);
     const bookingId = backendResult ? backendResult.booking_id : ('b' + Math.floor(1000000 + Math.random() * 9000000) + '-0000-0000-0000-000000000001');

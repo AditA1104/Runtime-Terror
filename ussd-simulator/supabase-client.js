@@ -68,10 +68,24 @@ class AgriQBackend {
 
   async getAvailableSlots(centerId) {
     if (this.isLive && this.client) {
+      // Only slots from today onward, soonest first. Without the date filter
+      // this returned every slot the centre has ever had, so the menu offered
+      // yesterday's times — labelled "Tomorrow", because the label only asks
+      // whether the date differs from today — and create_ussd_booking then
+      // rejected them with "That slot is in the past".
+      //
+      // The date is the LOCAL one. toISOString() is UTC, which in IST is a day
+      // behind for five and a half hours every night.
+      const d = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const today = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
       const { data, error } = await this.client
         .from('slots_available')
         .select('*')
-        .eq('center_id', centerId);
+        .eq('center_id', centerId)
+        .gte('slot_date', today)
+        .order('slot_date', { ascending: true })
+        .order('slot_start_time', { ascending: true });
       if (!error && data && data.length) return data;
     }
     const key = centerId || 'c0000000-0000-0000-0000-000000000001';
@@ -107,8 +121,13 @@ class AgriQBackend {
         }
         console.error('USSD Booking was not saved to database:', error?.message);
       } catch (err) {
-        console.error('USSD Booking RPC invoke failed, fallback to mock:', err);
+        console.error('USSD Booking RPC threw:', err);
       }
+      // Live and the write failed. Returning the mock record below would hand
+      // the caller a token that exists in no database and print "Token
+      // Confirmed" over it — the failure this whole path was fixed to remove.
+      // null lets app.js say the booking did not happen.
+      return null;
     }
 
     const mockRecord = {
