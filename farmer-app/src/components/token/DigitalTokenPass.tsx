@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { Booking } from '../../types/schema';
 import { useTranslation } from '../../hooks/useTranslation';
+import { 
+  getLocalizedStatus, 
+  getLocalizedMandiName, 
+  getLocalizedLocation, 
+  getLocalizedDistrict, 
+  getLocalizedState 
+} from '../../lib/translations';
 import { QRCodeDisplay } from './QRCodeDisplay';
 import { TokenShareModal } from './TokenShareModal';
 import { formatTimeSlot, formatDate, formatINR, formatNumber } from '../../lib/utils';
@@ -29,13 +36,18 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
   onCancelBooking,
   onViewTracker,
 }) => {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSavedOffline, setIsSavedOffline] = useState(false);
 
   const center = booking.mandi_centers;
   const slot = booking.slots;
+
+  const localizedCenterName = getLocalizedMandiName(center?.center_name, lang);
+  const localizedLocation = getLocalizedLocation(center?.location, lang);
+  const localizedDistrict = getLocalizedDistrict(center?.district, lang);
+  const localizedState = getLocalizedState(center?.state, lang);
 
   const handleDownloadPass = async () => {
     setIsDownloading(true);
@@ -72,7 +84,7 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 22px sans-serif';
-      ctx.fillText('OFFICIAL DIGITAL MANDI GATE PASS', 300, 72);
+      ctx.fillText(lang === 'kn' ? 'ಅಧಿಕೃತ ಡಿಜಿಟಲ್ ಮಂಡಿ ಗೇಟ್ ಪಾಸ್' : lang === 'mr' ? 'अधिकृत डिजिटल बाजार समिती गेट पास' : lang === 'hi' ? 'आधिकारिक डिजिटल मंडी गेट पास' : 'OFFICIAL DIGITAL MANDI GATE PASS', 300, 72);
 
       // Big Token Number
       ctx.fillStyle = '#ffffff';
@@ -104,11 +116,11 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
       ctx.fillStyle = '#0f172a';
       ctx.font = 'bold 18px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(center?.center_name || 'APMC Mandi Procurement Yard', 300, 460);
+      ctx.fillText(localizedCenterName, 300, 460);
 
       ctx.fillStyle = '#64748b';
       ctx.font = '13px sans-serif';
-      ctx.fillText(`${center?.location || 'Mandi Yard'}, ${center?.district || ''}, ${center?.state || ''}`, 300, 485);
+      ctx.fillText(`${localizedLocation}, ${localizedDistrict}, ${localizedState}`, 300, 485);
 
       // Metadata Box
       ctx.fillStyle = '#f8fafc';
@@ -151,28 +163,29 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
     }
   };
 
-  const getStatusBadge = () => {
+  const getStatusBadgeStyle = () => {
     switch (booking.status) {
       case 'BOOKED':
-        return { text: 'Slot Confirmed', bg: 'bg-emerald-100 text-emerald-800 border-emerald-300' };
+        return 'bg-emerald-100 text-emerald-800 border-emerald-300';
       case 'CHECKED_IN':
-        return { text: 'Checked-in at Gate', bg: 'bg-blue-100 text-blue-800 border-blue-300' };
+        return 'bg-blue-100 text-blue-800 border-blue-300';
       case 'WEIGHED':
-        return { text: 'Weight Logged', bg: 'bg-indigo-100 text-indigo-800 border-indigo-300' };
+        return 'bg-indigo-100 text-indigo-800 border-indigo-300';
       case 'QUALITY_APPROVED':
-        return { text: 'Quality Approved', bg: 'bg-amber-100 text-amber-900 border-amber-300' };
+        return 'bg-amber-100 text-amber-900 border-amber-300';
       case 'PAYMENT_INITIATED':
-        return { text: 'DBT Initiated', bg: 'bg-purple-100 text-purple-900 border-purple-300' };
+        return 'bg-purple-100 text-purple-900 border-purple-300';
       case 'COMPLETED':
-        return { text: 'Procurement Done', bg: 'bg-green-100 text-green-900 border-green-400' };
+        return 'bg-green-100 text-green-900 border-green-400';
       case 'CANCELLED':
-        return { text: 'Cancelled', bg: 'bg-red-100 text-red-800 border-red-300' };
+        return 'bg-red-100 text-red-800 border-red-300';
       default:
-        return { text: booking.status, bg: 'bg-slate-100 text-slate-800 border-slate-300' };
+        return 'bg-slate-100 text-slate-800 border-slate-300';
     }
   };
 
-  const statusBadge = getStatusBadge();
+  const statusBadgeText = getLocalizedStatus(booking.status, lang);
+  const translatedCrop = t('crop_' + (center?.crop_type || 'soybean').toLowerCase(), center?.crop_type || 'Crop');
 
   return (
     <div className="max-w-md mx-auto space-y-4 animate-in fade-in duration-200">
@@ -184,11 +197,11 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-amber-300" />
               <span className="text-[11px] font-black uppercase tracking-wider text-green-100">
-                APMC Smart Procurement Pass
+                {t('apmc_smart_pass_header')}
               </span>
             </div>
-            <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border shadow-2xs ${statusBadge.bg}`}>
-              {statusBadge.text}
+            <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border shadow-2xs ${getStatusBadgeStyle()}`}>
+              {statusBadgeText}
             </span>
           </div>
 
@@ -205,7 +218,7 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
 
             <div className="text-right">
               <span className="text-[10px] font-bold uppercase tracking-wider text-green-200 block">
-                Created Via
+                {t('created_via')}
               </span>
               <span className="text-xs font-black uppercase bg-white/20 px-2 py-0.5 rounded-md">
                 {booking.created_via || 'Web PWA'}
@@ -241,7 +254,7 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
                     #{booking.queue_position} <span className="text-xs font-bold text-amber-800">{t('queue_in_line')}</span>
                   </>
                 ) : (
-                  <span className="text-sm font-bold text-green-700">At Checkpoint</span>
+                  <span className="text-sm font-bold text-green-700">{t('at_checkpoint')}</span>
                 )}
               </div>
             </div>
@@ -264,11 +277,11 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
             <Building2 className="w-4 h-4 text-green-700 shrink-0 mt-0.5" />
             <div>
               <strong className="text-slate-900 font-bold text-sm block">
-                {center?.center_name || 'Nashik APMC Main Yard'}
+                {localizedCenterName}
               </strong>
               <span className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                <MapPin className="w-3 h-3 text-slate-400" />
-                {center?.location || 'Nashik, Maharashtra'}
+                <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                {localizedLocation}, {localizedDistrict}, {localizedState}
               </span>
             </div>
           </div>
@@ -277,7 +290,7 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
             <div className="flex items-start gap-2">
               <Calendar className="w-3.5 h-3.5 text-green-700 shrink-0 mt-0.5" />
               <div>
-                <span className="text-[10px] text-slate-400 font-bold uppercase block">Date</span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase block">{t('date_label')}</span>
                 <strong className="text-slate-800">
                   {slot?.slot_date ? formatDate(slot.slot_date) : formatDate(booking.created_at ? booking.created_at.split('T')[0] : '')}
                 </strong>
@@ -287,7 +300,7 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
             <div className="flex items-start gap-2">
               <Clock className="w-3.5 h-3.5 text-green-700 shrink-0 mt-0.5" />
               <div>
-                <span className="text-[10px] text-slate-400 font-bold uppercase block">Gate Window</span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase block">{t('gate_window')}</span>
                 <strong className="text-amber-800 font-bold">
                   {slot?.slot_start_time && slot?.slot_end_time 
                     ? formatTimeSlot(slot.slot_start_time, slot.slot_end_time) 
@@ -300,14 +313,14 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
           {/* Produce & Quantity */}
           <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase block">Crop & Declared Weight</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase block">{t('crop_declared_weight')}</span>
               <strong className="text-slate-900 font-bold text-sm">
-                {center?.crop_type || 'Soybean'} • {formatNumber(booking.crop_quantity_kg || 2500)} kg ({((booking.crop_quantity_kg || 2500) / 100).toFixed(1)} q)
+                {translatedCrop} • {formatNumber(booking.crop_quantity_kg || 2500)} kg ({((booking.crop_quantity_kg || 2500) / 100).toFixed(1)} q)
               </strong>
             </div>
             {booking.payment_amount && (
               <div className="text-right">
-                <span className="text-[10px] font-bold text-slate-400 uppercase block">DBT Payout</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase block">{t('dbt_payout')}</span>
                 <strong className="text-green-800 font-extrabold text-sm">
                   {formatINR(booking.payment_amount)}
                 </strong>
@@ -322,14 +335,14 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-green-600 animate-ping" />
               <span className="text-xs font-extrabold text-green-900">
-                Track Live Mandi Checkpoint Progress
+                {t('track_live_progress')}
               </span>
             </div>
             <button
               onClick={onViewTracker}
               className="text-xs font-extrabold text-green-700 bg-white px-3 py-1.5 rounded-xl border border-green-200 hover:bg-green-100 active:scale-95 shadow-2xs transition-all"
             >
-              View Tracker →
+              {t('view_tracker_btn')}
             </button>
           </div>
         )}
@@ -345,12 +358,12 @@ export const DigitalTokenPass: React.FC<DigitalTokenPassProps> = ({
           {isSavedOffline ? (
             <>
               <CheckCircle2 className="w-4 h-4 text-green-600" />
-              <span className="text-green-800">Pass Downloaded!</span>
+              <span className="text-green-800">{t('pass_downloaded')}</span>
             </>
           ) : isDownloading ? (
             <>
               <span className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
-              <span>Generating Pass...</span>
+              <span>{t('generating_pass_btn')}</span>
             </>
           ) : (
             <>

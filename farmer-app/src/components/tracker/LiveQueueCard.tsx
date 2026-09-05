@@ -12,13 +12,13 @@ export const LiveQueueCard: React.FC<LiveQueueCardProps> = ({ booking }) => {
 
   const getStageTitle = () => {
     switch (booking.status) {
-      case 'BOOKED': return 'Waiting for Arrival / Gate Check-in';
-      case 'CHECKED_IN': return 'Proceed to Weighbridge (Lane 2)';
-      case 'WEIGHED': return 'Proceed to Quality Assayer Booth';
-      case 'QUALITY_APPROVED': return 'Proceed to Accounts Desk for DBT';
-      case 'PAYMENT_INITIATED': return 'DBT Payment Transfer in Progress';
-      case 'COMPLETED': return 'Procurement Cycle Completed';
-      case 'CANCELLED': return 'Token Cancelled';
+      case 'BOOKED': return t('action_booked');
+      case 'CHECKED_IN': return t('action_checked_in');
+      case 'WEIGHED': return t('action_weighed');
+      case 'QUALITY_APPROVED': return t('action_quality_approved');
+      case 'PAYMENT_INITIATED': return t('action_payment_initiated');
+      case 'COMPLETED': return t('action_completed');
+      case 'CANCELLED': return t('action_cancelled');
       default: return booking.status;
     }
   };
@@ -32,7 +32,7 @@ export const LiveQueueCard: React.FC<LiveQueueCardProps> = ({ booking }) => {
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
           <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-300 flex items-center gap-1">
-            <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" /> Live Mandi Queue Sync
+            <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" /> {t('live_queue_sync')}
           </span>
         </div>
 
@@ -54,10 +54,10 @@ export const LiveQueueCard: React.FC<LiveQueueCardProps> = ({ booking }) => {
               </>
             ) : booking.status === 'COMPLETED' ? (
               <span className="text-sm font-bold text-emerald-300 flex items-center gap-1">
-                <CheckCircle className="w-4 h-4" /> Done
+                <CheckCircle className="w-4 h-4" /> {t('status_done')}
               </span>
             ) : (
-              <span className="text-sm font-bold text-amber-300">In Process</span>
+              <span className="text-sm font-bold text-amber-300">{t('status_in_process')}</span>
             )}
           </div>
         </div>
@@ -69,7 +69,7 @@ export const LiveQueueCard: React.FC<LiveQueueCardProps> = ({ booking }) => {
           </span>
           <div className="text-2xl font-black text-white mt-1">
             {booking.status === 'COMPLETED' ? (
-              <span className="text-sm font-bold text-emerald-300">0 min</span>
+              <span className="text-sm font-bold text-emerald-300">0 {t('mins')}</span>
             ) : (
               <>
                 ~{booking.predicted_wait_mins || 15} <span className="text-xs font-normal text-green-200">{t('mins')}</span>
@@ -82,7 +82,7 @@ export const LiveQueueCard: React.FC<LiveQueueCardProps> = ({ booking }) => {
       {/* Current Instruction Banner */}
       <div className="mt-3.5 p-3 rounded-2xl bg-white/15 border border-white/15 flex items-center justify-between text-xs">
         <div>
-          <span className="text-[10px] text-green-300 font-bold uppercase block">Next Action:</span>
+          <span className="text-[10px] text-green-300 font-bold uppercase block">{t('next_action')}</span>
           <strong className="text-white font-semibold block mt-0.5">
             {getStageTitle()}
           </strong>

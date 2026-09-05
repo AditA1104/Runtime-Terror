@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { MandiCenter, SlotAvailable, Farmer } from '../../types/schema';
 import { CROPS_DATA } from '../../lib/mockData';
 import { useTranslation } from '../../hooks/useTranslation';
+import { getLocalizedMandiName } from '../../lib/translations';
 import { formatINR, formatTimeSlot, formatDate, quintalToKg } from '../../lib/utils';
-import { Sparkles, Calendar, Clock, MapPin, Scale, IndianRupee, QrCode, ArrowRight } from 'lucide-react';
+import { Calendar, Clock, MapPin, Scale, IndianRupee, QrCode, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface Step4ConfirmProps {
@@ -23,7 +24,7 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
   onConfirmBooking,
   isSubmitting,
 }) => {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [unit, setUnit] = useState<'quintal' | 'kg'>('kg');
   const [quantity, setQuantity] = useState<number>(2500); // Default 2,500 kg (25 quintals)
 
@@ -31,6 +32,7 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
   const quantityKg = unit === 'quintal' ? quintalToKg(quantity) : quantity;
   const quantityQuintals = unit === 'quintal' ? quantity : quantity / 100;
   const estimatedPayout = Math.round(quantityQuintals * crop.mspPrice);
+  const localizedCenterName = getLocalizedMandiName(center.center_name, lang);
 
   const handleUnitToggle = (newUnit: 'quintal' | 'kg') => {
     if (newUnit === unit) return;
@@ -54,7 +56,7 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
         colors: ['#15803d', '#22c55e', '#eab308', '#f59e0b'],
       });
     } catch (e) {
-      // safe fallback if confetti fails
+      // safe fallback
     }
     await onConfirmBooking(quantityKg);
   };
@@ -68,7 +70,7 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
         <div className="flex items-center justify-between pb-3 border-b border-white/10">
           <div>
             <span className="text-[10px] font-bold tracking-wider uppercase text-green-400">
-              Procurement Summary
+              {t('procurement_summary')}
             </span>
             <h3 className="text-lg font-extrabold text-white flex items-center gap-2 mt-0.5">
               <span>{crop.icon}</span>
@@ -83,16 +85,16 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
         <div className="grid grid-cols-2 gap-3 py-3 text-xs">
           <div className="space-y-1">
             <span className="text-slate-400 text-[10px] font-bold uppercase flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-green-400" /> APMC Center
+              <MapPin className="w-3 h-3 text-green-400" /> {t('apmc_center_label')}
             </span>
             <strong className="text-slate-100 font-semibold block truncate">
-              {center.center_name}
+              {localizedCenterName}
             </strong>
           </div>
 
           <div className="space-y-1">
             <span className="text-slate-400 text-[10px] font-bold uppercase flex items-center gap-1">
-              <Calendar className="w-3 h-3 text-green-400" /> Selling Date
+              <Calendar className="w-3 h-3 text-green-400" /> {t('selling_date_label')}
             </span>
             <strong className="text-slate-100 font-semibold block">
               {formatDate(slot.slot_date)}
@@ -101,7 +103,7 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
 
           <div className="space-y-1 col-span-2">
             <span className="text-slate-400 text-[10px] font-bold uppercase flex items-center gap-1">
-              <Clock className="w-3 h-3 text-green-400" /> Assigned Gate Slot
+              <Clock className="w-3 h-3 text-green-400" /> {t('assigned_gate_slot')}
             </span>
             <strong className="text-amber-300 font-bold block text-sm">
               {formatTimeSlot(slot.slot_start_time, slot.slot_end_time)}
@@ -111,7 +113,7 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
 
         {/* Farmer Info */}
         <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs text-slate-300">
-          <span>Farmer: <strong>{farmer?.full_name || 'Ramesh Patil'}</strong></span>
+          <span>{t('farmer_label')} <strong>{farmer?.full_name || 'Ramesh Patil'}</strong></span>
           <span className="text-slate-400">+91 {farmer?.phone_number || '9876543210'}</span>
         </div>
       </div>
@@ -131,7 +133,7 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
                 unit === 'kg' ? 'bg-white text-green-800 shadow-sm font-bold' : 'text-slate-600'
               }`}
             >
-              Kilograms (Kg)
+              {t('unit_kg')}
             </button>
             <button
               type="button"
@@ -140,7 +142,7 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
                 unit === 'quintal' ? 'bg-white text-green-800 shadow-sm font-bold' : 'text-slate-600'
               }`}
             >
-              Quintals (q)
+              {t('unit_quintal')}
             </button>
           </div>
         </div>
@@ -158,11 +160,11 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
             {unit === 'kg' ? (
               <>
                 <span className="block text-slate-900 text-sm font-black">{quantity.toLocaleString('en-IN')} kg</span>
-                <span className="text-slate-400">({(quantity / 100).toFixed(1)} Quintals)</span>
+                <span className="text-slate-400">({(quantity / 100).toFixed(1)} q)</span>
               </>
             ) : (
               <>
-                <span className="block text-slate-900 text-sm font-black">{quantity} Quintals</span>
+                <span className="block text-slate-900 text-sm font-black">{quantity} q</span>
                 <span className="text-slate-400">({(quantity * 100).toLocaleString('en-IN')} kg)</span>
               </>
             )}
@@ -171,7 +173,7 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
 
         {/* Quick Presets */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-          <span className="text-[10px] uppercase font-bold text-slate-400 shrink-0 mr-1">Quick:</span>
+          <span className="text-[10px] uppercase font-bold text-slate-400 shrink-0 mr-1">{t('quick_presets')}</span>
           {(unit === 'kg' ? kgPresets : quintalPresets).map(presetVal => (
             <button
               key={presetVal}
@@ -200,7 +202,7 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
             </span>
           </div>
           <span className="text-[10px] bg-white px-2 py-1 rounded-md text-emerald-800 font-bold border border-emerald-200 shadow-2xs">
-            Direct Bank DBT
+            {t('direct_bank_dbt')}
           </span>
         </div>
       </div>
@@ -214,7 +216,7 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
         {isSubmitting ? (
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            <span>Generating Digital Pass...</span>
+            <span>{t('generating_pass')}</span>
           </div>
         ) : (
           <>

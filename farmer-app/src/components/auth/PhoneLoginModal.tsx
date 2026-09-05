@@ -6,12 +6,10 @@ import {
   User, 
   MapPin, 
   CheckCircle2, 
-  Sparkles, 
   Users, 
   UserPlus, 
   Check, 
-  ArrowRight,
-  Edit3
+  ArrowRight
 } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Farmer } from '../../types/schema';
@@ -44,10 +42,6 @@ export const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
   // Form State for new login / add
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
-  const [newFullName, setNewFullName] = useState('');
-  const [newVillage, setNewVillage] = useState('');
-  const [newDistrict, setNewDistrict] = useState('');
-  const [newState, setNewState] = useState('Karnataka');
   
   // Edit State
   const [editFullName, setEditFullName] = useState(farmer?.full_name || '');
@@ -73,7 +67,7 @@ export const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!otp || otp.length < 4) {
-      setError('Please enter the 4-digit OTP sent to your phone');
+      setError('Please enter the 4-digit OTP');
       return;
     }
     setError('');
@@ -127,10 +121,10 @@ export const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-extrabold tracking-tight">
-                Farmer Profiles & Accounts
+                {t('profiles_modal_title')}
               </h2>
               <p className="text-[11px] text-green-100 font-medium">
-                Switch between farmers or add a new phone account
+                {t('profiles_modal_sub')}
               </p>
             </div>
           </div>
@@ -143,7 +137,7 @@ export const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                 tab === 'switch' ? 'bg-white text-green-900 shadow-sm' : 'text-green-100 hover:text-white'
               }`}
             >
-              Switch ({savedAccounts.length})
+              {t('tab_switch')} ({savedAccounts.length})
             </button>
             <button
               onClick={() => setTab('new')}
@@ -151,7 +145,7 @@ export const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                 tab === 'new' ? 'bg-white text-green-900 shadow-sm' : 'text-green-100 hover:text-white'
               }`}
             >
-              + Add Account
+              {t('tab_add_account')}
             </button>
             <button
               onClick={() => {
@@ -165,7 +159,7 @@ export const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                 tab === 'edit' ? 'bg-white text-green-900 shadow-sm' : 'text-green-100 hover:text-white'
               }`}
             >
-              Edit Profile
+              {t('tab_edit_profile')}
             </button>
           </div>
         </div>
@@ -182,7 +176,7 @@ export const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
           {tab === 'switch' && (
             <div className="space-y-3">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                Saved Farmer Profiles
+                {t('saved_profiles')}
               </span>
 
               <div className="space-y-2.5">
@@ -218,7 +212,7 @@ export const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                             </strong>
                             {isActive && (
                               <span className="text-[9px] font-extrabold uppercase bg-green-200 text-green-900 px-1.5 py-0.2 rounded-full">
-                                Active
+                                {t('active_badge')}
                               </span>
                             )}
                           </div>
@@ -241,7 +235,7 @@ export const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                           type="button"
                           className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-100"
                         >
-                          Switch
+                          {t('tab_switch')}
                         </button>
                       )}
                     </div>
@@ -255,7 +249,7 @@ export const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                   className="w-full py-3 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-800 rounded-2xl font-bold text-xs transition-all flex items-center justify-center gap-1.5"
                 >
                   <UserPlus className="w-4 h-4 text-slate-600" />
-                  <span>+ Login with another mobile number</span>
+                  <span>{t('login_another_phone')}</span>
                 </button>
               </div>
             </div>
@@ -298,7 +292,7 @@ export const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                   {/* 1-Tap Demo Quick Presets */}
                   <div className="pt-3 border-t border-slate-100 space-y-2">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                      1-Tap Quick Add Demo Profiles:
+                      {t('quick_add_demo_title')}
                     </span>
                     <div className="grid grid-cols-1 gap-1.5">
                       <button
@@ -344,14 +338,14 @@ export const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
               ) : (
                 <form onSubmit={handleVerifyOtp} className="space-y-4">
                   <div className="text-center pb-1">
-                    <span className="text-xs text-slate-500">OTP sent to </span>
+                    <span className="text-xs text-slate-500">{t('otp_sent_to')} </span>
                     <strong className="text-xs text-slate-800">+91 {phone}</strong>
                     <button
                       type="button"
                       onClick={() => setStep('phone')}
                       className="ml-2 text-xs font-bold text-green-700 hover:underline"
                     >
-                      Change
+                      {t('change_number')}
                     </button>
                   </div>
 
@@ -377,7 +371,7 @@ export const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                     className="w-full py-3.5 bg-green-700 hover:bg-green-800 active:scale-[0.98] text-white rounded-2xl font-bold shadow-lg shadow-green-700/25 transition-all flex items-center justify-center gap-2 text-xs"
                   >
                     <ShieldCheck className="w-4 h-4" />
-                    <span>{isSubmitting ? 'Verifying...' : t('btn_verify_otp')}</span>
+                    <span>{isSubmitting ? t('verifying_btn') : t('btn_verify_otp')}</span>
                   </button>
                 </form>
               )}
@@ -451,7 +445,7 @@ export const PhoneLoginModal: React.FC<PhoneLoginModalProps> = ({
                   className="w-full py-3 bg-green-700 hover:bg-green-800 active:scale-[0.98] text-white rounded-2xl font-bold shadow-lg shadow-green-700/25 transition-all flex items-center justify-center gap-2 text-xs"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>{isSubmitting ? 'Saving...' : t('save_profile')}</span>
+                  <span>{isSubmitting ? t('saving_btn') : t('save_profile')}</span>
                 </button>
               </div>
             </form>

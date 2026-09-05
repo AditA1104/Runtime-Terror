@@ -1,6 +1,7 @@
 import React from 'react';
 import { SlotAvailable, DailyRatesCache } from '../../types/schema';
 import { useTranslation } from '../../hooks/useTranslation';
+import { getLocalizedReason } from '../../lib/translations';
 import { formatTimeSlot, formatDate, formatINR } from '../../lib/utils';
 import { Sparkles, Clock, Users, Check, AlertCircle } from 'lucide-react';
 
@@ -21,7 +22,7 @@ export const Step3Slot: React.FC<Step3SlotProps> = ({
   onSelectSlot,
   dailyRates,
 }) => {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
 
   // Find Best Day score from daily rates cache
   const bestDayItem = dailyRates.length > 0 
@@ -33,6 +34,9 @@ export const Step3Slot: React.FC<Step3SlotProps> = ({
 
   // Group unique dates
   const uniqueDates = Array.from(new Set(availableSlots.map(s => s.slot_date))).slice(0, 7);
+
+  const locale = lang === 'kn' ? 'kn-IN' : lang === 'mr' ? 'mr-IN' : lang === 'hi' ? 'hi-IN' : 'en-IN';
+  const localizedReason = bestDayItem ? getLocalizedReason(bestDayItem.reason_text, lang) : '';
 
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
@@ -53,14 +57,14 @@ export const Step3Slot: React.FC<Step3SlotProps> = ({
                 </strong>
               </div>
               <p className="text-slate-700 mt-1 font-medium leading-relaxed">
-                {bestDayItem.reason_text} • Forecast Rate: <strong>{formatINR(bestDayItem.predicted_price)}/q</strong>
+                {localizedReason} • {t('forecast_rate_label')} <strong>{formatINR(bestDayItem.predicted_price)}/q</strong>
               </p>
               {selectedDate !== bestDayItem.forecast_date && (
                 <button
                   onClick={() => onSelectDate(bestDayItem.forecast_date)}
                   className="mt-1.5 text-xs font-bold text-green-700 hover:text-green-800 hover:underline inline-flex items-center gap-1"
                 >
-                  ⚡ Select this recommended day →
+                  {t('select_recommended_day')}
                 </button>
               )}
             </div>
@@ -78,9 +82,9 @@ export const Step3Slot: React.FC<Step3SlotProps> = ({
             const isSelected = selectedDate === dateStr;
             const isRecommended = bestDayItem?.forecast_date === dateStr;
             const d = new Date(dateStr + 'T00:00:00');
-            const dayName = new Intl.DateTimeFormat('en-IN', { weekday: 'short' }).format(d);
+            const dayName = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(d);
             const dayNum = d.getDate();
-            const monthName = new Intl.DateTimeFormat('en-IN', { month: 'short' }).format(d);
+            const monthName = new Intl.DateTimeFormat(locale, { month: 'short' }).format(d);
 
             return (
               <button
@@ -95,8 +99,8 @@ export const Step3Slot: React.FC<Step3SlotProps> = ({
                 }`}
               >
                 {isRecommended && !isSelected && (
-                  <span className="absolute -top-2 bg-amber-500 text-white text-[9px] font-extrabold px-1.5 py-0.2 rounded-full shadow-sm">
-                    ★ Best
+                  <span className="absolute -top-2 bg-amber-500 text-white text-[9px] font-extrabold px-1.5 py-0.2 rounded-full shadow-sm whitespace-nowrap">
+                    {t('badge_best')}
                   </span>
                 )}
                 <span className={`text-[10px] font-bold uppercase ${isSelected ? 'text-green-100' : 'text-slate-400'}`}>
@@ -123,7 +127,7 @@ export const Step3Slot: React.FC<Step3SlotProps> = ({
         {filteredSlots.length === 0 ? (
           <div className="bg-slate-50 rounded-2xl p-6 text-center text-slate-500 text-xs border border-slate-200">
             <AlertCircle className="w-6 h-6 mx-auto text-slate-400 mb-2" />
-            No open slots found for this date. Please select another day.
+            {t('no_slots_found')}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -158,11 +162,11 @@ export const Step3Slot: React.FC<Step3SlotProps> = ({
                       </span>
                     ) : isFull ? (
                       <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded">
-                        Full
+                        {t('slot_full_label')}
                       </span>
                     ) : (
                       <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-md">
-                        {slot.remaining} left
+                        {slot.remaining} {t('left_suffix')}
                       </span>
                     )}
                   </div>
@@ -172,9 +176,9 @@ export const Step3Slot: React.FC<Step3SlotProps> = ({
                     <div className="flex items-center justify-between text-[10px] text-slate-500 font-medium mb-1">
                       <span className="flex items-center gap-1">
                         <Users className="w-3 h-3 text-slate-400" />
-                        {slot.booked_count} of {slot.max_farmers} booked
+                        {slot.booked_count} {t('of_label')} {slot.max_farmers} {t('booked_label')}
                       </span>
-                      <span>{occupancyPct}% full</span>
+                      <span>{occupancyPct}% {t('full_pct_label')}</span>
                     </div>
                     <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                       <div

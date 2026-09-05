@@ -1,7 +1,8 @@
 import React from 'react';
 import { DailyRatesCache } from '../../types/schema';
-import { formatDate, formatINR } from '../../lib/utils';
-import { TrendingUp, Users, Sparkles, Award } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
+import { formatINR } from '../../lib/utils';
+import { TrendingUp, Sparkles } from 'lucide-react';
 
 interface PriceTrendChartProps {
   rates: DailyRatesCache[];
@@ -9,11 +10,15 @@ interface PriceTrendChartProps {
 }
 
 export const PriceTrendChart: React.FC<PriceTrendChartProps> = ({ rates, onSelectDate }) => {
+  const { t, lang } = useTranslation();
+
   if (!rates || rates.length === 0) return null;
 
   const maxPrice = Math.max(...rates.map(r => r.predicted_price));
   const minPrice = Math.min(...rates.map(r => r.predicted_price));
   const bestDay = [...rates].sort((a, b) => b.best_day_score - a.best_day_score)[0];
+
+  const locale = lang === 'kn' ? 'kn-IN' : lang === 'mr' ? 'mr-IN' : lang === 'hi' ? 'hi-IN' : 'en-IN';
 
   return (
     <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-4 animate-in fade-in duration-200">
@@ -21,10 +26,10 @@ export const PriceTrendChart: React.FC<PriceTrendChartProps> = ({ rates, onSelec
         <div>
           <h3 className="font-extrabold text-slate-900 text-sm md:text-base flex items-center gap-1.5">
             <TrendingUp className="w-4 h-4 text-green-700" />
-            7-Day Mandi Price & Rush Forecast
+            {t('price_trend_title')}
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            Predictive AI model balances expected market rate against mandi arrival queues.
+            {t('price_trend_desc')}
           </p>
         </div>
       </div>
@@ -37,7 +42,7 @@ export const PriceTrendChart: React.FC<PriceTrendChartProps> = ({ rates, onSelec
             const priceRange = maxPrice - minPrice || 1;
             const heightPercent = Math.max(30, Math.min(100, Math.round(((item.predicted_price - minPrice) / priceRange) * 70 + 30)));
             const d = new Date(item.forecast_date + 'T00:00:00');
-            const dayName = new Intl.DateTimeFormat('en-IN', { weekday: 'short' }).format(d);
+            const dayName = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(d);
 
             return (
               <div
@@ -53,8 +58,8 @@ export const PriceTrendChart: React.FC<PriceTrendChartProps> = ({ rates, onSelec
                 </div>
 
                 {isBest && (
-                  <span className="absolute -top-6 text-amber-500 font-extrabold text-[11px] animate-bounce">
-                    ★ Best
+                  <span className="absolute -top-6 text-amber-500 font-extrabold text-[11px] animate-bounce whitespace-nowrap">
+                    {t('badge_best')}
                   </span>
                 )}
 
@@ -92,11 +97,11 @@ export const PriceTrendChart: React.FC<PriceTrendChartProps> = ({ rates, onSelec
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
           <span className="text-slate-600 text-[11px]">
-            <strong>AI Dispatch Formula:</strong> Score = Price Trend − Booking Congestion Penalty
+            {t('ai_dispatch_formula')}
           </span>
         </div>
-        <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full">
-          Live Scored
+        <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full shrink-0 ml-1">
+          {t('live_scored')}
         </span>
       </div>
     </div>

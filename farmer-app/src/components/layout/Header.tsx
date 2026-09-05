@@ -35,7 +35,7 @@ export const Header: React.FC<HeaderProps> = ({
               </h1>
               <span className="flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-green-100 text-green-800 border border-green-200/60">
                 <Radio className={`w-2.5 h-2.5 ${isSupabaseLive ? 'text-green-600 animate-pulse' : 'text-amber-600'}`} />
-                {isSupabaseLive ? 'Live Sync' : 'Demo Ready'}
+                {isSupabaseLive ? t('live_sync') : t('demo_ready')}
               </span>
             </div>
             <p className="text-[11px] text-slate-500 font-medium hidden sm:block">
@@ -50,7 +50,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onOpenNotifications}
             className="relative p-2 rounded-full text-slate-600 hover:text-green-700 hover:bg-green-50 active:scale-95 transition-all"
-            title="SMS & Notifications"
+            title={t('nav_alerts')}
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
@@ -72,7 +72,7 @@ export const Header: React.FC<HeaderProps> = ({
               {farmer?.full_name ? farmer.full_name.charAt(0).toUpperCase() : <User className="w-3.5 h-3.5" />}
             </div>
             <span className="max-w-[80px] truncate hidden sm:inline">
-              {farmer?.full_name || 'Login'}
+              {farmer?.full_name || t('login_btn_text')}
             </span>
           </button>
         </div>

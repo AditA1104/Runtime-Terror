@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgriQ — Karnataka State APMC Mandi Procurement Gateway (KSAMB / DoCA)</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Google Fonts for retro screen & modern UI -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700;800&family=VT323&display=swap" rel="stylesheet">
+  <!-- Supabase JS Client for live sync -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Official Enterprise Header -->
+    <header class="main-header">
+      <div class="header-branding">
+        <div class="emblem-group">
+          <span class="gov-title">GOVERNMENT OF KARNATAKA • DEPT OF AGRICULTURAL MARKETING • KSAMB & APMC</span>
+          <h1>🌾 AgriQ <span class="sub">| Karnataka Mandi Procurement & USSD Gateway (*99# NUUP)</span></h1>
+        </div>
+      </div>
+      <div class="header-controls">
+        <button id="sound-toggle-btn" class="btn-sm" title="Toggle Telecom DTMF Audio">🔊 Audio: ON</button>
+        <button id="signaling-toggle-btn" class="btn-sm btn-trace" title="View Real-Time GSM SS7/MAP Signaling Trace">📡 SS7 Trace</button>
+        <div class="status-bar-top">
+          <span class="pulse-indicator" id="pulse-dot"></span>
+          <span id="connection-status">BSNL / Airtel Karnataka 2G (Active)</span>
+          <button id="toggle-config-btn" class="btn-sm">⚙️ Database</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Supabase Config Drawer -->
+    <div id="config-drawer" class="config-drawer hidden">
+      <div class="config-inner">
+        <div class="config-header">
+          <h3>🔗 Central PostgreSQL / Supabase Connection</h3>
+          <button id="close-config-btn" class="btn-text">✕</button>
+        </div>
+        <p class="hint">Connect to central team database (Schema v2) for live cross-system synchronization with Officer Dashboard & Farmer Web PWA.</p>
+        <div class="form-row">
+          <input type="text" id="supabase-url" placeholder="https://your-project.supabase.co" />
+          <input type="password" id="supabase-key" placeholder="Anon (public) key" />
+          <button id="save-config-btn" class="btn-primary">Save & Connect</button>
+          <button id="reset-config-btn" class="btn-secondary">Local Isolated Mode</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Official Mandi USSD Operations Toolbar -->
+    <div class="action-toolbar">
+      <div class="toolbar-left">
+        <span class="toolbar-label">USSD Operations:</span>
+        <button class="tool-btn" id="btn-quick-rates" title="View Current MSP Rates & AI Forecast">📈 Karnataka APMC MSP Rates & AI Forecast</button>
+        <button class="tool-btn btn-receipt" id="btn-view-receipt" disabled title="View Official Mandi Gate Pass">📄 Official Gate Pass</button>
+        <button class="tool-btn" id="btn-view-signaling" title="Open Telecom Protocol Monitor">📡 Telecom Signaling Monitor</button>
+      </div>
+      <div class="toolbar-right">
+        <div class="turnaround-pill" id="turnaround-pill">
+          <span class="pill-dot"></span>
+          <span>Gateway Protocol: <strong>*99# NUUP (GSM 2G)</strong></span>
+        </div>
+        <button class="tool-btn btn-danger" id="btn-quick-reset" title="Reset Current Session">🔄 Reset Session</button>
+      </div>
+    </div>
+
+    <!-- Main 2-Column Layout (Phone & SMS Feed) -->
+    <main class="main-content">
+      
+      <!-- COLUMN 1: The Nokia Feature Phone Emulator -->
+      <section class="phone-column">
+        <div class="section-label">
+          <span>📱 Farmer USSD Interface (*99#)</span>
+          <div class="lang-selector-group">
+            <button class="lang-chip active" data-lang="en">EN</button>
+            <button class="lang-chip" data-lang="hi">हिंदी</button>
+            <button class="lang-chip" data-lang="mr">मराठी</button>
+            <button class="lang-chip" data-lang="kn">ಕನ್ನಡ</button>
+          </div>
+        </div>
+
+        <div class="phone-chassis">
+          <!-- Speaker ear piece -->
+          <div class="phone-speaker"></div>
+          
+          <!-- Screen Area -->
+          <div class="phone-screen-bezel">
+            <div class="screen-header">
+              <span class="network-carrier" id="carrier-indicator">📶 BSNL Karnataka</span>
+              <span id="screen-clock" class="clock">10:45</span>
+              <span class="screen-timer" id="session-timer-badge">⏱ 60s</span>
+            </div>
+
+            <!-- LCD Screen -->
+            <div class="lcd-screen" id="lcd-screen">
+              <!-- Dialing View -->
+              <div id="dialing-view" class="screen-view">
+                <div class="dialer-prompt">Dial Mandi Shortcode:</div>
+                <div id="dialed-number" class="dialed-display">*99#</div>
+                <div class="dialer-hint">Dial *99# or press CALL to begin</div>
+              </div>
+
+              <!-- USSD Menu View -->
+              <div id="menu-view" class="screen-view hidden">
+                <div class="ussd-title" id="ussd-title">AgriQ Mandi Seva</div>
+                <div class="ussd-body" id="ussd-body">
+                  <!-- Populated dynamically -->
+                </div>
+                <div class="ussd-input-row">
+                  <span class="prompt-arrow">&gt;</span>
+                  <span id="ussd-input-display" class="input-display"></span>
+                  <span class="blinking-cursor">_</span>
+                </div>
+              </div>
+
+              <!-- Loading / Processing View -->
+              <div id="loading-view" class="screen-view hidden">
+                <div class="ussd-loader">
+                  <div class="spinner"></div>
+                  <div id="loading-text">Connecting to Mandi Gateway...</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="screen-footer">
+              <span id="left-soft-label">Dial</span>
+              <span id="right-soft-label">Clear</span>
+            </div>
+          </div>
+
+          <!-- Keypad Navigation Buttons -->
+          <div class="nav-keys">
+            <button class="key soft-key" id="btn-soft-left" title="Left Soft Key / Call / Send">CALL</button>
+            <div class="dpad">
+              <button class="dpad-center" id="btn-ok" title="OK / Enter">OK</button>
+            </div>
+            <button class="key soft-key end-key" id="btn-soft-right" title="Right Soft Key / End / Back">END</button>
+          </div>
+
+          <!-- Numeric Keypad (0-9, *, #) with Real DTMF Audio -->
+          <div class="numeric-keypad">
+            <button class="key num-key" data-key="1"><span class="num">1</span><span class="subtext">. @</span></button>
+            <button class="key num-key" data-key="2"><span class="num">2</span><span class="subtext">ABC</span></button>
+            <button class="key num-key" data-key="3"><span class="num">3</span><span class="subtext">DEF</span></button>
+            <button class="key num-key" data-key="4"><span class="num">4</span><span class="subtext">GHI</span></button>
+            <button class="key num-key" data-key="5"><span class="num">5</span><span class="subtext">JKL</span></button>
+            <button class="key num-key" data-key="6"><span class="num">6</span><span class="subtext">MNO</span></button>
+            <button class="key num-key" data-key="7"><span class="num">7</span><span class="subtext">PQRS</span></button>
+            <button class="key num-key" data-key="8"><span class="num">8</span><span class="subtext">TUV</span></button>
+            <button class="key num-key" data-key="9"><span class="num">9</span><span class="subtext">WXYZ</span></button>
+            <button class="key num-key star-key" data-key="*"><span class="num">*</span><span class="subtext">+</span></button>
+            <button class="key num-key" data-key="0"><span class="num">0</span><span class="subtext">Back</span></button>
+            <button class="key num-key hash-key" data-key="#"><span class="num">#</span><span class="subtext">↵</span></button>
+          </div>
+          <div class="phone-model-label">NOKIA 3310 • GSM 2G / USSD PROTOCOL</div>
+        </div>
+      </section>
+
+      <!-- COLUMN 2: Live SMS Alerts & Push Notifications -->
+      <section class="sms-column">
+        <div class="section-label">
+          <span>📬 Farmer SMS Inbox (Real-time Feed)</span>
+          <span class="badge-count" id="sms-count">0 Messages</span>
+        </div>
+
+        <div class="sms-phone-frame">
+          <div class="sms-header">
+            <div class="sender-group">
+              <span class="sms-dot"></span>
+              <span class="sender-id">KA-AGRIQ (KSAMB Mandi Alerts)</span>
+              <span class="dlt-badge" title="Telecom Regulatory Authority of India DLT Registered">✔ DLT Verified</span>
+            </div>
+            <button id="clear-sms-btn" class="btn-text" title="Clear All SMS">Clear</button>
+          </div>
+          <div class="sms-messages" id="sms-messages">
+            <div class="empty-state" id="sms-empty-state">
+              <span class="empty-icon">📭</span>
+              <p>Inbox is currently empty.</p>
+              <small>Dial <b>*99#</b> on the phone to book a Karnataka APMC slot (Bengaluru, Hubballi, Mysuru, Kalaburagi) and receive official SMS alerts.</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simulated Farmer Phone Number config -->
+        <div class="phone-id-card">
+          <div class="phone-id-header">
+            <label>Registered Farmer Mobile (+91):</label>
+            <span class="phone-status-tag">Aadhaar Linked (PM-KISAN)</span>
+          </div>
+          <div class="phone-input-group">
+            <input type="text" id="farmer-phone-input" value="9845012345" maxlength="10" placeholder="10-digit mobile number" />
+            <button id="update-phone-btn" class="btn-sm">Update Number</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Modal: Official APMC Gate Pass Receipt -->
+    <div id="receipt-modal" class="modal-backdrop hidden">
+      <div class="modal-card print-target">
+        <div class="receipt-header">
+          <div class="gov-badge">GOVERNMENT OF KARNATAKA • DEPT OF AGRICULTURAL MARKETING • KSAMB / APMC</div>
+          <h2>KARNATAKA APMC MANDI PROCUREMENT GATE PASS</h2>
+          <span class="receipt-sub">Issued under Karnataka State Agricultural Marketing Board (KSAMB) & PM-AASHA</span>
+        </div>
+        <div class="receipt-body">
+          <div class="token-hero">
+            <span class="token-lbl">OFFICIAL DIGITAL TOKEN NUMBER</span>
+            <span class="token-val" id="receipt-token-val">--</span>
+          </div>
+          <div class="receipt-grid">
+            <div>
+              <span class="r-lbl">Farmer Mobile:</span>
+              <strong id="receipt-phone">--</strong>
+            </div>
+            <div>
+              <span class="r-lbl">Procurement Center:</span>
+              <strong id="receipt-center">--</strong>
+            </div>
+            <div>
+              <span class="r-lbl">Certified Commodity:</span>
+              <strong id="receipt-crop">--</strong>
+            </div>
+            <div>
+              <span class="r-lbl">Scheduled Arrival Slot:</span>
+              <strong id="receipt-slot">--</strong>
+            </div>
+            <div>
+              <span class="r-lbl">Declared Quantity:</span>
+              <strong id="receipt-qty">--</strong>
+            </div>
+            <div>
+              <span class="r-lbl">Queue Priority:</span>
+              <strong id="receipt-queue">Intake Bay #1 (Standard Queue)</strong>
+            </div>
+          </div>
+
+          <!-- Crisp SVG QR Code Area -->
+          <div class="receipt-qr-area">
+            <div class="qr-box">
+              <svg id="receipt-qr-svg" class="qr-svg" viewBox="0 0 120 120" width="110" height="110">
+                <!-- Dynamically rendered SVG QR code pattern -->
+              </svg>
+              <div class="barcode-strip">
+                <div class="bars"></div>
+                <span class="barcode-text" id="receipt-barcode-text">--</span>
+              </div>
+            </div>
+            <div class="qr-metadata">
+              <div class="stamp-box">
+                <span class="stamp-circle">APMC APPROVED<br>BENGALURU DIV (KSAMB)</span>
+              </div>
+              <p class="qr-note">Present this Digital Token Pass or SMS at Gate Security Counter #1. Fully valid without internet on feature phone.</p>
+              <code id="receipt-payload-preview">--</code>
+              <div class="receipt-hash">
+                <span class="hash-label">Security Digest:</span>
+                <span id="receipt-sha-hash" class="hash-value">SHA256: 7f8a9b...c3d1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="receipt-footer no-print">
+          <button id="print-receipt-btn" class="btn-secondary">🖨️ Print / Save Gate Pass</button>
+          <button id="close-receipt-btn" class="btn-primary">Close Receipt</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: APMC MSP Rates & AI Forecast -->
+    <div id="rates-modal" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="receipt-header">
+          <div class="gov-badge">COMMISSION FOR AGRICULTURAL COSTS AND PRICES (CACP)</div>
+          <h2>APMC MINIMUM SUPPORT PRICE (MSP) & AI PREDICTIVE FORECAST</h2>
+          <span class="receipt-sub">Season 2026-27 Procurement Reference Guide</span>
+        </div>
+        <div class="rates-table-wrapper">
+          <table class="rates-table">
+            <thead>
+              <tr>
+                <th>Crop</th>
+                <th>Government MSP</th>
+                <th>Mandi Spot Rate</th>
+                <th>AI 7-Day Forecast (P5 Engine)</th>
+                <th>Recommendation</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>🌾 Ragi (ರಾಗಿ / Finger Millet)</strong></td>
+                <td>₹4,290 / Q</td>
+                <td>₹4,350 / Q</td>
+                <td><span class="trend-up">▲ +3.8%</span> (Bullish)</td>
+                <td><span class="badge-hold">Hold / Procure at Bengaluru/Mysuru APMC</span></td>
+              </tr>
+              <tr>
+                <td><strong>🥣 Tur / Red Gram (ತೊಗರಿ / ತೊಗರಿ ಬೇಳೆ)</strong></td>
+                <td>₹7,550 / Q</td>
+                <td>₹7,700 / Q</td>
+                <td><span class="trend-up">▲ +4.5%</span> (GI Dal Spike)</td>
+                <td><span class="badge-hold">Kalaburagi APMC High Demand</span></td>
+              </tr>
+              <tr>
+                <td><strong>🌾 Paddy / Rice (ಭತ್ತ)</strong></td>
+                <td>₹2,300 / Q</td>
+                <td>₹2,320 / Q</td>
+                <td><span class="trend-stable">▶ +0.5%</span> (Stable)</td>
+                <td><span class="badge-hold">Gangavathi / Raichur Intake Slot</span></td>
+              </tr>
+              <tr>
+                <td><strong>🧅 Onion (ಈರುಳ್ಳಿ)</strong></td>
+                <td>₹1,850 / Q</td>
+                <td>₹1,780 / Q</td>
+                <td><span class="trend-down">▼ -3.2%</span> (Arrival Spike)</td>
+                <td><span class="badge-sell">Sell Now / Hubballi APMC Slot</span></td>
+              </tr>
+              <tr>
+                <td><strong>🌱 Cotton (ಹತ್ತಿ)</strong></td>
+                <td>₹7,120 / Q</td>
+                <td>₹7,280 / Q</td>
+                <td><span class="trend-up">▲ +5.1%</span> (Mill Demand)</td>
+                <td><span class="badge-hold">Raichur & Haveri APMC Demand</span></td>
+              </tr>
+              <tr>
+                <td><strong>🌽 Maize (ಮೆಕ್ಕೆಜೋಳ)</strong></td>
+                <td>₹2,225 / Q</td>
+                <td>₹2,240 / Q</td>
+                <td><span class="trend-stable">▶ +1.0%</span> (Steady)</td>
+                <td><span class="badge-hold">Davanagere APMC Intake</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="receipt-footer">
+          <button id="close-rates-btn" class="btn-primary">Close Rate Guide</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: GSM SS7 / MAP Telecom Protocol Trace Terminal -->
+    <div id="signaling-modal" class="modal-backdrop hidden">
+      <div class="modal-card terminal-modal">
+        <div class="receipt-header terminal-header">
+          <div class="gov-badge">DEPARTMENT OF TELECOMMUNICATIONS (DoT) • KARNATAKA CIRCLE (LSA-10)</div>
+          <h2>SS7 / MAP TELECOM PROTOCOL PACKET TRACE</h2>
+          <span class="receipt-sub">Real-Time Unstructured Supplementary Service Data (USSD) Signaling Log</span>
+        </div>
+        <div class="terminal-body" id="signaling-log">
+          <!-- Dynamic packet traces -->
+        </div>
+        <div class="receipt-footer">
+          <button id="clear-trace-btn" class="btn-secondary">Clear Trace</button>
+          <button id="close-signaling-btn" class="btn-primary">Close Terminal</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Official Government Footer -->
+    <footer class="main-footer">
+      <span>AgriQ © 2026 — Team Runtime-Terror • SIH 2026 PS 26032</span>
+      <span>Karnataka State Agricultural Marketing Board (KSAMB) • Compliant with National Unified USSD (*99# NUUP)</span>
+    </footer>
+  </div>
+
+  <script src="supabase-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
