@@ -142,15 +142,20 @@ class AgriQBackend {
   async getBookingStatus(tokenOrPhone) {
     if (this.isLive && this.client) {
       try {
+        // A USSD caller is anon, and RLS does not admit anon to `bookings`, so
+        // no query against that table can work here however it is written. The
+        // RPC does the join server-side and returns only this caller's booking.
+        //
+        // The previous .or() was invalid besides: PostgREST cannot filter on an
+        // embedded table's column, and answered "failed to parse logic tree"
+        // for every input, tokens and phone numbers alike.
         const { data, error } = await this.client
-          .from('bookings')
-          .select('*, mandi_centers(center_name), farmers!inner(phone_number, full_name)')
-          .or(`token_number.eq.${tokenOrPhone},farmers.phone_number.eq.${tokenOrPhone}`)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
+          .rpc('get_ussd_booking_status', { p_token_or_phone: tokenOrPhone });
         if (!error && data) return data;
-      } catch (e) {}
+        if (error) console.error('Booking status lookup failed:', error.message);
+      } catch (e) {
+        console.error('Booking status RPC threw:', e);
+      }
     }
 
     if (this.activeBooking) {

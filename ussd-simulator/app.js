@@ -955,11 +955,18 @@
             const cropName = statusData.crop_type || state.tempData.crop || 'Ragi';
             const netKg = statusData.crop_quantity_kg || 1400;
             const qtl = (netKg / 100).toFixed(2);
+            // center_name and live_position come from the RPC, so the caller
+            // hears their real centre and their real place in the queue.
+            // live_position is recomputed on each lookup; queue_position is
+            // stamped once at booking time and never decrements, so it is not
+            // the number to read out to someone who is waiting.
+            const posLine = statusData.live_position
+              ? `Queue Position: #${statusData.live_position}\n` : '';
             state.statusLookupResult = `Token: ${statusData.token_number || input}\n` +
               `Status: ${statusData.status || 'BOOKED'}\n` +
               `Commodity: ${cropName} (${qtl} Q)\n` +
-              `Arrival Bay: Gate Counter #1\n` +
-              `Center: Bengaluru APMC\n\n0. Back`;
+              posLine +
+              `Center: ${statusData.center_name || state.tempData.centerName || 'APMC'}\n\n0. Back`;
           } else if (state.activeToken && (state.activeToken.toLowerCase().includes(input.toLowerCase()) || input.includes(state.tempData.phone))) {
             const qtl = (state.tempData.quantityKg / 100).toFixed(2);
             state.statusLookupResult = `Token: ${state.activeToken}\n` +
@@ -1022,7 +1029,7 @@
     const callerPhone = farmerPhoneInput.value.trim() || '9845012345';
     state.tempData.phone = callerPhone;
 
-    logSignaling('PostgREST', 'AgriQ ➔ Edge Function', `INVOKE create-booking (Phone: ${callerPhone}, Center: ${state.tempData.centerId || 'c0000000-0000-0000-0000-000000000001'}, Qty: ${state.tempData.quantityKg}kg)`);
+    logSignaling('PostgREST', 'AgriQ ➔ RPC', `CALL create_ussd_booking (Phone: ${callerPhone}, Center: ${state.tempData.centerId || 'c0000000-0000-0000-0000-000000000001'}, Qty: ${state.tempData.quantityKg}kg)`);
 
     let backendResult = null;
     if (window.agriqBackend) {
