@@ -115,6 +115,7 @@ class AgriQBackend {
   }
 
   async createBooking({ phone, centerId, slotId, cropQuantityKg }) {
+    this.lastBookingError = null;
     const tokenPrefix = centerId ? centerId.replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase() || 'BLR' : 'BLR';
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const tokenNumber = `${tokenPrefix}-${randomNum}`;
@@ -132,8 +133,14 @@ class AgriQBackend {
           this.activeBooking = data;
           return data;
         }
+        // Keep the database's own words. It says exactly why — the number
+        // already holds a token for that slot, the slot is full, the slot is
+        // in the past — and a generic "something went wrong" throws that away,
+        // leaving the caller and whoever is demonstrating equally stuck.
+        this.lastBookingError = error?.message || null;
         console.error('USSD Booking was not saved to database:', error?.message);
       } catch (err) {
+        this.lastBookingError = err && err.message ? err.message : String(err);
         console.error('USSD Booking RPC threw:', err);
       }
       // Live and the write failed. Returning the mock record below would hand
