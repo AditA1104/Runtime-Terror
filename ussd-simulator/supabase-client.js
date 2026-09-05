@@ -53,9 +53,15 @@ class AgriQBackend {
 
   async getMandiCenters() {
     if (this.isLive && this.client) {
+      // Ordered by name, because the farmer app orders the same way. Without
+      // this the two lists hold the same centres in a different order, so "1"
+      // on the handset and the first entry in the app are different mandis —
+      // and a farmer who books one while an officer watches the other sees
+      // nothing arrive.
       const { data, error } = await this.client
         .from('mandi_centers')
-        .select('center_id, center_name, location, crop_type');
+        .select('center_id, center_name, location, crop_type')
+        .order('center_name', { ascending: true });
       if (!error && data && data.length) return data;
     }
     return [
