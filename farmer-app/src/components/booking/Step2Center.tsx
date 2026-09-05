@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MandiCenter } from '../../types/schema';
 import { useTranslation } from '../../hooks/useTranslation';
-import { Building2, MapPin, Clock, Gauge, CheckCircle2, ShieldCheck, Filter } from 'lucide-react';
+import { Building2, MapPin, Clock, Gauge, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { formatNumber } from '../../lib/utils';
 
 interface Step2CenterProps {
@@ -17,7 +17,7 @@ export const Step2Center: React.FC<Step2CenterProps> = ({
   selectedCenterId,
   onSelectCenter,
 }) => {
-  const { lang } = useTranslation();
+  const { t, lang } = useTranslation();
 
   // Determine initial state filter based on language
   const getInitialStateFilter = (currentLang: string): 'all' | 'Karnataka' | 'Maharashtra' => {
@@ -48,6 +48,8 @@ export const Step2Center: React.FC<Step2CenterProps> = ({
     return c.state.toLowerCase() === stateFilter.toLowerCase();
   });
 
+  const translatedCrop = t('crop_' + selectedCrop.toLowerCase(), selectedCrop);
+
   return (
     <div className="space-y-3.5 animate-in fade-in duration-200">
       {/* State Filter Tabs */}
@@ -60,7 +62,7 @@ export const Step2Center: React.FC<Step2CenterProps> = ({
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          All Mandis ({baseList.length})
+          {t('all_mandis')} ({baseList.length})
         </button>
 
         <button
@@ -71,7 +73,7 @@ export const Step2Center: React.FC<Step2CenterProps> = ({
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <span>Karnataka (ಕರ್ನಾಟಕ)</span>
+          <span>{t('karnataka_tab')}</span>
         </button>
 
         <button
@@ -82,14 +84,14 @@ export const Step2Center: React.FC<Step2CenterProps> = ({
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <span>Maharashtra (महाराष्ट्र)</span>
+          <span>{t('maharashtra_tab')}</span>
         </button>
       </div>
 
       <div className="flex items-center justify-between text-xs text-slate-500 font-medium px-1">
-        <span>Authorized APMC centers procuring <strong>{selectedCrop}</strong>:</span>
+        <span>{t('authorized_centers_for')} <strong>{translatedCrop}</strong>:</span>
         <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-bold">
-          {displayCenters.length} Centers
+          {displayCenters.length} {t('centers_count')}
         </span>
       </div>
 
@@ -97,12 +99,14 @@ export const Step2Center: React.FC<Step2CenterProps> = ({
         {displayCenters.length === 0 ? (
           <div className="p-8 text-center bg-white rounded-2xl border border-slate-200">
             <Building2 className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-            <p className="text-sm font-bold text-slate-700">No centers found in this state for {selectedCrop}</p>
+            <p className="text-sm font-bold text-slate-700">
+              {t('no_centers_found')} {translatedCrop}
+            </p>
             <button
               onClick={() => setStateFilter('all')}
               className="mt-2 text-xs font-bold text-green-700 hover:underline"
             >
-              Show all available APMC centers
+              {t('show_all_centers')}
             </button>
           </div>
         ) : (
@@ -129,7 +133,7 @@ export const Step2Center: React.FC<Step2CenterProps> = ({
                           {center.center_name}
                         </h4>
                         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 flex items-center gap-0.5">
-                          <ShieldCheck className="w-3 h-3" /> APMC Verified
+                          <ShieldCheck className="w-3 h-3" /> {t('apmc_verified')}
                         </span>
                       </div>
                       <div className="flex items-center gap-1 text-xs text-slate-500 mt-1">
@@ -151,27 +155,27 @@ export const Step2Center: React.FC<Step2CenterProps> = ({
                 {/* Center Capabilities Grid */}
                 <div className="grid grid-cols-3 gap-2 mt-3.5 pt-3 border-t border-slate-100 text-xs">
                   <div className="bg-white/80 rounded-xl p-2 border border-slate-100">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase block">Daily Quota</span>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase block">{t('daily_quota')}</span>
                     <span className="font-bold text-slate-800 text-xs">
-                      {formatNumber(center.daily_capacity_kg / 1000)} Tons
+                      {formatNumber(center.daily_capacity_kg / 1000)} {t('tons')}
                     </span>
                   </div>
 
                   <div className="bg-white/80 rounded-xl p-2 border border-slate-100">
                     <span className="text-[10px] text-slate-400 font-bold uppercase block flex items-center gap-0.5">
-                      <Gauge className="w-3 h-3 text-slate-400" /> Hourly Limit
+                      <Gauge className="w-3 h-3 text-slate-400" /> {t('hourly_limit')}
                     </span>
                     <span className="font-bold text-slate-800 text-xs">
-                      {center.hourly_intake_limit} farmers/hr
+                      {center.hourly_intake_limit} {t('farmers_per_hr')}
                     </span>
                   </div>
 
                   <div className="bg-white/80 rounded-xl p-2 border border-slate-100">
                     <span className="text-[10px] text-slate-400 font-bold uppercase block flex items-center gap-0.5">
-                      <Clock className="w-3 h-3 text-slate-400" /> Avg Process
+                      <Clock className="w-3 h-3 text-slate-400" /> {t('avg_process')}
                     </span>
                     <span className="font-bold text-green-800 text-xs">
-                      ~{center.avg_processing_min} mins
+                      ~{center.avg_processing_min} {t('mins')}
                     </span>
                   </div>
                 </div>

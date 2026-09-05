@@ -3,7 +3,7 @@ import { NotificationItem } from '../../types/schema';
 import { useTranslation } from '../../hooks/useTranslation';
 import { formatRelativeTime } from '../../lib/utils';
 import { formatNotificationMessage } from '../../lib/notificationFormatter';
-import { MessageSquare, Bell, CheckCircle2, ShieldAlert, Sparkles } from 'lucide-react';
+import { MessageSquare, Bell } from 'lucide-react';
 
 interface NotificationFeedProps {
   notifications: NotificationItem[];
@@ -29,12 +29,12 @@ export const NotificationFeed: React.FC<NotificationFeedProps> = ({
                 {t('notifications_title')}
               </h3>
               <p className="text-[11px] text-slate-500 font-medium">
-                Simulated SMS & Mandi alerts delivered to your phone
+                {t('notifications_sub')}
               </p>
             </div>
           </div>
           <span className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
-            {notifications.length} Logs
+            {notifications.length} {t('logs_badge')}
           </span>
         </div>
 
@@ -72,7 +72,7 @@ export const NotificationFeed: React.FC<NotificationFeedProps> = ({
                     </p>
                     <div className="mt-1 flex items-center justify-between text-[10px] text-slate-400">
                       <span className="font-semibold uppercase tracking-wider">
-                        via {notif.channel.toUpperCase()} Gateway
+                        {t('via_gateway')}
                       </span>
                       <span>{formatRelativeTime(notif.sent_at)}</span>
                     </div>
@@ -82,7 +82,7 @@ export const NotificationFeed: React.FC<NotificationFeedProps> = ({
                         onClick={() => onSelectBooking(notif.booking_id!)}
                         className="mt-1.5 text-[11px] font-bold text-green-700 hover:underline"
                       >
-                        View Digital Pass →
+                        {t('view_pass_link')}
                       </button>
                     )}
                   </div>

@@ -22,10 +22,10 @@ export const Step1Crop: React.FC<Step1CropProps> = ({
         <div>
           <h3 className="font-bold text-sm text-green-950 flex items-center gap-1.5">
             <Award className="w-4 h-4 text-green-700" />
-            <span>Government Minimum Support Price (MSP) Guaranteed</span>
+            <span>{t('msp_guaranteed_banner')}</span>
           </h3>
           <p className="text-xs text-green-800/80 mt-0.5">
-            All prices shown are direct APMC procurement rates per quintal (100 kg).
+            {t('msp_guaranteed_desc')}
           </p>
         </div>
       </div>

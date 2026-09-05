@@ -72,14 +72,12 @@ export const TokenShareModal: React.FC<TokenShareModalProps> = ({
     e.preventDefault();
     if (!recipientPhone) return;
 
-    // 1. Copy pass text to clipboard
     try {
       await navigator.clipboard.writeText(shareText);
     } catch (err) {
       // safe fallback
     }
 
-    // 2. Dispatch simulated SMS into system notifications
     dispatchShareNotification({
       farmerId: booking.farmer_id,
       bookingId: booking.booking_id,
@@ -87,7 +85,6 @@ export const TokenShareModal: React.FC<TokenShareModalProps> = ({
       message: `Gate Pass for Token ${booking.token_number} (${center?.center_name || 'Mandi'}) dispatched with QR verification link: https://agriq.gov.in/t/${booking.token_number}`,
     });
 
-    // 3. On mobile devices, launch the native SMS app directly (without opening an about:blank tab)
     const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
     if (isMobile) {
       window.location.href = `sms:${recipientPhone}?body=${encodeURIComponent(shareText)}`;
@@ -115,18 +112,18 @@ export const TokenShareModal: React.FC<TokenShareModalProps> = ({
         </div>
 
         <h3 className="text-base font-extrabold text-slate-900">
-          Share Token Pass
+          {t('share_modal_title')}
         </h3>
         <p className="text-xs text-slate-500 mt-1">
-          Send digital pass <strong className="text-slate-800 font-mono">{booking.token_number}</strong> to a driver or family member.
+          {t('share_modal_desc')} <strong className="text-slate-800 font-mono">({booking.token_number})</strong>
         </p>
 
         {sentSuccess ? (
           <div className="my-6 p-4 bg-green-50 border border-green-200 rounded-2xl text-center text-green-800 animate-in zoom-in-95 duration-150">
             <CheckCircle2 className="w-8 h-8 text-green-600 mx-auto mb-1.5" />
-            <strong className="text-sm block">SMS Dispatched!</strong>
+            <strong className="text-sm block">{t('sms_dispatched_title')}</strong>
             <span className="text-xs text-green-700 block mt-0.5">
-              Sent to +91 {recipientPhone}. Pass details & link copied to clipboard.
+              +91 {recipientPhone} • {t('sms_dispatched_desc')}
             </span>
           </div>
         ) : (
@@ -137,7 +134,7 @@ export const TokenShareModal: React.FC<TokenShareModalProps> = ({
                 className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
               >
                 <Share2 className="w-4 h-4" />
-                <span>Share via Any App / Messaging</span>
+                <span>{t('share_via_apps')}</span>
               </button>
             )}
 
@@ -161,12 +158,12 @@ export const TokenShareModal: React.FC<TokenShareModalProps> = ({
                 {isCopied ? (
                   <>
                     <Check className="w-4 h-4 text-green-600" />
-                    <span>Copied!</span>
+                    <span>{t('copied')}</span>
                   </>
                 ) : (
                   <>
                     <Copy className="w-4 h-4 text-slate-500" />
-                    <span>Copy Text</span>
+                    <span>{t('copy_text')}</span>
                   </>
                 )}
               </button>
@@ -174,7 +171,7 @@ export const TokenShareModal: React.FC<TokenShareModalProps> = ({
 
             <div className="relative flex py-1 items-center">
               <div className="flex-grow border-t border-slate-200" />
-              <span className="flex-shrink mx-2 text-[10px] uppercase font-bold text-slate-400">or send via SMS</span>
+              <span className="flex-shrink mx-2 text-[10px] uppercase font-bold text-slate-400">{t('or_send_via_sms')}</span>
               <div className="flex-grow border-t border-slate-200" />
             </div>
 
@@ -184,7 +181,7 @@ export const TokenShareModal: React.FC<TokenShareModalProps> = ({
                 <input
                   type="tel"
                   maxLength={10}
-                  placeholder="Enter 10-digit mobile"
+                  placeholder={t('enter_mobile_placeholder')}
                   value={recipientPhone}
                   onChange={e => setRecipientPhone(e.target.value.replace(/\D/g, ''))}
                   className="w-full px-2.5 py-2.5 bg-transparent text-xs font-semibold text-slate-900 focus:outline-none"
@@ -198,7 +195,7 @@ export const TokenShareModal: React.FC<TokenShareModalProps> = ({
                 className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-slate-900 text-white rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5"
               >
                 <Send className="w-3.5 h-3.5" />
-                <span>Send SMS Pass Link</span>
+                <span>{t('send_sms_btn')}</span>
               </button>
             </form>
           </div>

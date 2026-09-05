@@ -64,7 +64,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                   <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full ring-2 ring-white animate-pulse" />
                 )}
               </div>
-              <span className="text-[10px] mt-1 tracking-tight truncate max-w-[64px]">
+              <span className="text-[10px] mt-1 tracking-tight truncate max-w-[72px]">
                 {item.label}
               </span>
             </button>

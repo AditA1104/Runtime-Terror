@@ -1,7 +1,7 @@
 import React from 'react';
 import { Booking, BookingStatus } from '../../types/schema';
 import { useTranslation } from '../../hooks/useTranslation';
-import { formatINR, formatNumber, formatRelativeTime } from '../../lib/utils';
+import { formatINR, formatNumber } from '../../lib/utils';
 import { 
   Check, 
   Clock, 
@@ -11,9 +11,7 @@ import {
   FlaskConical, 
   CreditCard, 
   CheckCircle2,
-  Receipt,
-  FileCheck2,
-  Sparkles
+  Receipt
 } from 'lucide-react';
 
 interface StatusPipelineProps {
@@ -95,7 +93,7 @@ export const StatusPipeline: React.FC<StatusPipelineProps> = ({ booking }) => {
           </p>
         </div>
         <span className="text-xs font-bold text-green-700 bg-green-50 px-2.5 py-1 rounded-full border border-green-200">
-          Stage {currentOrder} of 6
+          {t('step_progress')} {currentOrder} {t('of_steps')} 6
         </span>
       </div>
 
@@ -104,7 +102,6 @@ export const StatusPipeline: React.FC<StatusPipelineProps> = ({ booking }) => {
         {STAGES.map((stage) => {
           const isPassed = currentOrder > stage.order;
           const isCurrent = currentOrder === stage.order;
-          const isFuture = currentOrder < stage.order;
           const Icon = stage.icon;
 
           return (
@@ -147,12 +144,12 @@ export const StatusPipeline: React.FC<StatusPipelineProps> = ({ booking }) => {
 
                   {isCurrent && (
                     <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-amber-200 text-amber-900 animate-pulse">
-                      In Progress
+                      {t('in_progress_badge')}
                     </span>
                   )}
                   {isPassed && (
                     <span className="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-md">
-                      Completed
+                      {t('completed_badge')}
                     </span>
                   )}
                 </div>
@@ -165,7 +162,7 @@ export const StatusPipeline: React.FC<StatusPipelineProps> = ({ booking }) => {
                 {stage.status === 'CHECKED_IN' && booking.checked_in_at && (
                   <div className="mt-2 pt-2 border-t border-slate-200/60 text-[11px] text-slate-600 flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Checked in at: <strong>{new Date(booking.checked_in_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong></span>
+                    <span>{t('checked_in_at')} <strong>{new Date(booking.checked_in_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong></span>
                   </div>
                 )}
 
@@ -200,7 +197,7 @@ export const StatusPipeline: React.FC<StatusPipelineProps> = ({ booking }) => {
                   <div className="mt-3 p-3 bg-gradient-to-r from-green-700 to-emerald-600 text-white rounded-xl flex items-center justify-between">
                     <div>
                       <span className="text-[10px] uppercase font-bold text-green-200 block">
-                        Official APMC Procurement Receipt
+                        {t('official_receipt')}
                       </span>
                       <strong className="text-xs font-mono">
                         #RCP-{booking.token_number}
@@ -211,7 +208,7 @@ export const StatusPipeline: React.FC<StatusPipelineProps> = ({ booking }) => {
                       className="px-2.5 py-1 bg-white text-green-900 rounded-lg text-xs font-bold shadow-xs hover:bg-green-50 active:scale-95 transition-all flex items-center gap-1"
                     >
                       <Receipt className="w-3.5 h-3.5" />
-                      <span>Download</span>
+                      <span>{t('download_btn')}</span>
                     </button>
                   </div>
                 )}

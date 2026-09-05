@@ -22,13 +22,9 @@ import { formatDate } from './lib/utils';
 import { 
   CalendarPlus, 
   QrCode, 
-  TrendingUp, 
-  ShieldCheck, 
   Sparkles, 
-  Building2, 
   ArrowRight,
   RefreshCw,
-  BellRing,
   Download
 } from 'lucide-react';
 
@@ -41,7 +37,7 @@ export function App() {
     loginWithPhone, 
     updateProfile 
   } = useFarmerAuth();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const { isOnline, isInstallable, installPwa } = useOfflineCache();
   const { bookings, activeBooking, setActiveBooking, refreshData } = useSupabaseRealtime(farmer?.farmer_id || '');
 
@@ -90,6 +86,16 @@ export function App() {
     handleManualRefresh();
   };
 
+  const defaultLocation = lang === 'kn' 
+    ? 'ಬೆಂಗಳೂರು ಗ್ರಾಮಾಂತರ, ಕರ್ನಾಟಕ' 
+    : lang === 'mr' 
+    ? 'नाशिक जिल्हा, महाराष्ट्र' 
+    : lang === 'hi' 
+    ? 'नासिक जिला, महाराष्ट्र' 
+    : 'Nashik District, Maharashtra';
+
+  const insightCrops = ['Soybean', 'Wheat', 'Cotton', 'Paddy', 'Mustard', 'Gram'];
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-green-100 selection:text-green-900 pb-20">
       {/* Offline Status Bar */}
@@ -114,15 +120,15 @@ export function App() {
                 <div className="flex items-center gap-2.5">
                   <Download className="w-5 h-5 text-emerald-200 shrink-0" />
                   <div className="text-xs">
-                    <strong className="block font-bold">Install AgriQ Farmer App</strong>
-                    <span className="text-emerald-100 text-[11px]">Access offline token pass inside mandi yard</span>
+                    <strong className="block font-bold">{t('pwa_install_title')}</strong>
+                    <span className="text-emerald-100 text-[11px]">{t('pwa_install_desc')}</span>
                   </div>
                 </div>
                 <button
                   onClick={installPwa}
                   className="px-3 py-1.5 bg-white text-green-900 rounded-xl text-xs font-black shadow-xs active:scale-95"
                 >
-                  Install
+                  {t('btn_install')}
                 </button>
               </div>
             )}
@@ -132,7 +138,7 @@ export function App() {
               <div className="flex items-start justify-between">
                 <div>
                   <span className="text-[11px] font-bold text-green-700 uppercase tracking-wider bg-green-50 px-2.5 py-0.5 rounded-full border border-green-200/60">
-                    🌾 {farmer?.village || 'Nashik District'}, {farmer?.state || 'Maharashtra'}
+                    🌾 {farmer?.village || defaultLocation}
                   </span>
                   <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-2 tracking-tight">
                     {t('profile_welcome')}, {farmer?.full_name ? farmer.full_name.split(' ')[0] : 'Kisan'}!
@@ -147,7 +153,7 @@ export function App() {
                   className={`p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all ${
                     isRefreshing ? 'animate-spin text-green-700' : ''
                   }`}
-                  title="Refresh Live Data"
+                  title={t('refresh_live_data')}
                 >
                   <RefreshCw className="w-4 h-4" />
                 </button>
@@ -164,7 +170,7 @@ export function App() {
                     {t('btn_new_booking')}
                   </span>
                   <span className="text-[10px] text-green-100 font-medium">
-                    Select crop & mandi slot
+                    {t('btn_new_booking_sub')}
                   </span>
                 </button>
 
@@ -176,8 +182,8 @@ export function App() {
                   <span className="font-extrabold text-sm block">
                     {t('btn_view_pass')}
                   </span>
-                  <span className="text-[10px] text-slate-300 font-medium">
-                    {activeBooking ? `${activeBooking.token_number} (${activeBooking.status})` : 'No active pass'}
+                  <span className="text-[10px] text-slate-300 font-medium truncate block">
+                    {activeBooking ? `${activeBooking.token_number}` : t('no_active_pass')}
                   </span>
                 </button>
               </div>
@@ -195,7 +201,7 @@ export function App() {
                     onClick={() => setActiveTab('tokens')}
                     className="text-xs font-bold text-green-700 hover:underline"
                   >
-                    View Details →
+                    {t('view_details')}
                   </button>
                 </div>
                 <LiveQueueCard booking={activeBooking} />
@@ -248,6 +254,9 @@ export function App() {
                       handleManualRefresh();
                     }
                   }}
+                  onViewTracker={() => {
+                    window.scrollTo({ top: 600, behavior: 'smooth' });
+                  }}
                 />
 
                 <StatusPipeline booking={activeBooking} />
@@ -259,10 +268,10 @@ export function App() {
                 </div>
                 <div>
                   <h3 className="text-base font-extrabold text-slate-900">
-                    No Active Mandi Tokens
+                    {t('no_active_tokens_title')}
                   </h3>
                   <p className="text-xs text-slate-500 max-w-xs mx-auto mt-1">
-                    Book a digital slot to get your gate entry QR pass and avoid long mandi queues.
+                    {t('no_active_tokens_desc')}
                   </p>
                 </div>
                 <button
@@ -278,7 +287,7 @@ export function App() {
             {bookings.length > 1 && (
               <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
                 <h4 className="font-extrabold text-sm text-slate-900">
-                  Your Token History ({bookings.length})
+                  {t('token_history_title')} ({bookings.length})
                 </h4>
                 <div className="divide-y divide-slate-100">
                   {bookings.map(b => (
@@ -320,7 +329,7 @@ export function App() {
                     <span>{t('best_day_title')}</span>
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Real-time smart dispatch optimizer for agricultural commodities
+                    {t('ai_insights_sub')}
                   </p>
                 </div>
               </div>
@@ -328,10 +337,10 @@ export function App() {
               {/* Crop Selector Buttons */}
               <div className="mt-4">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">
-                  Select Commodity to Forecast:
+                  {t('select_crop_forecast')}
                 </label>
                 <div className="flex gap-2 overflow-x-auto pb-1">
-                  {['Soybean', 'Wheat', 'Cotton', 'Paddy', 'Mustard', 'Gram'].map(crop => (
+                  {insightCrops.map(crop => (
                     <button
                       key={crop}
                       onClick={() => setSelectedCropInsight(crop)}
@@ -341,7 +350,7 @@ export function App() {
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
                     >
-                      {crop}
+                      {t('crop_' + crop.toLowerCase(), crop)}
                     </button>
                   ))}
                 </div>

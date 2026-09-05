@@ -6,7 +6,7 @@ import { Step1Crop } from './Step1Crop';
 import { Step2Center } from './Step2Center';
 import { Step3Slot } from './Step3Slot';
 import { Step4Confirm } from './Step4Confirm';
-import { ArrowLeft, Check, Sparkles } from 'lucide-react';
+import { ArrowLeft, Check } from 'lucide-react';
 
 interface BookingWizardProps {
   farmer: Farmer | null;
@@ -116,11 +116,11 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
             className="flex items-center gap-1 text-xs font-bold text-slate-600 hover:text-green-800 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>{currentStep === 1 ? 'Cancel' : t('btn_back')}</span>
+            <span>{currentStep === 1 ? t('cancel') : t('btn_back')}</span>
           </button>
 
           <span className="text-xs font-extrabold text-green-700 bg-green-50 px-3 py-1 rounded-full border border-green-200">
-            Step {currentStep} of 4
+            {t('step_progress')} {currentStep} {t('of_steps')} 4
           </span>
         </div>
 
@@ -151,86 +151,44 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
             );
           })}
         </div>
-
-        {/* Header Title for Current Step */}
-        <div className="mt-4 pt-3 border-t border-slate-100">
-          <h2 className="text-lg font-extrabold text-slate-900">
-            {stepTitles[currentStep - 1].title}
-          </h2>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
-            {stepTitles[currentStep - 1].desc}
-          </p>
-        </div>
       </div>
 
-      {/* Step Content */}
+      {/* Step Components Container */}
       <div className="space-y-4">
         {currentStep === 1 && (
-          <>
-            <Step1Crop
-              selectedCrop={selectedCrop}
-              onSelectCrop={cropId => {
-                setSelectedCrop(cropId);
-                // auto-select first matching center
-                const match = centers.find(c => c.crop_type.toLowerCase() === cropId.toLowerCase());
-                if (match) setSelectedCenter(match);
-              }}
-            />
-            <div className="pt-2">
-              <button
-                onClick={handleNextStep}
-                className="w-full py-3.5 bg-green-700 hover:bg-green-800 active:scale-[0.98] text-white rounded-2xl font-bold shadow-lg shadow-green-700/25 transition-all text-sm"
-              >
-                {t('btn_next')} →
-              </button>
-            </div>
-          </>
+          <Step1Crop
+            selectedCrop={selectedCrop}
+            onSelectCrop={(cropId) => {
+              setSelectedCrop(cropId);
+              handleNextStep();
+            }}
+          />
         )}
 
         {currentStep === 2 && (
-          <>
-            <Step2Center
-              centers={centers}
-              selectedCrop={selectedCrop}
-              selectedCenterId={selectedCenter?.center_id || ''}
-              onSelectCenter={center => setSelectedCenter(center)}
-            />
-            <div className="pt-2">
-              <button
-                onClick={handleNextStep}
-                disabled={!selectedCenter}
-                className="w-full py-3.5 bg-green-700 hover:bg-green-800 active:scale-[0.98] text-white rounded-2xl font-bold shadow-lg shadow-green-700/25 transition-all text-sm"
-              >
-                {t('btn_next')} →
-              </button>
-            </div>
-          </>
+          <Step2Center
+            centers={centers}
+            selectedCrop={selectedCrop}
+            selectedCenterId={selectedCenter?.center_id || ''}
+            onSelectCenter={(c) => {
+              setSelectedCenter(c);
+              handleNextStep();
+            }}
+          />
         )}
 
-        {currentStep === 3 && (
-          <>
-            <Step3Slot
-              selectedDate={selectedDate}
-              onSelectDate={date => {
-                setSelectedDate(date);
-                const matchingSlot = availableSlots.find(s => s.slot_date === date);
-                if (matchingSlot) setSelectedSlot(matchingSlot);
-              }}
-              availableSlots={availableSlots}
-              selectedSlotId={selectedSlot?.slot_id || ''}
-              onSelectSlot={slot => setSelectedSlot(slot)}
-              dailyRates={dailyRates}
-            />
-            <div className="pt-2">
-              <button
-                onClick={handleNextStep}
-                disabled={!selectedSlot}
-                className="w-full py-3.5 bg-green-700 hover:bg-green-800 active:scale-[0.98] text-white rounded-2xl font-bold shadow-lg shadow-green-700/25 transition-all text-sm"
-              >
-                {t('btn_next')} →
-              </button>
-            </div>
-          </>
+        {currentStep === 3 && selectedCenter && (
+          <Step3Slot
+            selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
+            availableSlots={availableSlots}
+            selectedSlotId={selectedSlot?.slot_id || ''}
+            onSelectSlot={(s) => {
+              setSelectedSlot(s);
+              handleNextStep();
+            }}
+            dailyRates={dailyRates}
+          />
         )}
 
         {currentStep === 4 && selectedCenter && selectedSlot && (
