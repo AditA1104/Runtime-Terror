@@ -1,4 +1,4 @@
-﻿/**
+/**
  * AgriQ — Supabase Client Wrapper for P4 (USSD Gateway)
  * Adheres to Locked Schema v2 (Team Runtime-Terror)
  */
@@ -59,10 +59,10 @@ class AgriQBackend {
       if (!error && data && data.length) return data;
     }
     return [
-      { center_id: 'c1-blr', center_name: 'Bengaluru APMC (Yeshwanthpur Main Yard)', crop_type: 'Ragi', location: 'Bengaluru' },
-      { center_id: 'c2-hub', center_name: 'Hubballi APMC (Amaragol Market Yard)', crop_type: 'Onion', location: 'Hubballi' },
-      { center_id: 'c3-mys', center_name: 'Mysuru APMC (Bandipalya Yard)', crop_type: 'Paddy', location: 'Mysuru' },
-      { center_id: 'c4-klb', center_name: 'Kalaburagi APMC (Nehru Gunj Yard)', crop_type: 'Tur', location: 'Kalaburagi' }
+      { center_id: 'c0000000-0000-0000-0000-000000000001', center_name: 'Bengaluru APMC (Yeshwanthpur Main Yard)', crop_type: 'Ragi', location: 'Bengaluru' },
+      { center_id: 'c0000000-0000-0000-0000-000000000002', center_name: 'Hubballi APMC (Amaragol Market Yard)', crop_type: 'Onion', location: 'Hubballi' },
+      { center_id: 'c0000000-0000-0000-0000-000000000003', center_name: 'Mysuru APMC (Bandipalya Yard)', crop_type: 'Paddy', location: 'Mysuru' },
+      { center_id: 'c0000000-0000-0000-0000-000000000004', center_name: 'Kalaburagi APMC (Nehru Gunj Yard)', crop_type: 'Tur', location: 'Kalaburagi' }
     ];
   }
 
@@ -74,14 +74,14 @@ class AgriQBackend {
         .eq('center_id', centerId);
       if (!error && data && data.length) return data;
     }
-    const key = centerId || 'c1-blr';
+    const key = centerId || 'c0000000-0000-0000-0000-000000000001';
     if (!this.mockSlots[key]) {
       const today = new Date().toISOString().split('T')[0];
       const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
       this.mockSlots[key] = [
-        { slot_id: 's1', slot_date: today, slot_start_time: '10:00', slot_end_time: '12:00', remaining: 8 },
-        { slot_id: 's2', slot_date: tomorrow, slot_start_time: '08:00', slot_end_time: '10:00', remaining: 15 },
-        { slot_id: 's3', slot_date: tomorrow, slot_start_time: '11:00', slot_end_time: '13:00', remaining: 12 }
+        { slot_id: 's0000000-0000-0000-0000-000000000001', slot_date: today, slot_start_time: '10:00:00', slot_end_time: '12:00:00', remaining: 8 },
+        { slot_id: 's0000000-0000-0000-0000-000000000002', slot_date: tomorrow, slot_start_time: '08:00:00', slot_end_time: '10:00:00', remaining: 15 },
+        { slot_id: 's0000000-0000-0000-0000-000000000003', slot_date: tomorrow, slot_start_time: '11:00:00', slot_end_time: '13:00:00', remaining: 12 }
       ];
     }
     return this.mockSlots[key];
@@ -94,30 +94,29 @@ class AgriQBackend {
 
     if (this.isLive && this.client) {
       try {
-        const { data, error } = await this.client.functions.invoke('create-booking', {
-          body: {
-            phone_number: phone,
-            center_id: centerId,
-            slot_id: slotId,
-            crop_quantity_kg: cropQuantityKg,
-            created_via: 'ussd'
-          }
+        const { data, error } = await this.client.rpc('create_ussd_booking', {
+          p_phone_number: phone,
+          p_center_id: centerId,
+          p_slot_id: slotId,
+          p_crop_quantity_kg: cropQuantityKg,
+          p_created_via: 'ussd'
         });
         if (!error && data) {
           this.activeBooking = data;
           return data;
         }
+        console.error('USSD Booking was not saved to database:', error?.message);
       } catch (err) {
-        console.warn('Edge function invoke failed, fallback to mock', err);
+        console.error('USSD Booking RPC invoke failed, fallback to mock:', err);
       }
     }
 
     const mockRecord = {
-      booking_id: 'bk_' + Math.random().toString(36).substr(2, 9),
+      booking_id: 'b0000000-0000-0000-0000-' + Math.floor(100000000000 + Math.random() * 900000000000),
       token_number: tokenNumber,
       phone_number: phone,
-      center_id: centerId || 'c1-blr',
-      slot_id: slotId || 's2',
+      center_id: centerId || 'c0000000-0000-0000-0000-000000000001',
+      slot_id: slotId || 's0000000-0000-0000-0000-000000000001',
       crop_quantity_kg: cropQuantityKg || 1400,
       status: 'BOOKED',
       queue_position: Math.floor(Math.random() * 4) + 1,
@@ -127,7 +126,7 @@ class AgriQBackend {
     };
 
     // Decrement slot remaining count dynamically
-    const cKey = centerId || 'c1-blr';
+    const cKey = centerId || 'c0000000-0000-0000-0000-000000000001';
     if (this.mockSlots && this.mockSlots[cKey]) {
       const target = this.mockSlots[cKey].find(s => s.slot_id === slotId);
       if (target && target.remaining > 0) {
@@ -142,14 +141,16 @@ class AgriQBackend {
 
   async getBookingStatus(tokenOrPhone) {
     if (this.isLive && this.client) {
-      const { data, error } = await this.client
-        .from('bookings')
-        .select('*, mandi_centers(center_name)')
-        .or(`token_number.eq.${tokenOrPhone},phone_number.eq.${tokenOrPhone}`)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-      if (!error && data) return data;
+      try {
+        const { data, error } = await this.client
+          .from('bookings')
+          .select('*, mandi_centers(center_name), farmers!inner(phone_number, full_name)')
+          .or(`token_number.eq.${tokenOrPhone},farmers.phone_number.eq.${tokenOrPhone}`)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        if (!error && data) return data;
+      } catch (e) {}
     }
 
     if (this.activeBooking) {

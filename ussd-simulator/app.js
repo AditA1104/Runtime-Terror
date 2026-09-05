@@ -244,15 +244,15 @@
       grade: 'GRADE-A'
     },
     dynamicCenters: [
-      { center_id: 'c1-blr', center_name: 'Bengaluru APMC (Yeshwanthpur Main Yard)' },
-      { center_id: 'c2-hub', center_name: 'Hubballi APMC (Amaragol Market Yard)' },
-      { center_id: 'c3-mys', center_name: 'Mysuru APMC (Bandipalya Yard)' },
-      { center_id: 'c4-klb', center_name: 'Kalaburagi APMC (Nehru Gunj Yard)' }
+      { center_id: 'c0000000-0000-0000-0000-000000000001', center_name: 'Bengaluru APMC (Yeshwanthpur Main Yard)' },
+      { center_id: 'c0000000-0000-0000-0000-000000000002', center_name: 'Hubballi APMC (Amaragol Market Yard)' },
+      { center_id: 'c0000000-0000-0000-0000-000000000003', center_name: 'Mysuru APMC (Bandipalya Yard)' },
+      { center_id: 'c0000000-0000-0000-0000-000000000004', center_name: 'Kalaburagi APMC (Nehru Gunj Yard)' }
     ],
     dynamicSlots: [
-      { slot_id: 's1', slot_date: new Date().toISOString().split('T')[0], slot_start_time: '08:00 AM', slot_end_time: '10:00 AM', remaining: 12 },
-      { slot_id: 's2', slot_date: new Date().toISOString().split('T')[0], slot_start_time: '10:00 AM', slot_end_time: '12:00 PM', remaining: 8 },
-      { slot_id: 's3', slot_date: new Date().toISOString().split('T')[0], slot_start_time: '02:00 PM', slot_end_time: '04:00 PM', remaining: 15 }
+      { slot_id: 's0000000-0000-0000-0000-000000000001', slot_date: new Date().toISOString().split('T')[0], slot_start_time: '08:00 AM', slot_end_time: '10:00 AM', remaining: 12 },
+      { slot_id: 's0000000-0000-0000-0000-000000000002', slot_date: new Date().toISOString().split('T')[0], slot_start_time: '10:00 AM', slot_end_time: '12:00 PM', remaining: 8 },
+      { slot_id: 's0000000-0000-0000-0000-000000000003', slot_date: new Date().toISOString().split('T')[0], slot_start_time: '02:00 PM', slot_end_time: '04:00 PM', remaining: 15 }
     ],
     activeToken: null,
     activeBooking: null,
