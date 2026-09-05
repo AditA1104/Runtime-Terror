@@ -45,11 +45,10 @@ export function QueueTable({ entries, onAdvance, onException, highlightToken }: 
 
   return (
     <div className="overflow-x-auto rounded-xl border border-[var(--border)] bg-card">
-      <table className="w-full min-w-[1000px] border-collapse text-sm">
+      <table className="w-full min-w-[900px] border-collapse text-sm">
         <thead className="border-b border-[var(--border)] bg-muted/40">
           <tr>
             <th className={cn(HEAD, "w-12 text-center")}>#</th>
-            <th className={HEAD}>Token</th>
             <th className={HEAD}>Farmer</th>
             <th className={HEAD}>Slot</th>
             <th className={HEAD}>Stage</th>
@@ -81,10 +80,10 @@ export function QueueTable({ entries, onAdvance, onException, highlightToken }: 
 
                 <td className="px-3 py-2.5">
                   <div className="flex items-center gap-1.5">
-                    <span className="tabular font-semibold">{entry.token_number}</span>
+                    <span className="font-medium">{entry.farmer?.full_name ?? "—"}</span>
                     {entry.created_via === "ussd" && (
                       <span
-                        title="Booked over USSD (feature phone)"
+                        title="Booked over USSD (feature phone) — no QR pass to scan"
                         className="inline-flex items-center rounded px-1 py-0.5 text-[10px] font-medium"
                         style={{
                           color: "var(--stage-payment)",
@@ -96,10 +95,6 @@ export function QueueTable({ entries, onAdvance, onException, highlightToken }: 
                       </span>
                     )}
                   </div>
-                </td>
-
-                <td className="px-3 py-2.5">
-                  <div className="font-medium">{entry.farmer?.full_name ?? "—"}</div>
                   <div className="text-xs text-muted-foreground tabular">
                     {formatPhone(entry.farmer?.phone_number ?? null)}
                     {entry.farmer?.village ? ` · ${entry.farmer.village}` : ""}
