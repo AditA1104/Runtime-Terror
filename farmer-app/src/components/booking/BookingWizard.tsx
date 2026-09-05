@@ -23,7 +23,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
 
   // Form State
-  const [selectedCrop, setSelectedCrop] = useState<string>('Soybean');
+  const [selectedCrop, setSelectedCrop] = useState<string>('');
   const [centers, setCenters] = useState<MandiCenter[]>([]);
   const [selectedCenter, setSelectedCenter] = useState<MandiCenter | null>(null);
   const [availableSlots, setAvailableSlots] = useState<SlotAvailable[]>([]);
@@ -33,17 +33,13 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 1. Load Centers on Mount
-  useEffect(() => {
-    getMandiCenters().then(data => {
-      setCenters(data);
-      if (data.length > 0) {
-        setSelectedCenter(data[0]);
-      }
-    });
-  }, []);
+    useEffect(() => {
+     getMandiCenters().then(data => {
+       setCenters(data);
+     });
+   }, []);
 
-  // 2. Load Slots & Predictive Rates when Center or Crop changes
+ 
   useEffect(() => {
     if (selectedCenter) {
       setIsLoading(true);
@@ -156,51 +152,63 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
       {/* Step Components Container */}
       <div className="space-y-4">
         {currentStep === 1 && (
-          <Step1Crop
-            selectedCrop={selectedCrop}
-            onSelectCrop={(cropId) => {
-              setSelectedCrop(cropId);
-              handleNextStep();
-            }}
-          />
-        )}
+  <>
+    <Step1Crop
+      selectedCrop={selectedCrop}
+      onSelectCrop={(cropId) => setSelectedCrop(cropId)}
+    />
+    {selectedCrop && (
+      <button onClick={handleNextStep} className="w-full py-3.5 bg-green-700 hover:bg-green-800 text-white rounded-2xl font-bold shadow-md active:scale-[0.98] transition-all">
+        {t('btn_next')}
+      </button>
+    )}
+  </>
+)}
 
-        {currentStep === 2 && (
-          <Step2Center
-            centers={centers}
-            selectedCrop={selectedCrop}
-            selectedCenterId={selectedCenter?.center_id || ''}
-            onSelectCenter={(c) => {
-              setSelectedCenter(c);
-              handleNextStep();
-            }}
-          />
-        )}
+{currentStep === 2 && (
+  <>
+    <Step2Center
+      centers={centers}
+      selectedCrop={selectedCrop}
+      selectedCenterId={selectedCenter?.center_id || ''}
+      onSelectCenter={(c) => setSelectedCenter(c)}
+    />
+    {selectedCenter && (
+      <button onClick={handleNextStep} className="w-full py-3.5 bg-green-700 hover:bg-green-800 text-white rounded-2xl font-bold shadow-md active:scale-[0.98] transition-all">
+        {t('btn_next')}
+      </button>
+    )}
+  </>
+)}
 
-        {currentStep === 3 && selectedCenter && (
-          <Step3Slot
-            selectedDate={selectedDate}
-            onSelectDate={setSelectedDate}
-            availableSlots={availableSlots}
-            selectedSlotId={selectedSlot?.slot_id || ''}
-            onSelectSlot={(s) => {
-              setSelectedSlot(s);
-              handleNextStep();
-            }}
-            dailyRates={dailyRates}
-          />
-        )}
-
-        {currentStep === 4 && selectedCenter && selectedSlot && (
-          <Step4Confirm
-            cropId={selectedCrop}
-            center={selectedCenter}
-            slot={selectedSlot}
-            farmer={farmer}
-            onConfirmBooking={handleFinalSubmit}
-            isSubmitting={isSubmitting}
-          />
-        )}
+{currentStep === 3 && selectedCenter && (
+  <>
+    <Step3Slot
+      selectedDate={selectedDate}
+      onSelectDate={setSelectedDate}
+      availableSlots={availableSlots}
+      selectedSlotId={selectedSlot?.slot_id || ''}
+      onSelectSlot={(s) => setSelectedSlot(s)}
+      dailyRates={dailyRates}
+    />
+    {selectedSlot && (
+      <button onClick={handleNextStep} className="w-full py-3.5 bg-green-700 hover:bg-green-800 text-white rounded-2xl font-bold shadow-md active:scale-[0.98] transition-all">
+        {t('btn_next')}
+      </button>
+    )}
+  </>
+)}
+{currentStep === 4 && selectedCenter && selectedSlot && (
+  <Step4Confirm
+    cropId={selectedCrop}
+    center={selectedCenter}
+    slot={selectedSlot}
+    farmer={farmer}
+    onConfirmBooking={handleFinalSubmit}
+    isSubmitting={isSubmitting}
+  />
+)}
+        
       </div>
     </div>
   );

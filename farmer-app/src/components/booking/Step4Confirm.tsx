@@ -34,15 +34,15 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
   const estimatedPayout = Math.round(quantityQuintals * crop.mspPrice);
   const localizedCenterName = getLocalizedMandiName(center.center_name, lang);
 
-  const handleUnitToggle = (newUnit: 'quintal' | 'kg') => {
-    if (newUnit === unit) return;
-    if (newUnit === 'quintal') {
-      setQuantity(Math.max(1, Math.round(quantity / 100)));
-    } else {
-      setQuantity(quantity * 100);
-    }
-    setUnit(newUnit);
-  };
+const handleUnitToggle = (newUnit: 'quintal' | 'kg') => {
+  if (newUnit === unit) return;
+  if (newUnit === 'quintal') {
+    setQuantity(Math.min(1000, Math.max(1, Math.round(quantity / 100))));
+  } else {
+    setQuantity(Math.min(100000, quantity * 100));
+  }
+  setUnit(newUnit);
+};
 
   const kgPresets = [500, 1000, 2500, 5000, 10000];
   const quintalPresets = [5, 10, 25, 50, 100];
@@ -153,7 +153,11 @@ export const Step4Confirm: React.FC<Step4ConfirmProps> = ({
             min={1}
             max={100000}
             value={quantity}
-            onChange={e => setQuantity(Math.max(1, Number(e.target.value)))}
+           onChange={e => {
+  const raw = Number(e.target.value);
+  const cap = unit === 'kg' ? 100000 : 1000; // 100,000 kg or 1,000 quintals max
+  setQuantity(Math.min(cap, Math.max(1, raw || 1)));
+}}
             className="w-full text-xl font-black px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 focus:ring-2 focus:ring-green-600 focus:outline-none font-mono"
           />
           <div className="shrink-0 text-xs font-bold text-slate-600 text-right">
