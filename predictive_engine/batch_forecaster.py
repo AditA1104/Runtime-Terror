@@ -164,7 +164,7 @@ def generate_sql_seed_file(records: List[Dict], filepath: str) -> None:
         "-- AgriQ — P5 Predictive Engine: Seed Data for daily_rates_cache",
         f"-- Generated at: {datetime.datetime.now().isoformat()}",
         "-- =========================================================\n",
-        "INSERT INTO daily_rates_cache (crop_type, center_id, forecast_date, price_trend_score, best_day_score, reason_text, updated_at)",
+        "INSERT INTO daily_rates_cache (crop_type, center_id, forecast_date, predicted_price, price_trend_score, best_day_score, reason_text, updated_at)",
         "VALUES"
     ]
 
@@ -173,20 +173,22 @@ def generate_sql_seed_file(records: List[Dict], filepath: str) -> None:
         crop = r["crop_type"].replace("'", "''")
         center_id = r["center_id"]
         f_date = r["forecast_date"]
+        pred_price = r["predicted_price"]
         price_score = r["price_trend_score"]
         best_score = r["best_day_score"]
         reason = r["reason_text"].replace("'", "''")
 
-        val = f"  ('{crop}', '{center_id}', '{f_date}'::DATE, {price_score}, {best_score}, '{reason}', now())"
+        val = f"  ('{crop}', '{center_id}', '{f_date}'::DATE, {pred_price}, {price_score}, {best_score}, '{reason}', now())"
         value_rows.append(val)
 
     lines.append(",\n".join(value_rows))
     lines.append("""ON CONFLICT (crop_type, center_id, forecast_date)
 DO UPDATE SET
-    price_trend_score = EXCLUDED.price_trend_score,
-    best_day_score     = EXCLUDED.best_day_score,
-    reason_text        = EXCLUDED.reason_text,
-    updated_at         = now();
+    predicted_price    = EXCLUDED.predicted_price,
+    price_trend_score  = EXCLUDED.price_trend_score,
+    best_day_score      = EXCLUDED.best_day_score,
+    reason_text         = EXCLUDED.reason_text,
+    updated_at          = now();
 """)
 
     with open(filepath, "w", encoding="utf-8") as f:
@@ -224,6 +226,7 @@ def sync_to_supabase_table(records: List[Dict]) -> bool:
             "crop_type": r["crop_type"],
             "center_id": r["center_id"],
             "forecast_date": r["forecast_date"],
+            "predicted_price": r["predicted_price"],
             "price_trend_score": r["price_trend_score"],
             "best_day_score": r["best_day_score"],
             "reason_text": r["reason_text"],
