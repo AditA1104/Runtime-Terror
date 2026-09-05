@@ -49,7 +49,7 @@ export function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [centers, setCenters] = useState<MandiCenter[]>([]);
-  const [selectedCropInsight, setSelectedCropInsight] = useState('Soybean');
+  const [selectedCropInsight, setSelectedCropInsight] = useState('Onion');
   const [dailyRates, setDailyRates] = useState<DailyRatesCache[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -62,7 +62,12 @@ export function App() {
         c => c.crop_type.toLowerCase() === selectedCropInsight.toLowerCase()
       ) || data[0];
       if (matchingCenter) {
-        getDailyRatesCache(selectedCropInsight, matchingCenter.center_id).then(setDailyRates);
+        // IMPORTANT: always use the center's REAL crop_type here, never the
+        // possibly-stale selectedCropInsight — otherwise a mismatched
+        // crop/center pair silently queries for data that can never exist,
+        // and falls back to fabricated mock data with no visible warning.
+        setSelectedCropInsight(matchingCenter.crop_type);
+        getDailyRatesCache(matchingCenter.crop_type, matchingCenter.center_id).then(setDailyRates);
       }
     });
 
@@ -76,7 +81,7 @@ export function App() {
       c => c.crop_type.toLowerCase() === selectedCropInsight.toLowerCase()
     ) || centers[0];
     if (matchingCenter) {
-      const rates = await getDailyRatesCache(selectedCropInsight, matchingCenter.center_id);
+      const rates = await getDailyRatesCache(matchingCenter.crop_type, matchingCenter.center_id);
       setDailyRates(rates);
     }
     const notifs = await getFarmerNotifications(farmer?.farmer_id || '');
@@ -331,12 +336,16 @@ export function App() {
                   Select Commodity to Forecast:
                 </label>
                 <div className="flex gap-2 overflow-x-auto pb-1">
-                  {['Soybean', 'Wheat', 'Cotton', 'Paddy', 'Mustard', 'Gram'].map(crop => (
+                  {/* Derived from REAL centers only — a hardcoded list here
+                      previously included crops (Soybean, Paddy, Gram) with
+                      no matching real center, which silently triggered
+                      fabricated mock data every time they were tapped. */}
+                  {Array.from(new Set(centers.map(c => c.crop_type))).map(crop => (
                     <button
                       key={crop}
                       onClick={() => setSelectedCropInsight(crop)}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                        selectedCropInsight === crop
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all capitalize ${
+                        selectedCropInsight.toLowerCase() === crop.toLowerCase()
                           ? 'bg-green-700 text-white shadow-sm'
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}

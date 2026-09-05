@@ -37,6 +37,11 @@ export const BestDayCard: React.FC<BestDayCardProps> = ({
               <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-full">
                 {t('best_day_badge')}
               </span>
+              {bestDay.is_mock && (
+                <span className="text-[10px] font-black uppercase tracking-wider text-red-700 bg-red-100 border border-red-300 px-2 py-0.5 rounded-full">
+                  ⚠ Demo Data — not live
+                </span>
+              )}
               <span className="text-xs font-bold text-slate-600">
                 {cropType} @ {centerName}
               </span>

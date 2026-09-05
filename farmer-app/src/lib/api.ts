@@ -137,7 +137,7 @@ export async function getDailyRatesCache(cropType: string, centerId: string): Pr
       console.warn('Supabase fetch daily rates fallback:', e);
     }
   }
-  return generateDailyRatesCache(cropType, centerId, 7);
+  return generateDailyRatesCache(cropType, centerId, 7).map(r => ({ ...r, is_mock: true }));
 }
 
 // 4. Farmer Profile
@@ -239,24 +239,27 @@ export async function createBooking(params: {
 
   if (isSupabaseLive && supabase) {
     try {
-      const { data: rpcData, error: rpcError } = await supabase.rpc('create_ussd_booking', {
-        p_phone_number: params.phoneNumber || '',
-        p_center_id: params.centerId,
-        p_slot_id: params.slotId,
-        p_crop_quantity_kg: params.cropQuantityKg,
-        p_full_name: params.fullName || null,
-        p_created_via: 'web',
+      // Calls the REAL deployed create-booking Edge Function (checks slot
+      // capacity, generates token, sets queue position, inserts the row) —
+      // NOT a Postgres RPC named create_ussd_booking, which never existed
+      // and was silently failing every booking to this local mock fallback.
+      const { data: fnData, error: fnError } = await supabase.functions.invoke('create-booking', {
+        body: {
+          farmer_id: params.farmerId,
+          slot_id: params.slotId,
+          center_id: params.centerId,
+          crop_quantity_kg: params.cropQuantityKg,
+          created_via: 'web',
+        },
       });
 
-      if (rpcError) {
-        console.error('create_ussd_booking RPC failed:', rpcError.message);
-      } else if (rpcData?.booking_id) {
-        // Re-fetch with joined relations so the shape matches the Booking type
-        // the rest of the app expects (mandi_centers / slots / farmers nested).
+      if (fnError) {
+        console.error('create-booking Edge Function failed:', fnError.message);
+      } else if (fnData?.success && fnData?.booking?.booking_id) {
         const { data: fullBooking, error: fetchError } = await supabase
           .from('bookings')
           .select(`*, mandi_centers (*), slots (*), farmers (*)`)
-          .eq('booking_id', rpcData.booking_id)
+          .eq('booking_id', fnData.booking.booking_id)
           .single();
 
         if (!fetchError && fullBooking) {
@@ -264,12 +267,9 @@ export async function createBooking(params: {
         }
       }
     } catch (e) {
-      console.error('create_ussd_booking RPC threw:', e);
+      console.error('create-booking Edge Function threw:', e);
     }
     // If we reach here on a live Supabase project, the booking was NOT saved.
-    // Falling through to local-only state below means the UI will show a
-    // token that does not exist in the database - only acceptable as an
-    // offline/demo-only last resort, not a silent success path.
   }
 
   // Local state generation
@@ -288,6 +288,7 @@ export async function createBooking(params: {
     mandi_centers: center,
     farmers: localFarmer,
     slots: updatedSlot,
+    is_mock: true, // this booking only exists in the browser, NOT in Supabase
   };
 
   localBookings.unshift(newBooking);
