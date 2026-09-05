@@ -1,0 +1,1294 @@
+/* =========================================================
+   AgriQ National Mandi Procurement Gateway Stylesheet (v6)
+   Theme: Ministry of Consumer Affairs Enterprise Dark
+   Compliant with Trai DLT & APMC Protocols
+   ========================================================= */
+
+:root {
+  --bg-main: #090d16;
+  --bg-card: #111827;
+  --bg-card-border: #1f2937;
+  --accent-green: #10b981;
+  --accent-blue: #38bdf8;
+  --accent-amber: #f59e0b;
+  --accent-purple: #a855f7;
+  --accent-red: #ef4444;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  /* Retro Nokia Screen Colors */
+  --lcd-bg: #8ca888;
+  --lcd-text: #112411;
+  --lcd-border: #5e7a5b;
+  --phone-body: #1e293b;
+  --key-bg: #0f172a;
+  --key-hover: #1e293b;
+  --key-active: #334155;
+  --key-text: #e2e8f0;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 1540px;
+  margin: 0 auto;
+  padding: 0.85rem 1.25rem;
+  width: 100%;
+}
+
+/* Header */
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--bg-card-border);
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.gov-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: #fbbf24;
+  display: block;
+}
+
+.emblem-group h1 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.15rem;
+}
+
+.emblem-group .sub {
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.status-bar-top {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.76rem;
+  background: var(--bg-card);
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--bg-card-border);
+}
+
+.pulse-indicator {
+  width: 8px;
+  height: 8px;
+  background-color: var(--accent-green);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--accent-green);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+/* Action Toolbar */
+.action-toolbar {
+  background: #111827;
+  border: 1px solid var(--bg-card-border);
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.85rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.toolbar-left, .toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.toolbar-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-blue);
+  margin-right: 0.25rem;
+}
+
+.turnaround-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #34d399;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.73rem;
+}
+
+.turnaround-pill .pill-dot {
+  width: 6px;
+  height: 6px;
+  background: #34d399;
+  border-radius: 50%;
+}
+
+.tool-btn {
+  background: #1e293b;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.tool-btn:hover:not(:disabled) {
+  background: #334155;
+  border-color: var(--accent-green);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.tool-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tool-btn.btn-receipt {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+.tool-btn.btn-receipt:not(:disabled):hover {
+  background: var(--accent-green);
+  color: #000;
+}
+
+.tool-btn.btn-danger:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
+
+/* Config Drawer */
+.config-drawer {
+  background: #1e293b;
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+  padding: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+.config-drawer.hidden { display: none; }
+
+.config-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.config-inner h3 {
+  font-size: 0.88rem;
+  color: #60a5fa;
+}
+
+.config-inner .hint {
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  margin-bottom: 0.55rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.form-row input {
+  flex: 1;
+  min-width: 200px;
+  background: #0f172a;
+  border: 1px solid var(--bg-card-border);
+  color: #fff;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+/* Main Layout Grid (2-Column: Nokia Feature Phone + Farmer SMS Feed) */
+.main-content {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1.5rem;
+  max-width: 1040px;
+  margin: 0 auto;
+  flex: 1;
+}
+
+@media (max-width: 860px) {
+  .main-content { grid-template-columns: 1fr; }
+}
+
+.section-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.45rem;
+  font-weight: 600;
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+}
+
+.lang-selector-group {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.lang-chip {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.lang-chip:hover {
+  border-color: #64748b;
+  color: #fff;
+}
+
+.lang-chip.active {
+  background: #fbbf24;
+  color: #000;
+  border-color: #f59e0b;
+}
+
+/* =========================================================
+   FEATURE PHONE (NOKIA CHASSIS)
+   ========================================================= */
+.phone-chassis {
+  background: linear-gradient(145deg, #223046, #121824);
+  border: 3px solid #334155;
+  border-radius: 28px;
+  padding: 1rem;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 310px;
+  margin: 0 auto;
+}
+
+.phone-speaker {
+  width: 44px;
+  height: 5px;
+  background: #0f172a;
+  border-radius: 3px;
+  margin-bottom: 0.75rem;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);
+}
+
+.phone-screen-bezel {
+  background: #0f172a;
+  border-radius: 12px;
+  padding: 0.45rem;
+  width: 100%;
+  box-shadow: inset 0 3px 6px rgba(0,0,0,0.8);
+  border: 2px solid #1f2937;
+  margin-bottom: 0.75rem;
+}
+
+.screen-header {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'VT323', monospace;
+  font-size: 0.95rem;
+  color: #475569;
+  padding: 0 0.25rem 0.15rem;
+}
+
+.screen-timer {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+/* Retro LCD Screen */
+.lcd-screen {
+  background-color: var(--lcd-bg);
+  color: var(--lcd-text);
+  border: 2px solid var(--lcd-border);
+  border-radius: 6px;
+  height: 205px;
+  padding: 0.55rem;
+  font-family: 'VT323', monospace;
+  font-size: 1.15rem;
+  line-height: 1.25;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.05s ease;
+}
+
+.lcd-screen.shake-error {
+  animation: lcdShake 0.3s ease-in-out;
+  background-color: #a87b7b !important;
+}
+
+@keyframes lcdShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+.lcd-screen::after {
+  content: " ";
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.08) 50%);
+  background-size: 100% 3px;
+  pointer-events: none;
+}
+
+.screen-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.screen-view.hidden { display: none; }
+
+.dialer-prompt {
+  font-size: 0.95rem;
+  margin-top: 0.75rem;
+  text-align: center;
+}
+
+.dialed-display {
+  font-size: 2.1rem;
+  font-weight: bold;
+  text-align: center;
+  margin: 1rem 0;
+  letter-spacing: 2px;
+}
+
+.dialer-hint {
+  font-size: 0.8rem;
+  text-align: center;
+  opacity: 0.85;
+  margin-top: auto;
+}
+
+.ussd-title {
+  font-weight: bold;
+  font-size: 1.05rem;
+  border-bottom: 1px dashed var(--lcd-text);
+  padding-bottom: 0.15rem;
+  margin-bottom: 0.25rem;
+}
+
+.ussd-body {
+  flex: 1;
+  overflow-y: auto;
+  word-break: break-word;
+  white-space: pre-line;
+  font-size: 1.05rem;
+}
+
+.ussd-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.15rem;
+  font-weight: bold;
+  font-size: 1.25rem;
+  border-top: 1px dashed var(--lcd-text);
+  padding-top: 0.15rem;
+}
+
+.blinking-cursor {
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.ussd-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 0.65rem;
+}
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid rgba(26, 46, 26, 0.2);
+  border-top-color: var(--lcd-text);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.screen-footer {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'VT323', monospace;
+  font-size: 0.95rem;
+  color: #475569;
+  padding: 0.2rem 0.4rem 0;
+}
+
+/* Nav Keys */
+.nav-keys {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 0.65rem;
+  padding: 0 0.2rem;
+}
+
+.soft-key {
+  background: var(--key-bg);
+  color: #10b981;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 0.45rem 0.8rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #090d16;
+  transition: all 0.1s;
+}
+
+.soft-key:hover { background: #1e293b; }
+.soft-key:active, .soft-key.active-press { transform: translateY(2px); box-shadow: 0 1px 0 #090d16; }
+
+.end-key { color: #f43f5e; }
+
+.dpad {
+  width: 46px;
+  height: 38px;
+  background: #0f172a;
+  border: 2px solid #334155;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.dpad-center {
+  background: #1e293b;
+  color: #f8fafc;
+  border: 1px solid #475569;
+  border-radius: 4px;
+  width: 32px;
+  height: 24px;
+  font-size: 0.65rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #090d16;
+}
+
+.dpad-center:active, .dpad-center.active-press { transform: translateY(1px); box-shadow: none; }
+
+/* Numeric Keypad */
+.numeric-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.45rem;
+  width: 100%;
+}
+
+.num-key {
+  background: var(--key-bg);
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 0.45rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #090d16;
+  transition: all 0.08s ease;
+  user-select: none;
+}
+
+.num-key:hover { background: #1e293b; border-color: #475569; }
+.num-key:active, .num-key.active-press {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #090d16;
+  background: #334155;
+}
+
+.num-key .num {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f8fafc;
+  line-height: 1;
+}
+
+.num-key .subtext {
+  font-size: 0.52rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.phone-model-label {
+  font-size: 0.58rem;
+  color: #475569;
+  margin-top: 0.75rem;
+  letter-spacing: 1px;
+}
+
+/* =========================================================
+   COLUMN 2: FARMER SMS INBOX
+   ========================================================= */
+.sms-phone-frame {
+  background: #0f172a;
+  border: 2px solid var(--bg-card-border);
+  border-radius: 16px;
+  height: 520px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.sms-header {
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sender-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sms-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--accent-green);
+  border-radius: 50%;
+}
+
+.sender-id {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.dlt-badge {
+  font-size: 0.58rem;
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.sms-messages {
+  flex: 1;
+  padding: 0.85rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sms-bubble {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-left: 3px solid var(--accent-green);
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  position: relative;
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.sms-bubble-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.sms-sender-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.sms-time {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+}
+
+.sms-body-text {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: #e2e8f0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.sms-body-text strong {
+  color: #fbbf24;
+}
+
+.sms-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  margin-top: 0.45rem;
+  border-top: 1px dashed rgba(255,255,255,0.08);
+  padding-top: 0.35rem;
+}
+
+.sms-btn-action {
+  background: transparent;
+  border: 1px solid #475569;
+  color: #94a3b8;
+  font-size: 0.65rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.sms-btn-action:hover {
+  background: #334155;
+  color: #fff;
+  border-color: #94a3b8;
+}
+
+.sms-bubble.alert-status { border-left-color: #38bdf8; }
+.sms-bubble.alert-weighed { border-left-color: #a855f7; }
+.sms-bubble.alert-quality { border-left-color: #38bdf8; }
+.sms-bubble.alert-payment { border-left-color: #f59e0b; }
+.sms-bubble.alert-complete { border-left-color: #10b981; }
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  text-align: center;
+  gap: 0.4rem;
+}
+
+.empty-icon { font-size: 2rem; }
+
+.badge-count {
+  background: #334155;
+  color: #94a3b8;
+  font-size: 0.7rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 9999px;
+}
+
+.phone-id-card {
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  border-radius: 10px;
+  padding: 0.55rem 0.8rem;
+  margin-top: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.phone-id-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.phone-id-card label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.phone-status-tag {
+  font-size: 0.62rem;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-green);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.phone-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.phone-input-group input {
+  background: #0f172a;
+  border: 1px solid var(--bg-card-border);
+  color: #fff;
+  padding: 0.3rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  flex: 1;
+}
+
+/* Modal Styling */
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-backdrop.hidden { display: none; }
+
+.modal-card {
+  background: #0f172a;
+  border: 2px solid #334155;
+  border-radius: 14px;
+  max-width: 680px;
+  width: 100%;
+  padding: 1.25rem;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.receipt-header {
+  border-bottom: 2px solid #334155;
+  padding-bottom: 0.75rem;
+  text-align: center;
+  margin-bottom: 0.85rem;
+}
+
+.gov-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #fbbf24;
+  margin-bottom: 0.25rem;
+}
+
+.receipt-header h2 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.receipt-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.token-hero {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 0.65rem;
+  text-align: center;
+  margin-bottom: 0.85rem;
+}
+
+.token-hero .token-lbl {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  display: block;
+}
+
+.token-hero .token-val {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #38bdf8;
+  letter-spacing: 2px;
+  font-family: 'Fira Code', monospace;
+}
+
+.receipt-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+  font-size: 0.76rem;
+  background: #161e2e;
+  border: 1px solid #243046;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.receipt-grid .r-lbl {
+  color: var(--text-muted);
+  display: block;
+  font-size: 0.68rem;
+}
+
+.receipt-grid strong {
+  color: #f1f5f9;
+}
+
+.receipt-qr-area {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  background: #fff;
+  color: #000;
+  border-radius: 8px;
+  padding: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+.qr-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.qr-svg {
+  background: #fff;
+}
+
+.barcode-strip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.barcode-strip .bars {
+  width: 95px;
+  height: 18px;
+  background: repeating-linear-gradient(
+    90deg,
+    #000,
+    #000 2px,
+    #fff 2px,
+    #fff 4px,
+    #000 4px,
+    #000 7px,
+    #fff 7px,
+    #fff 9px
+  );
+}
+
+.barcode-text {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.58rem;
+  color: #333;
+}
+
+.qr-metadata {
+  flex: 1;
+}
+
+.stamp-box {
+  display: inline-block;
+  border: 2px dashed #059669;
+  color: #059669;
+  font-weight: 800;
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  text-align: center;
+  transform: rotate(-3deg);
+  margin-bottom: 0.45rem;
+}
+
+.qr-note {
+  font-size: 0.72rem;
+  color: #334155;
+  margin-bottom: 0.35rem;
+}
+
+.qr-metadata code {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.62rem;
+  background: #f1f5f9;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  display: block;
+  word-break: break-all;
+  color: #0f172a;
+}
+
+.receipt-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  border-top: 1px solid #334155;
+  padding-top: 0.75rem;
+}
+
+/* Rates Table Modal */
+.rates-table-wrapper {
+  margin: 0.85rem 0;
+  overflow-x: auto;
+}
+
+.rates-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  text-align: left;
+}
+
+.rates-table th {
+  background: #1e293b;
+  color: #94a3b8;
+  padding: 0.55rem 0.75rem;
+  font-weight: 600;
+}
+
+.rates-table td {
+  padding: 0.55rem 0.75rem;
+  border-top: 1px solid #1e293b;
+}
+
+.trend-up { color: #34d399; font-weight: 700; }
+.trend-down { color: #f87171; font-weight: 700; }
+.trend-stable { color: #fbbf24; font-weight: 700; }
+
+.badge-hold {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.68rem;
+}
+
+.badge-sell {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.68rem;
+}
+
+/* Buttons General */
+.btn-primary {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary:hover { background: #1d4ed8; }
+
+.btn-secondary {
+  background: #1e293b;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+
+.btn-secondary:hover { background: #334155; }
+
+.btn-text {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.btn-text:hover { color: #fff; }
+
+.btn-sm {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 5px;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.btn-sm:hover { background: #334155; }
+
+/* Official Footer */
+.main-footer {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--bg-card-border);
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Print Stylesheet */
+@media print {
+  body * { visibility: hidden; }
+  .modal-backdrop, .modal-card, .print-target, .print-target * { visibility: visible; }
+  .modal-backdrop { position: absolute; left: 0; top: 0; background: #fff; padding: 0; }
+  .modal-card { border: none; box-shadow: none; max-width: 100%; color: #000; background: #fff; }
+  .no-print { display: none !important; }
+  .token-hero { background: #f8fafc; border: 1px solid #cbd5e1; }
+  .token-hero .token-val { color: #0f172a; }
+  .receipt-grid { background: #f8fafc; border: 1px solid #cbd5e1; }
+  .receipt-grid strong { color: #0f172a; }
+}
+
+/* =========================================================
+   MANDI OPERATIONAL KPIS & TELECOM PROTOCOL STYLES
+   ========================================================= */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+@media (max-width: 1100px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  border-radius: 8px;
+  padding: 0.45rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.kpi-card.highlight-card {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.kpi-lbl {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.kpi-val {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0.15rem 0;
+  font-family: 'Fira Code', monospace;
+}
+
+.kpi-sub {
+  font-size: 0.56rem;
+  color: #64748b;
+}
+
+.text-green { color: #34d399 !important; }
+
+/* Scanner Simulation */
+.btn-scan {
+  background: #1e293b;
+  border-color: #38bdf8;
+  color: #38bdf8;
+  font-size: 0.72rem;
+  padding: 0.35rem 0.65rem;
+}
+
+.btn-scan:hover:not(:disabled) {
+  background: #0284c7;
+  color: #fff;
+}
+
+.scanner-preview {
+  position: relative;
+  background: #020617;
+  border: 1px solid #38bdf8;
+  border-radius: 6px;
+  height: 40px;
+  margin-top: 0.45rem;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.laser-scanner-line {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444, 0 0 12px #ef4444;
+  animation: scanLaser 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes scanLaser {
+  0% { top: 2px; }
+  100% { top: 36px; }
+}
+
+.scanner-text {
+  font-size: 0.68rem;
+  font-family: 'Fira Code', monospace;
+  color: #38bdf8;
+  z-index: 2;
+}
+
+/* SS7 Telecom Trace Terminal */
+.btn-trace {
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+.btn-trace:hover {
+  background: #0369a1;
+  color: #fff;
+}
+
+.terminal-modal {
+  max-width: 840px;
+}
+
+.terminal-body {
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 0.75rem;
+  height: 380px;
+  overflow-y: auto;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.trace-row {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  padding-bottom: 0.2rem;
+}
+
+.trace-time { color: #64748b; min-width: 65px; }
+.trace-protocol { color: #fbbf24; font-weight: 600; min-width: 80px; }
+.trace-dir { color: #a855f7; min-width: 110px; }
+.trace-payload { color: #38bdf8; flex: 1; word-break: break-all; }
+.trace-payload.resp { color: #34d399; }
+
+/* Security Digest Hash */
+.receipt-hash {
+  margin-top: 0.35rem;
+  font-size: 0.62rem;
+  font-family: 'Fira Code', monospace;
+  color: #475569;
+}
+
+.hash-label { color: #64748b; font-weight: 600; }
+.hash-value { color: #0284c7; }
+
+/* Speech Synthesis Waveform Animation */
+.speaking-wave {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
+}
+
+.wave-bar {
+  width: 2px;
+  height: 8px;
+  background: #38bdf8;
+  animation: wavePulse 0.6s infinite ease-in-out alternate;
+}
+
+.wave-bar:nth-child(2) { animation-delay: 0.15s; height: 12px; }
+.wave-bar:nth-child(3) { animation-delay: 0.3s; height: 14px; }
+.wave-bar:nth-child(4) { animation-delay: 0.45s; height: 10px; }
+
+@keyframes wavePulse {
+  0% { transform: scaleY(0.4); }
+  100% { transform: scaleY(1.3); }
+}
