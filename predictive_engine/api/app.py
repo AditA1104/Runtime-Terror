@@ -72,8 +72,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 3. ADDED: API Key Authentication Logic
-API_KEY = os.environ.get("QNA_API_KEY", "agriq-secure-qa-key-2026")
+# 3. API Key Authentication Logic
+# No hardcoded fallback: this repo is public, so any default value here is
+# effectively already leaked. Require QNA_API_KEY to be set in the actual
+# deployment environment (Render/Railway secret, GH Actions secret, etc).
+API_KEY = os.environ.get("QNA_API_KEY")
+if not API_KEY:
+    raise RuntimeError(
+        "QNA_API_KEY is not set. Set it in the deployment environment before "
+        "starting this service — there is no default value."
+    )
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=True)
 
 def verify_api_key(api_key: str = Security(api_key_header)):

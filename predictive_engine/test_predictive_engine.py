@@ -4,6 +4,7 @@ Test Suite: test_predictive_engine.py
 """
 
 import pytest
+import os
 from fastapi.testclient import TestClient
 
 try:
@@ -84,6 +85,15 @@ def test_fastapi_qa_only_endpoints():
     assert r_health.status_code == 200
     assert r_health.json()["status"] == "healthy"
 
-    r_qa = client.post("/api/qa", json={"query": "When should I sell cotton?", "lang": "en"})
+    # No X-API-Key: should be rejected now that the endpoint requires one.
+    r_qa_noauth = client.post("/api/qa", json={"query": "When should I sell cotton?", "lang": "en"})
+    assert r_qa_noauth.status_code in (401, 403)
+
+    # With the test-only key set in conftest.py: should succeed.
+    r_qa = client.post(
+        "/api/qa",
+        json={"query": "When should I sell cotton?", "lang": "en"},
+        headers={"X-API-Key": os.environ["QNA_API_KEY"]},
+    )
     assert r_qa.status_code == 200
     assert "Cotton" in r_qa.json()["answer"]
