@@ -11,7 +11,10 @@ import json
 from pathlib import Path
 from contextlib import asynccontextmanager
 from typing import Optional, List, Dict, Any
-from fastapi import FastAPI
+
+# 1. ADDED: New security imports from FastAPI
+from fastapi import FastAPI, Depends, HTTPException, Security
+from fastapi.security.api_key import APIKeyHeader
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -25,7 +28,6 @@ except (ImportError, ValueError):
 
 CACHED_RECORDS: List[Dict] = []
 qa_engine = AgriQChatbotEngine()
-
 
 def load_cached_data():
     global CACHED_RECORDS
@@ -43,12 +45,10 @@ def load_cached_data():
     else:
         print(f"[AgriQ Q&A] Notice: No local rates cache found at {json_path}. NLP fallback active.")
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     load_cached_data()
     yield
-
 
 app = FastAPI(
     title="AgriQ Q&A Natural Language Assistant",
@@ -57,22 +57,35 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
+# 2. CHANGED: Strict CORS Policy
+# Replaced "*" wildcard with actual frontend domains
+ALLOWED_ORIGINS = os.environ.get(
+    "ALLOWED_ORIGINS", 
+    "https://agriq.gov.in,https://www.agriq.gov.in,http://localhost:5173"
+).split(",")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=False,
+    allow_credentials=True, # Changed to True to support secure headers
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
+# 3. ADDED: API Key Authentication Logic
+API_KEY = os.environ.get("QNA_API_KEY", "agriq-secure-qa-key-2026")
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=True)
+
+def verify_api_key(api_key: str = Security(api_key_header)):
+    if api_key != API_KEY:
+        raise HTTPException(status_code=403, detail="Could not validate API credentials.")
+    return api_key
 
 class QARequest(BaseModel):
     query: str
     crop: Optional[str] = None
     center_id: Optional[str] = None
     lang: Optional[str] = "en"
-
 
 class QAResponse(BaseModel):
     query: str
@@ -81,9 +94,9 @@ class QAResponse(BaseModel):
     answer: str
     details: Optional[Dict[str, Any]] = None
 
-
 @app.get("/health")
 def health_check():
+    # Health checks usually remain open so uptime monitors can ping them
     return {
         "status": "healthy",
         "service": "AgriQ Q&A Assistant (P5 Stretch Goal)",
@@ -91,8 +104,9 @@ def health_check():
         "reference_records_count": len(CACHED_RECORDS)
     }
 
-
-@app.post("/api/qa", response_model=QAResponse)
+# 4. CHANGED: Endpoint Protection
+# Injected the verify_api_key dependency into the route
+@app.post("/api/qa", response_model=QAResponse, dependencies=[Depends(verify_api_key)])
 def ask_question(payload: QARequest):
     res = qa_engine.process_query(payload.query, lang=payload.lang or "en")
     return QAResponse(
@@ -102,7 +116,6 @@ def ask_question(payload: QARequest):
         answer=res.get("answer", "No advice available."),
         details=res.get("details")
     )
-
 
 if __name__ == "__main__":
     import uvicorn

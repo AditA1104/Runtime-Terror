@@ -10,6 +10,7 @@ interface QRCodeDisplayProps {
   phoneNumber?: string;
   slotDate?: string;
   size?: number;
+  securePayload?: string; 
 }
 
 export const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
@@ -20,20 +21,9 @@ export const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
   phoneNumber,
   slotDate,
   size = 180,
+  securePayload,
 }) => {
   const [copied, setCopied] = useState(false);
-
-  // Payload scanned by Mandi Officer scanner app (P3)
-  const qrPayload = JSON.stringify({
-    type: 'AGRIQ_TOKEN',
-    booking_id: bookingId,
-    token_number: tokenNumber,
-    token: tokenNumber, // backward compatibility
-    farmer_id: farmerId,
-    center_id: centerId,
-    phone_number: phoneNumber || '',
-    slot_date: slotDate || new Date().toISOString().split('T')[0],
-  });
 
   const handleCopy = () => {
     navigator.clipboard.writeText(tokenNumber);
@@ -43,16 +33,22 @@ export const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
 
   return (
     <div className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl border-2 border-dashed border-slate-200">
-      <div className="p-3 bg-white rounded-xl shadow-xs border border-slate-100 relative group">
-        <QRCodeSVG
-          className="agriq-qr-svg"
-          value={qrPayload}
-          size={size}
-          level="H"
-          includeMargin={true}
-          bgColor="#ffffff"
-          fgColor="#0f172a"
-        />
+      <div className="p-3 bg-white rounded-xl shadow-xs border border-slate-100 relative group min-h-[200px] flex items-center justify-center">
+        {securePayload ? (
+          <QRCodeSVG
+            className="agriq-qr-svg"
+            value={securePayload}
+            size={size}
+            level="H"
+            includeMargin={true}
+            bgColor="#ffffff"
+            fgColor="#0f172a"
+          />
+        ) : (
+          <div className="animate-pulse w-[180px] h-[180px] bg-slate-100 rounded-lg flex items-center justify-center text-xs text-slate-400 p-4 text-center">
+            Waiting for secure pass...
+          </div>
+        )}
       </div>
 
       <div className="mt-3 flex items-center gap-2">

@@ -16,7 +16,7 @@ import { useTranslation } from './hooks/useTranslation';
 import { getLocalizedMandiName } from './lib/translations';
 import { useSupabaseRealtime } from './hooks/useSupabaseRealtime';
 import { useOfflineCache } from './hooks/useOfflineCache';
-import { getMandiCenters, getDailyRatesCache, getFarmerNotifications } from './lib/api';
+import { getMandiCenters, getDailyRatesCache, getFarmerNotifications, transitionBookingStatus } from './lib/api';
 import { MandiCenter, DailyRatesCache, NotificationItem, Booking } from './types/schema';
 import { formatDate } from './lib/utils';
 import { 
@@ -254,7 +254,6 @@ export function App() {
                   onCancelBooking={async () => {
                     if (window.confirm('Are you sure you want to cancel this booking?')) {
                       // Transition to CANCELLED
-                      const { transitionBookingStatus } = await import('./lib/api');
                       await transitionBookingStatus(activeBooking.booking_id, 'CANCELLED');
                       handleManualRefresh();
                     }
