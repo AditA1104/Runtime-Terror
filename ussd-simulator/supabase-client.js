@@ -3,6 +3,15 @@
  * Adheres to Locked Schema v2 (Team Runtime-Terror)
  */
 
+// Anon/publishable keys are safe to expose client-side by design (protected
+// by RLS + the SECURITY DEFINER functions this app actually calls) - so a
+// hardcoded default here is standard practice, not a leak. Without this,
+// anyone opening this page on a device that has never manually configured
+// Supabase credentials via the settings menu silently gets fake demo data
+// (Bengaluru/Ragi placeholders) with no indication anything is wrong.
+const DEFAULT_SUPABASE_URL = 'https://hxaqfwtdiumpoyjpmumq.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4YXFmd3RkaXVtcG95anBtdW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNzg1OTEsImV4cCI6MjEwMzc1NDU5MX0.dmm4h0SezpVJJ6gvAIJusKVujsw0R3N1W9N8FnE6eEU';
+
 class AgriQBackend {
   constructor() {
     this.client = null;
@@ -14,9 +23,9 @@ class AgriQBackend {
   }
 
   initFromStorage() {
-    const url = localStorage.getItem('agriq_supabase_url');
-    const key = localStorage.getItem('agriq_supabase_key');
-    if (url && key && window.supabase) {
+    const url = localStorage.getItem('agriq_supabase_url') || DEFAULT_SUPABASE_URL;
+    const key = localStorage.getItem('agriq_supabase_key') || DEFAULT_SUPABASE_ANON_KEY;
+    if (url && key && key !== 'PASTE_YOUR_REAL_ANON_KEY_HERE' && window.supabase) {
       try {
         this.client = window.supabase.createClient(url, key);
         this.isLive = true;

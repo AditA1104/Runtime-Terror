@@ -57,11 +57,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# 2. CHANGED: Strict CORS Policy
-# Replaced "*" wildcard with actual frontend domains
+# CORS: restrict to the actual deployed frontends, not a wildcard.
+# Previously defaulted to "agriq.gov.in" - a domain this project doesn't own -
+# instead of the real deployed apps, which would have silently rejected every
+# real request if this service were ever actually pointed at from the browser.
 ALLOWED_ORIGINS = os.environ.get(
-    "ALLOWED_ORIGINS", 
-    "https://agriq.gov.in,https://www.agriq.gov.in,http://localhost:5173"
+    "ALLOWED_ORIGINS",
+    "https://farmers-dash.vercel.app,https://officer-dash.vercel.app,https://ussd-agriq.vercel.app,http://localhost:5173,http://localhost:3000"
 ).split(",")
 
 app.add_middleware(
