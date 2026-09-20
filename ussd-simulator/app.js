@@ -31,6 +31,11 @@
   const numKeys = document.querySelectorAll('.num-key');
   const langChips = document.querySelectorAll('.lang-chip');
 
+  // Voice
+  const micBtn = document.getElementById('mic-btn');
+  const voiceModeToggleBtn = document.getElementById('voice-mode-toggle-btn');
+  const voiceHeardText = document.getElementById('voice-heard-text');
+
   // SMS Elements
   const smsMessages = document.getElementById('sms-messages');
   const smsCountBadge = document.getElementById('sms-count');
@@ -228,6 +233,7 @@
     currentMenu: 'ROOT',
     menuHistory: ['ROOT'],
     lang: 'en',
+    voiceMode: false,
     sessionTimer: 60,
     timerInterval: null,
     sessionId: 'sess_' + Math.random().toString(36).substr(2, 8),
@@ -407,6 +413,29 @@
     }
   };
 
+  // --- Voice: spoken digit-words per language (0-9). Speech recognition for
+  // Kannada/Hindi/Marathi does not reliably transcribe spoken multi-digit
+  // numbers as numerals, so farmers are prompted to speak digits one at a
+  // time (e.g. quantity 1500 -> "one five zero zero") — the same convention
+  // real banking/telecom IVR systems use for exactly this reason.
+  const NUM_WORDS = {
+    en: { '0': ['zero'], '1': ['one'], '2': ['two'], '3': ['three'], '4': ['four'], '5': ['five'], '6': ['six'], '7': ['seven'], '8': ['eight'], '9': ['nine'] },
+    hi: { '0': ['शून्य', 'सुन्न'], '1': ['एक'], '2': ['दो'], '3': ['तीन'], '4': ['चार'], '5': ['पांच', 'पाँच'], '6': ['छह', 'छः'], '7': ['सात'], '8': ['आठ'], '9': ['नौ'] },
+    mr: { '0': ['शून्य'], '1': ['एक'], '2': ['दोन'], '3': ['तीन'], '4': ['चार'], '5': ['पाच'], '6': ['सहा'], '7': ['सात'], '8': ['आठ'], '9': ['नऊ'] },
+    kn: { '0': ['ಸೊನ್ನೆ', 'ಶೂನ್ಯ'], '1': ['ಒಂದು'], '2': ['ಎರಡು'], '3': ['ಮೂರು'], '4': ['ನಾಲ್ಕು'], '5': ['ಐದು'], '6': ['ಆರು'], '7': ['ಏಳು'], '8': ['ಎಂಟು'], '9': ['ಒಂಬತ್ತು'] }
+  };
+
+  // BCP-47 speech locale per UI language, matching the mapping already used
+  // for the SMS "Listen" TTS button.
+  const SPEECH_LOCALE = { en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN', kn: 'kn-IN' };
+
+  const NOT_UNDERSTOOD = {
+    en: "Sorry, I didn't understand. Please try again or use the keypad.",
+    hi: 'माफ़ कीजिए, समझ नहीं आया। कृपया फिर कोशिश करें या कीपैड का उपयोग करें।',
+    mr: 'माफ करा, समजले नाही. कृपया पुन्हा प्रयत्न करा किंवा कीपॅड वापरा.',
+    kn: 'ಕ್ಷಮಿಸಿ, ಅರ್ಥವಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಕೀಪ್ಯಾಡ್ ಬಳಸಿ.'
+  };
+
   // --- Clock ---
   function updateClock() {
     const clockEl = document.getElementById('screen-clock');
@@ -466,6 +495,146 @@
     soundEnabled = !soundEnabled;
     soundToggleBtn.textContent = soundEnabled ? '🔊 Audio: ON' : '🔇 Audio: OFF';
     soundToggleBtn.style.color = soundEnabled ? '#10b981' : '#94a3b8';
+  });
+
+  // ======================================================================
+  // --- Voice IVR: speak the current menu, listen for a spoken reply ---
+  // Reuses the exact voice-matching pattern already used by the SMS
+  // "Listen" (Text-to-Speech) button, so behaviour stays consistent between
+  // the two features rather than each guessing differently at which
+  // installed system voice to use.
+  // ======================================================================
+
+  function getSpeechLocale() {
+    return SPEECH_LOCALE[state.lang] || 'en-IN';
+  }
+
+  function speakText(text) {
+    if (!('speechSynthesis' in window) || !text) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    const targetLang = getSpeechLocale();
+    utter.lang = targetLang;
+    const applyVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices && voices.length > 0) {
+        const matchingVoice = voices.find(v => v.lang === targetLang || v.lang.startsWith(targetLang.slice(0, 2)));
+        if (matchingVoice) utter.voice = matchingVoice;
+      }
+      window.speechSynthesis.speak(utter);
+    };
+    if (window.speechSynthesis.getVoices().length > 0) {
+      applyVoice();
+    } else {
+      window.speechSynthesis.onvoiceschanged = applyVoice;
+    }
+  }
+
+  // Speaks whatever is currently on screen (title + body), stripping the
+  // numbered-list characters that read awkwardly aloud (e.g. "1." before
+  // every option) while keeping the option text itself.
+  function speakCurrentScreen() {
+    const spoken = `${ussdTitle.textContent}. ${ussdBody.textContent}`
+      .replace(/\n/g, '. ')
+      .replace(/(^|\.\s*)\d+\.\s*/g, '$1');
+    speakText(spoken);
+  }
+
+  // Converts a spoken transcript into a digit string by matching each word
+  // against NUM_WORDS for the active language, falling back to any literal
+  // numeral characters the recognizer already returned (Chrome sometimes
+  // transcribes spoken numbers as digits even for non-English locales).
+  function parseSpeechToDigits(transcript) {
+    const words = NUM_WORDS[state.lang] || NUM_WORDS.en;
+    const tokens = transcript.trim().split(/\s+/);
+    let digits = '';
+    tokens.forEach(tok => {
+      const clean = tok.toLowerCase().replace(/[.,!?]/g, '');
+      let matched = false;
+      for (const d of Object.keys(words)) {
+        if (words[d].some(w => w.toLowerCase() === clean)) {
+          digits += d;
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) {
+        const numeral = clean.match(/\d+/);
+        if (numeral) digits += numeral[0];
+      }
+    });
+    return digits;
+  }
+
+  async function handleVoiceResult(transcript) {
+    voiceHeardText.textContent = `"${transcript}"`;
+    const digits = parseSpeechToDigits(transcript);
+    if (digits.length > 0) {
+      state.inputBuffer = digits;
+      ussdInputDisplay.textContent = digits;
+      await handleUssdSubmit();
+    } else {
+      flashScreenError();
+      speakText(NOT_UNDERSTOOD[state.lang] || NOT_UNDERSTOOD.en);
+    }
+  }
+
+  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null;
+  let isListening = false;
+
+  if (!SpeechRecognitionAPI) {
+    micBtn.disabled = true;
+    micBtn.title = 'Voice input needs Chrome or Edge — use the keypad here.';
+  } else {
+    recognition = new SpeechRecognitionAPI();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onresult = (e) => {
+      const transcript = e.results[0][0].transcript;
+      handleVoiceResult(transcript);
+    };
+    recognition.onerror = () => {
+      isListening = false;
+      micBtn.classList.remove('listening');
+      micBtn.textContent = '🎤 Speak';
+    };
+    recognition.onend = () => {
+      isListening = false;
+      micBtn.classList.remove('listening');
+      micBtn.textContent = '🎤 Speak';
+    };
+
+    micBtn.addEventListener('click', () => {
+      if (isListening) return;
+      if (state.mode !== 'MENU') {
+        flashScreenError();
+        return;
+      }
+      resetSessionTimer();
+      recognition.lang = getSpeechLocale();
+      try {
+        recognition.start();
+        isListening = true;
+        micBtn.classList.add('listening');
+        micBtn.textContent = '🔴 Listening...';
+        voiceHeardText.textContent = '';
+      } catch (err) {
+        console.error('[AgriQ Voice] recognition.start() failed:', err);
+      }
+    });
+  }
+
+  voiceModeToggleBtn.addEventListener('click', () => {
+    state.voiceMode = !state.voiceMode;
+    voiceModeToggleBtn.textContent = state.voiceMode ? '🎙️ Voice Mode: ON' : '🎙️ Voice Mode: OFF';
+    voiceModeToggleBtn.style.color = state.voiceMode ? '#10b981' : '#94a3b8';
+    if (state.voiceMode && state.mode === 'MENU') {
+      speakCurrentScreen();
+    } else {
+      window.speechSynthesis && window.speechSynthesis.cancel();
+    }
   });
 
   // --- Language Selection ---
@@ -837,6 +1006,19 @@
 
       default:
         exitToDialer();
+    }
+
+    // Quantity is the one field voice can't take as a single spoken number
+    // (recognizers don't reliably turn "fifteen hundred" into "1500" across
+    // four languages) — so it's entered digit-by-digit instead. Surface that
+    // as a standing hint rather than letting someone discover it by a failed
+    // attempt with no explanation.
+    voiceHeardText.textContent = state.currentMenu === 'BOOK_QTY'
+      ? '💡 Say digits one by one, e.g. "one five zero zero"'
+      : '';
+
+    if (state.voiceMode && state.mode === 'MENU') {
+      speakCurrentScreen();
     }
   }
 

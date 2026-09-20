@@ -24,6 +24,7 @@
       </div>
       <div class="header-controls">
         <button id="sound-toggle-btn" class="btn-sm" title="Toggle Telecom DTMF Audio">🔊 Audio: ON</button>
+        <button id="voice-mode-toggle-btn" class="btn-sm" title="Read menus aloud automatically in the selected language">🎙️ Voice Mode: OFF</button>
         <button id="signaling-toggle-btn" class="btn-sm btn-trace" title="View Real-Time GSM SS7/MAP Signaling Trace">📡 SS7 Trace</button>
         <div class="status-bar-top">
           <span class="pulse-indicator" id="pulse-dot"></span>
@@ -113,6 +114,10 @@
                   <span class="prompt-arrow">&gt;</span>
                   <span id="ussd-input-display" class="input-display"></span>
                   <span class="blinking-cursor">_</span>
+                </div>
+                <div class="voice-input-row">
+                  <button id="mic-btn" class="btn-mic" title="Speak your choice instead of pressing keys">🎤 Speak</button>
+                  <span id="voice-heard-text" class="voice-heard"></span>
                 </div>
               </div>
 

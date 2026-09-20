@@ -458,6 +458,59 @@ body {
   animation: blink 1s infinite;
 }
 
+.voice-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}
+
+.btn-mic {
+  background: var(--accent-blue);
+  border: none;
+  color: #0f172a;
+  padding: 0.25rem 0.55rem;
+  border-radius: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-mic:hover { filter: brightness(1.08); }
+.btn-mic:active { transform: translateY(1px); }
+
+.btn-mic.listening {
+  background: var(--accent-red);
+  color: #fff;
+  animation: micPulse 1s infinite;
+}
+
+.btn-mic:disabled {
+  background: #334155;
+  color: #64748b;
+  cursor: not-allowed;
+  animation: none;
+}
+
+@keyframes micPulse {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+  70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.voice-heard {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.68rem;
+  color: var(--accent-amber);
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @keyframes blink {
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0; }
